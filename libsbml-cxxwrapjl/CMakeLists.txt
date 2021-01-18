@@ -1,7 +1,7 @@
 
 project(sbml-cxxwrapjl)
 
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_MACOSX_RPATH 1)
 #TODO why? set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
