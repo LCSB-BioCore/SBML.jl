@@ -1,0 +1,4 @@
+name = "SBML"
+uuid = "e5567a89-2604-4b09-9718-f5f78e97c3bb"
+authors = ["Mirek Kratochvil <exa.exa@gmail.com>"]
+version = "0.1.0"
