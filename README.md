@@ -8,13 +8,22 @@ be added by need.
 ## How to use this
 
 First, build the C++ library and a wrapper and register it in your julia
-installation. You usually want to specify a single architecture to build, to
-avoid building all of them.
+installation. You need BinaryBuilder for that:
+
+```
+Pkg] add BinaryBuilder
+```
+
+After the BinaryBuilder is installed, the build script should be able to build
+a lot of different versions of the package for possible architectures and
+configurations. You usually want to specify a single architecture to build. The
+`--deploy` option puts the new package to a place where Julia can find it
+later:
 ```
 ./build_tarballs.jl x86_64-linux-gnu --deploy=local 
 ```
 
-After that, you should be able to load the SBML in Julia:
+After that, you should be able to load the SBML package in Julia:
 ```
 Pkg] dev --local .
 julia> using SBML
