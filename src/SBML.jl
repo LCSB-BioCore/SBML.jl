@@ -1,9 +1,16 @@
 module SBML
 
 using CxxWrap
+using SBML_jll
 
-# TODO: load the libsbml project from the BinaryBuilder destination
-@wrapmodule("./libsbml-cxxwrapjl.so")
+@wrapmodule(libsbml)
+
+# version tools
+export getLibSBMLDependencyVersionOf,
+    getLibSBMLDottedVersion,
+    getLibSBMLVersion,
+    getLibSBMLVersionString,
+    isLibSBMLCompiledWith
 
 function __init__()
   @initcxx
