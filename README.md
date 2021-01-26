@@ -30,3 +30,16 @@ julia> using SBML
 julia> getLibSBMLDottedVersion()
 "5.19.0"
 ```
+
+## Usage
+
+```julia
+using SBML
+m = readSBML("myModel.xml")
+
+# m is now a Model with
+m.reactions
+m.species
+m.compartments
+...
+```

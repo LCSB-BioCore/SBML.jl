@@ -66,7 +66,7 @@ model_data read_sbml(const std::string& fn) {
     for (unsigned j = 0; j < ud.getNumUnits(); ++j) {
       Unit& u = *ud.getUnit(j);
       m.units.emplace_back(
-          unit_part{ud.getName(), UnitKind_toString(u.getKind()),
+          unit_part{ud.getId(), UnitKind_toString(u.getKind()),
                     u.getExponent(), u.getScale(), u.getMultiplier()});
     }
   }
