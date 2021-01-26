@@ -26,6 +26,7 @@ message(STATUS "SBML includedir: ${SBML_INCLUDEDIR}")
 add_library(sbml-cxxwrapjl SHARED
 	src/cxxwrap.cpp
 	src/versions.cpp
+	src/readsbml.cpp
 )
 
 target_include_directories(sbml-cxxwrapjl SYSTEM PUBLIC ${SBML_INCLUDEDIR})
