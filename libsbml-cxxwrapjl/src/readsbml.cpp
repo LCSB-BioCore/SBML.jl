@@ -111,13 +111,13 @@ model_data read_sbml(const std::string& fn) {
 }
 
 void define_readsbml(jlcxx::Module& mod) {
-  mod.add_type<species_info>("Species");
-  mod.add_type<unit_part>("UnitPart");
-  mod.add_type<stoi>("Stoichiometry");
-  mod.add_type<reaction>("Reaction").constructor();
-  mod.add_type<model_data>("Model");
+  mod.add_type<species_info>("SpeciesCxx");
+  mod.add_type<unit_part>("UnitPartCxx");
+  mod.add_type<stoi>("StoichiometryCxx");
+  mod.add_type<reaction>("ReactionCxx").constructor();
+  mod.add_type<model_data>("ModelCxx");
 
-  mod.method("readSBML", &read_sbml);
+  mod.method("readSBML_internal", &read_sbml);
 
 #define access(t, n) mod.method(#n, [](const t& x) { return x.n; })
 

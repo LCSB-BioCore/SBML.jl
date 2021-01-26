@@ -1,16 +1,14 @@
 module SBML
 
+include("readsbml.jl")
+
 using CxxWrap
 using SBML_jll
 
 @wrapmodule(libsbml)
 
-# version tools
-export getLibSBMLDependencyVersionOf,
-    getLibSBMLDottedVersion,
-    getLibSBMLVersion,
-    getLibSBMLVersionString,
-    isLibSBMLCompiledWith
+export getLibSBMLDottedVersion,
+    readSBML
 
 function __init__()
   @initcxx
