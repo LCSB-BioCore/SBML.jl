@@ -9,7 +9,6 @@ sources = [
         ArchiveSource(
           "https://github.com/sbmlteam/libsbml/archive/v5.19.0.tar.gz",
           "127a44cc8352f998943bb0b91aaf4961604662541b701c993e0efd9bece5dfa8"),
-        DirectorySource("libsbml-cxxwrapjl", target="wrapper"),
 ]
 
 script = raw"""
@@ -37,49 +36,20 @@ cmake \
 make -j${nproc}
 make install
 
-# now the wrapper
-
-cd ${WORKSPACE}/srcdir/wrapper
-mkdir build
-cd build
-
-SBML_PC_DIR="${prefix}/lib/pkgconfig"
-
-PKG_CONFIG_PATH=$SBML_PC_DIR pkg-config libsbml --cflags --libs
-
-PKG_CONFIG_PATH=${SBML_PC_DIR} cmake \
-  -DCMAKE_INSTALL_PREFIX=${prefix} \
-  -DCMAKE_LIBRARY_PATH=${prefix}/lib \
-  -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TARGET_TOOLCHAIN} \
-  -DJulia_PREFIX=${prefix} \
-  ..
-  
-make -j${nproc}
-make install
-
-# install licenses (note: using `cp` is not fine, but the build env lacks
-# `install` version that could do this correctly)
-
 LICENSEDIR=${prefix}/share/licenses/SBML
 mkdir -p $LICENSEDIR
-cp ${WORKSPACE}/srcdir/wrapper/LICENSE $LICENSEDIR/LICENSE-wrapper
-cp ${WORKSPACE}/srcdir/${SBMLNAME}/LICENSE.txt $LICENSEDIR/LICENSE-libSBML
-cp ${WORKSPACE}/srcdir/${SBMLNAME}/COPYING.txt $LICENSEDIR/COPYING-libSBML
+cp ${WORKSPACE}/srcdir/${SBMLNAME}/LICENSE.txt $LICENSEDIR/LICENSE
+cp ${WORKSPACE}/srcdir/${SBMLNAME}/COPYING.txt $LICENSEDIR/COPYING
 """
 
-platforms = supported_platforms()
-#platforms = [ Linux(:x86_64, libc=:glibc) ]
-
-platforms = expand_cxxstring_abis(platforms)
+platforms = expand_cxxstring_abis(supported_platforms())
 
 products = [
-    LibraryProduct("libsbml-cxxwrapjl", :libsbml),
+    LibraryProduct("libsbml", :libsbml),
 ]
 
 dependencies = [
-    Dependency("libcxxwrap_julia_jll"),
     Dependency("CompilerSupportLibraries_jll"),
-    BuildDependency(PackageSpec(name="libjulia_jll", version=julia_version)),
     Dependency("XML2_jll"),
     Dependency("Zlib_jll"),
 ]

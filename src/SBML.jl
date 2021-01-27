@@ -1,13 +1,13 @@
 module SBML
 
 using CxxWrap
-using SBML_jll
+using ReadSBML_jll
 
 function __init__()
   @initcxx
 end
 
-@wrapmodule(libsbml)
+@wrapmodule(libreadsbml)
 
 include("readsbml.jl")
 
