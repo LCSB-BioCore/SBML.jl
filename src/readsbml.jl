@@ -1,6 +1,11 @@
 
 const VPtr = Ptr{Cvoid}
 
+"""
+    function readSBML(fn::String)::Model
+
+Read the SBML from a XML file in `fn` and return the contained `Model`.
+"""
 function readSBML(fn::String)::Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
