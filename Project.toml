@@ -4,5 +4,6 @@ authors = ["Mirek Kratochvil <exa.exa@gmail.com>"]
 version = "0.1.0"
 
 [deps]
-CxxWrap = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
+Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 SBML_jll = "bb12108a-f4ef-5f88-8ef3-0b33ff7017f1"

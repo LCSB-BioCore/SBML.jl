@@ -1,25 +1,15 @@
 module SBML
 
-using CxxWrap
-using ReadSBML_jll
+using SBML_jll, Libdl, Pkg
 
-function __init__()
-  @initcxx
-end
-
-@wrapmodule(libreadsbml)
-
+include("structs.jl")
+include("version.jl")
 include("readsbml.jl")
+include("utils.jl")
 
-export getLibSBMLDottedVersion,
-    readSBML,
-    Model,
-    UnitPart,
-    Species,
-    Reaction,
-    getS,
-    getLBs,
-    getUBs,
-    getOCs
+sbml = (sym::Symbol) -> dlsym(SBML_jll.libsbml_handle, sym)
+
+export SBMLVersion,
+    readSBML, Model, UnitPart, Species, Reaction, getS, getLBs, getUBs, getOCs
 
 end # module
