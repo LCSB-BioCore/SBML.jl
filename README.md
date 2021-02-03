@@ -1,9 +1,13 @@
 # SBML.jl
 
-This is a simple wrap of some of the libSBML functionality.
+| Build status | Documentation |
+|:---:|:---:|
+| ![CI](https://github.com/LCSB-BioCore/SBML.jl/workflows/CI/badge.svg?branch=develop) | [![doc](https://img.shields.io/badge/docs-stable-blue)](https://lcsb-biocore.github.io/SBML.jl/stable/) [![doc](https://img.shields.io/badge/docs-dev-blue)](https://lcsb-biocore.github.io/SBML.jl/dev/) |
 
-Current status is "under development", something works, more wrapped stuff will
-be added by need.
+
+This is a simple wrap of some of the libSBML functionality, mainly the model loading for purposes of COBRA analysis methods.
+
+Other functionality will be added as needed. Feel free to submit a PR that increases the loading "coverage".
 
 ## Usage
 
@@ -11,7 +15,7 @@ be added by need.
 using SBML
 m = readSBML("myModel.xml")
 
-# m is now a Model with
+# m is now a Model structure with:
 m.reactions
 m.species
 m.compartments
