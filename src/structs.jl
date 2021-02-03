@@ -1,6 +1,7 @@
 
 """
-Part of a measurement unit definition that corresponds to the SBML definition of `Unit`. For example, "per square megahour", Mh^(-2), is written as:
+Part of a measurement unit definition that corresponds to the SBML definition
+of `Unit`. For example, "per square megahour", Mh^(-2), is written as:
 
     UnitPart("second", # base unit of time
              -2, # exponent, says "per square"
@@ -17,8 +18,9 @@ end
 
 """
 Reaction with stoichiometry that assigns reactants and products their relative
-consumption/production rates, lower/upper bounds (in tuples with unit names),
-and objective coefficient.
+consumption/production rates (accessible in field `stoichiometry`), lower/upper
+bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
+(`oc`).
 """
 struct Reaction
     stoichiometry::Dict{String,Float64}
@@ -38,8 +40,9 @@ struct Species
 end
 
 """
-Structure that collects the model-related data. Dictionaries are indexed by
-identifiers of the corresponding objects.
+Structure that collects the model-related data. Contains `units`,
+`compartments`, `species` and `reactions`. The contained dictionaries are
+indexed by identifiers of the corresponding objects.
 """
 struct Model
     units::Dict{String,Vector{UnitPart}}
