@@ -1,7 +1,9 @@
 
-using Test
+using Test, SHA
 using SBML
 import Pkg
 
-include("version.jl")
-include("loadEColi.jl")
+@testset "SBML test suite" begin
+    include("version.jl")
+    include("loadEColi.jl")
+end
