@@ -1,12 +1,16 @@
 
 """
 Part of a measurement unit definition that corresponds to the SBML definition
-of `Unit`. For example, "per square megahour", Mh^(-2), is written as:
+of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
 
-    UnitPart("second", # base unit of time
-             -2, # exponent, says "per square"
-             6, # scale in powers of 10, says "mega"
-             1/3600) # second-to-hour multiplier
+    UnitPart("second",  # base SI unit, this says we are measuring time
+             -2,        # exponent, says "per square"
+             6,         # log-10 scale of the unit, says "mega"
+             1/3600)    # second-to-hour multiplier
+
+Compound units (such as "volt-amperes" and "dozens of yards per ounce") are
+built from multiple `UnitPart`s; see the definition of field `units` in
+[`Model`](@ref).
 """
 struct UnitPart
     kind::String
@@ -31,7 +35,8 @@ struct Reaction
 end
 
 """
-Species metadata -- human-readable name and compartment identifier
+Species metadata -- contains a human-readable `name`, and a `compartment`
+identifier
 """
 struct Species
     name::String
