@@ -11,13 +11,11 @@ function readSBML(fn::String)::Model
     try
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
         if n_errs > 0
-            @error "SBML loading failed"
-            throw(:IOError)
+            throw(SystemError("Opening SBML document has failed"))
         end
 
         if 0 == ccall(sbml(:SBMLDocument_isSetModel), Cint, (VPtr,), doc)
-            @error "SBML document does not contain a model"
-            throw(:ValueError)
+            throw(AssertionError("SBML document contains no model"))
         end
 
         model = ccall(sbml(:SBMLDocument_getModel), VPtr, (VPtr,), doc)
