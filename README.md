@@ -2,7 +2,7 @@
 
 | Build status | Documentation |
 |:---:|:---:|
-| ![CI](https://github.com/LCSB-BioCore/SBML.jl/workflows/CI/badge.svg?branch=develop) | [![doc](https://img.shields.io/badge/docs-stable-blue)](https://lcsb-biocore.github.io/SBML.jl/) |
+| ![CI](https://github.com/LCSB-BioCore/SBML.jl/workflows/CI/badge.svg?branch=master) | [![doc](https://img.shields.io/badge/docs-stable-blue)](https://lcsb-biocore.github.io/SBML.jl/) |
 
 
 This is a simple wrap of some of the libSBML functionality, mainly the model loading for purposes of COBRA analysis methods.
