@@ -1,0 +1,14 @@
+language: julia
+
+branches:
+  only:
+    - master
+
+os:
+    - linux
+
+julia:
+    - 1.5
+
+notifications:
+    email: false

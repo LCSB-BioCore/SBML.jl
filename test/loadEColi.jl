@@ -2,7 +2,7 @@
 sbmlfile = "EColi.xml"
 
 if !isfile(sbmlfile)
-    download("https://systemsbiology.ucsd.edu/sites/systemsbiology.ucsd.edu/files/Attachments/Images/InSilicoOrganisms/Ecoli/Ecoli_SBML/Ec_core_flux1.xml", sbmlfile)
+    download("http://systemsbiology.ucsd.edu/sites/systemsbiology.ucsd.edu/files/Attachments/Images/InSilicoOrganisms/Ecoli/Ecoli_SBML/Ec_core_flux1.xml", sbmlfile)
 end
 
 if bytes2hex(sha256(sbmlfile)) != "e3d18499660a0f7fc15a5a44f33f001c7881ac99a2e8a6a461edf1cf3d69a537"
@@ -13,11 +13,11 @@ end
     mdl = readSBML(sbmlfile)
 
     @test typeof(mdl) == Model
-    
+
     @test_throws SystemError readSBML(sbmlfile * ".does.not.really.exist")
 
     @test length(mdl.compartments) == 2
-    
+
     mets, rxns, S = getS(mdl)
 
     @test length(mets) == 77
