@@ -5,8 +5,9 @@ if !isfile(sbmlfile)
     download("http://systemsbiology.ucsd.edu/sites/systemsbiology.ucsd.edu/files/Attachments/Images/InSilicoOrganisms/Ecoli/Ecoli_SBML/Ec_core_flux1.xml", sbmlfile)
 end
 
-if bytes2hex(sha256(sbmlfile)) != "e3d18499660a0f7fc15a5a44f33f001c7881ac99a2e8a6a461edf1cf3d69a537"
-    @warn "The downloaded E Coli core flux model seems to be different from the expected one. Tests will likely fail."
+cksum = bytes2hex(sha256(open(sbmlfile)))
+if cksum != "01a883b364fa60582101ca1e270515e7fcb3fb2f60084d92e5ee45f9f72bbe50"
+    @warn "The downloaded E Coli core flux model seems to be different from the expected one. Tests will likely fail." cksum
 end
 
 @testset "SBML model loading" begin
