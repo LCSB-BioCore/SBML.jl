@@ -1,5 +1,5 @@
 
-sbmlfile = "EColi.xml"
+sbmlfile = "Ec_core_flux1.xml"
 
 if !isfile(sbmlfile)
     download("http://systemsbiology.ucsd.edu/sites/systemsbiology.ucsd.edu/files/Attachments/Images/InSilicoOrganisms/Ecoli/Ecoli_SBML/Ec_core_flux1.xml", sbmlfile)
@@ -10,7 +10,7 @@ if cksum != "01a883b364fa60582101ca1e270515e7fcb3fb2f60084d92e5ee45f9f72bbe50"
     @warn "The downloaded E Coli core flux model seems to be different from the expected one. Tests will likely fail." cksum
 end
 
-@testset "SBML model loading" begin
+@testset "SBML flux model loading" begin
     mdl = readSBML(sbmlfile)
 
     @test typeof(mdl) == Model
