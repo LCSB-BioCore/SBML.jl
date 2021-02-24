@@ -15,6 +15,7 @@ end
 
     @test typeof(mdl) == Model
 
+    @info "The next warning is an expected side-effect of testing an error condition"
     @test_throws AssertionError readSBML(sbmlfile * ".does.not.really.exist")
 
     @test length(mdl.compartments) == 2

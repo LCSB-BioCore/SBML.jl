@@ -6,5 +6,5 @@ import Pkg
 @testset "SBML test suite" begin
     include("version.jl")
     include("ecoli_flux.jl")
-    include("ecoli_modelonly.jl")
+    include("loadmodels.jl")
 end
