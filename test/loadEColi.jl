@@ -15,7 +15,7 @@ end
 
     @test typeof(mdl) == Model
 
-    @test_throws SystemError readSBML(sbmlfile * ".does.not.really.exist")
+    @test_throws AssertionError readSBML(sbmlfile * ".does.not.really.exist")
 
     @test length(mdl.compartments) == 2
 

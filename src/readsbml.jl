@@ -10,8 +10,13 @@ function readSBML(fn::String)::Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
+        for i = 0:n_errs-1
+            err = ccall(sbml(:SBMLDocument_getError), VPtr, (VPtr, Cuint), doc, i)
+            msg = unsafe_string(ccall(sbml(:XMLError_getMessage), Cstring, (VPtr,), err))
+            @warn "SBML reported error: $msg"
+        end
         if n_errs > 0
-            throw(SystemError("Opening SBML document has failed"))
+            throw(AssertionError("Opening SBML document has reported errors"))
         end
 
         if 0 == ccall(sbml(:SBMLDocument_isSetModel), Cint, (VPtr,), doc)
