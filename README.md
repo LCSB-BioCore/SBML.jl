@@ -9,6 +9,17 @@ This is a simple wrap of some of the libSBML functionality, mainly the model loa
 
 Other functionality will be added as needed. Feel free to submit a PR that increases the loading "coverage".
 
+#### Acknowledgements
+
+`SBML.jl` was developed at the Luxembourg Centre for Systems Biomedicine of the
+University of Luxembourg ([uni.lu/lcsb](https://www.uni.lu/lcsb)). The
+development was supported by European Union's Horizon 2020 Programme under
+PerMedCoE project ([permedcoe.eu](https://www.permedcoe.eu/)) agreement no.
+951773.
+
+<img src="docs/src/assets/unilu.svg" alt="Uni.lu logo" height="64px">   <img src="docs/src/assets/lcsb.svg" alt="LCSB logo" height="64px">   <img src="docs/src/assets/permedcoe.svg" alt="PerMedCoE logo" height="64px">
+
+
 ## Usage
 
 ```julia
