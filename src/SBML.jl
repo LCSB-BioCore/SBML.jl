@@ -1,6 +1,7 @@
 module SBML
 
 using SBML_jll, Libdl, Pkg
+using SparseArrays
 
 include("structs.jl")
 include("version.jl")

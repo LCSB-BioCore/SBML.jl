@@ -21,6 +21,10 @@ end
 
     mets, rxns, S = getS(mdl)
 
+    @test typeof(S) <: AbstractMatrix{Float64}
+    @test typeof(getS(mdl; zeros=spzeros)[3]) <: SparseMatrixCSC{Float64}
+    @test typeof(getS(mdl; zeros=zeros)[3]) == Matrix{Float64}
+
     @test length(mets) == 77
     @test length(rxns) == 77
     @test size(S) == (length(mets),length(rxns))

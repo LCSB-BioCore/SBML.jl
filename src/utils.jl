@@ -1,18 +1,25 @@
 """
-    function getS(m::Model)::Tuple{Vector{String},Vector{String},Matrix{Float64}}
+    function getS(m::Model; zeros=spzeros)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
 
 Extract the vector of species (aka metabolite) identifiers, vector of reaction
 identifiers, and the (dense) stoichiometry matrix from an existing `Model`.
 Returns a tuple with these values.
+
+The matrix is sparse by default (initially constructed by
+`SparseArrays.spzeros`). You can fill in a custom empty matrix constructed to
+argument `zeros`; e.g. running with `zeros=zeros` will produce a dense matrix.
 """
-function getS(m::Model)::Tuple{Vector{String},Vector{String},Matrix{Float64}}
-    #TODO this will need a sparse version and faster row ID lookup
-    rows = [k for k in keys(m.species)] #TODO this too
+function getS(
+    m::Model;
+    zeros = spzeros,
+)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
+    rows = [k for k in keys(m.species)]
     cols = [k for k in keys(m.reactions)]
+    rowsd = Dict(k => i for (i, k) in enumerate(rows))
     S = zeros(Float64, length(rows), length(cols))
-    for ri = 1:length(cols)
-        stoi = m.reactions[cols[ri]].stoichiometry
-        S[indexin(keys(stoi), rows), ri] .= values(stoi)
+    for col = 1:length(cols)
+        stoi = m.reactions[cols[col]].stoichiometry
+        S[getindex.(Ref(rowsd), keys(stoi)), col] .= values(stoi)
     end
     return rows, cols, S
 end
