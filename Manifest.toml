@@ -68,9 +68,9 @@ uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[SBML_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "XML2_jll", "Zlib_jll"]
-git-tree-sha1 = "4787b76c8914002ab3a9d2b1ae002fe82376bfba"
+git-tree-sha1 = "247cd7b890c0405a73ed2fe3fdf4b44503954cdf"
 uuid = "bb12108a-f4ef-5f88-8ef3-0b33ff7017f1"
-version = "5.19.0+1"
+version = "5.19.0+2"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
