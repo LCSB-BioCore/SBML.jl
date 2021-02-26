@@ -1,5 +1,5 @@
 
-using Test, SHA
+using Test, SHA, SparseArrays
 using SBML
 import Pkg
 
