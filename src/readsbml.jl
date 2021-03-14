@@ -32,6 +32,8 @@ function readSBML(fn::String)::Model
 end
 
 function extractModel(mdl::VPtr)::Model
+    mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
+
     parameters = Dict{String,Float64}()
     for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
         p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
@@ -84,8 +86,27 @@ function extractModel(mdl::VPtr)::Model
         )
     end
 
-    reactions = Dict{String,Reaction}()
+    objectives_fbc = Dict{String,Float64}()
+    if mdl_fbc != C_NULL
+        for i = 1:ccall(sbml(:FbcModelPlugin_getNumObjectives), Cuint, (VPtr,), mdl_fbc)
+            o = ccall(
+                sbml(:FbcModelPlugin_getObjective),
+                VPtr,
+                (VPtr, Cuint),
+                mdl_fbc,
+                i - 1,
+            )
+            # this part seems missing in C API docs...
+            for j = 1:ccall(sbml(:Objective_getNumFluxObjectives), Cuint, (VPtr,), o)
+                fo = ccall(sbml(:Objective_getFluxObjective), VPtr, (VPtr, Cuint), o, j - 1)
+                objectives_fbc[unsafe_string(
+                    ccall(sbml(:FluxObjective_getReaction), Cstring, (VPtr,), fo),
+                )] = ccall(sbml(:FluxObjective_getCoefficient), Cdouble, (VPtr,), fo)
+            end
+        end
+    end
 
+    reactions = Dict{String,Reaction}()
     for i = 1:ccall(sbml(:Model_getNumReactions), Cuint, (VPtr,), mdl)
         re = ccall(sbml(:Model_getReaction), VPtr, (VPtr, Cuint), mdl, i - 1)
         lb = (-Inf, "")
@@ -111,7 +132,7 @@ function extractModel(mdl::VPtr)::Model
             end
         end
 
-        # TRICKY: SBML spec is completely silent about the situation when
+        # TRICKY: SBML spec is completely silent about what should happen if
         # someone specifies both the above and below formats of the flux bounds
         # for one reaction. Notably, these do not really specify much
         # interaction with units. In this case, we'll just set a special
@@ -150,8 +171,9 @@ function extractModel(mdl::VPtr)::Model
             add_stoi(sr, 1)
         end
 
-        reactions[unsafe_string(ccall(sbml(:Reaction_getId), Cstring, (VPtr,), re))] =
-            Reaction(stoi, lb, ub, oc)
+        reid = unsafe_string(ccall(sbml(:Reaction_getId), Cstring, (VPtr,), re))
+        reactions[reid] =
+            Reaction(stoi, lb, ub, haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc)
     end
 
     return Model(parameters, units, compartments, species, reactions)
