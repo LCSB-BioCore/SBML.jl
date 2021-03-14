@@ -50,9 +50,10 @@ Structure that collects the model-related data. Contains `units`,
 indexed by identifiers of the corresponding objects.
 """
 struct Model
+    params::Dict{String,Float64}
     units::Dict{String,Vector{UnitPart}}
     compartments::Vector{String}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
-    Model(u, c, s, r) = new(u, c, s, r)
+    Model(p, u, c, s, r) = new(p, u, c, s, r)
 end

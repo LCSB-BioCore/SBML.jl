@@ -32,6 +32,14 @@ function readSBML(fn::String)::Model
 end
 
 function extractModel(mdl::VPtr)::Model
+    parameters = Dict{String,Float64}()
+    for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
+        p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
+        id = unsafe_string(ccall(sbml(:Parameter_getId), Cstring, (VPtr,), p))
+        v = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
+        parameters[id] = v
+    end
+
     units = Dict{String,Vector{UnitPart}}()
     for i = 1:ccall(sbml(:Model_getNumUnitDefinitions), Cuint, (VPtr,), mdl)
         ud = ccall(sbml(:Model_getUnitDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
@@ -103,6 +111,26 @@ function extractModel(mdl::VPtr)::Model
             end
         end
 
+        # TRICKY: SBML spec is completely silent about the situation when
+        # someone specifies both the above and below formats of the flux bounds
+        # for one reaction. Notably, these do not really specify much
+        # interaction with units. In this case, we'll just set a special
+        # "[fbc]" unit that has no specification in `units`, and hope the users
+        # can make something out of it.
+        re_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), re, "fbc")
+        if re_fbc != C_NULL
+            fbcb =
+                ccall(sbml(:FbcReactionPlugin_getLowerFluxBound), Cstring, (VPtr,), re_fbc)
+            if fbcb != C_NULL && haskey(parameters, unsafe_string(fbcb))
+                lb = (parameters[unsafe_string(fbcb)], "[fbc]")
+            end
+            fbcb =
+                ccall(sbml(:FbcReactionPlugin_getUpperFluxBound), Cstring, (VPtr,), re_fbc)
+            if fbcb != C_NULL && haskey(parameters, unsafe_string(fbcb))
+                ub = (parameters[unsafe_string(fbcb)], "[fbc]")
+            end
+        end
+
         stoi = Dict{String,Float64}()
         add_stoi =
             (sr, factor) ->
@@ -126,5 +154,5 @@ function extractModel(mdl::VPtr)::Model
             Reaction(stoi, lb, ub, oc)
     end
 
-    return Model(units, compartments, species, reactions)
+    return Model(parameters, units, compartments, species, reactions)
 end
