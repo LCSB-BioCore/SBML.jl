@@ -82,16 +82,28 @@ function extractModel(mdl::VPtr)::Model
         sp = ccall(sbml(:Model_getSpecies), VPtr, (VPtr, Cuint), mdl, i - 1)
         sp_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), sp, "fbc")
         formula = ""
-        if sp_fbc != C_NULL &&
-           0 != ccall(sbml(:FbcSpeciesPlugin_isSetChemicalFormula), Cint, (VPtr,), sp_fbc)
-            formula = unsafe_string(
-                ccall(sbml(:FbcSpeciesPlugin_getChemicalFormula), Cstring, (VPtr,), sp_fbc),
-            )
+        charge = nothing
+        if sp_fbc != C_NULL
+            if 0 !=
+               ccall(sbml(:FbcSpeciesPlugin_isSetChemicalFormula), Cint, (VPtr,), sp_fbc)
+                formula = unsafe_string(
+                    ccall(
+                        sbml(:FbcSpeciesPlugin_getChemicalFormula),
+                        Cstring,
+                        (VPtr,),
+                        sp_fbc,
+                    ),
+                )
+            end
+            if 0 != ccall(sbml(:FbcSpeciesPlugin_isSetCharge), Cint, (VPtr,), sp_fbc)
+                charge = ccall(sbml(:FbcSpeciesPlugin_getCharge), Cint, (VPtr,), sp_fbc)
+            end
         end
         species[unsafe_string(ccall(sbml(:Species_getId), Cstring, (VPtr,), sp))] = Species(
             unsafe_string(ccall(sbml(:Species_getName), Cstring, (VPtr,), sp)),
             unsafe_string(ccall(sbml(:Species_getCompartment), Cstring, (VPtr,), sp)),
             formula,
+            charge,
         )
     end
 

@@ -42,7 +42,8 @@ struct Species
     name::String
     compartment::String
     formula::String
-    Species(n, c, f) = new(n, c, f)
+    charge::Union{Nothing,Int}
+    Species(n, co, f, ch) = new(n, co, f, ch)
 end
 
 """
