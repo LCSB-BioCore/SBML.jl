@@ -80,9 +80,18 @@ function extractModel(mdl::VPtr)::Model
     species = Dict{String,Species}()
     for i = 1:ccall(sbml(:Model_getNumSpecies), Cuint, (VPtr,), mdl)
         sp = ccall(sbml(:Model_getSpecies), VPtr, (VPtr, Cuint), mdl, i - 1)
+        sp_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), sp, "fbc")
+        formula = ""
+        if sp_fbc != C_NULL &&
+           0 != ccall(sbml(:FbcSpeciesPlugin_isSetChemicalFormula), Cint, (VPtr,), sp_fbc)
+            formula = unsafe_string(
+                ccall(sbml(:FbcSpeciesPlugin_getChemicalFormula), Cstring, (VPtr,), sp_fbc),
+            )
+        end
         species[unsafe_string(ccall(sbml(:Species_getId), Cstring, (VPtr,), sp))] = Species(
             unsafe_string(ccall(sbml(:Species_getName), Cstring, (VPtr,), sp)),
             unsafe_string(ccall(sbml(:Species_getCompartment), Cstring, (VPtr,), sp)),
+            formula,
         )
     end
 

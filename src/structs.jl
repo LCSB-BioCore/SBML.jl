@@ -41,7 +41,8 @@ identifier
 struct Species
     name::String
     compartment::String
-    Species(n, c) = new(n, c)
+    formula::String
+    Species(n, c, f) = new(n, c, f)
 end
 
 """
