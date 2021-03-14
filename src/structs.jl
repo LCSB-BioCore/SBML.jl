@@ -1,4 +1,6 @@
 
+const Maybe{X} = Union{Nothing,X}
+
 """
 Part of a measurement unit definition that corresponds to the SBML definition
 of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
@@ -31,7 +33,8 @@ struct Reaction
     lb::Tuple{Float64,String}
     ub::Tuple{Float64,String}
     oc::Float64
-    Reaction(s, l, u, o) = new(s, l, u, o)
+    notes::Maybe{String}
+    Reaction(s, l, u, o, n) = new(s, l, u, o, n)
 end
 
 """
@@ -42,8 +45,9 @@ struct Species
     name::String
     compartment::String
     formula::String
-    charge::Union{Nothing,Int}
-    Species(n, co, f, ch) = new(n, co, f, ch)
+    charge::Maybe{Int}
+    notes::Maybe{String}
+    Species(na, co, f, ch, no) = new(na, co, f, ch, no)
 end
 
 """
@@ -57,5 +61,6 @@ struct Model
     compartments::Vector{String}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
-    Model(p, u, c, s, r) = new(p, u, c, s, r)
+    notes::Maybe{String}
+    Model(p, u, c, s, r, n) = new(p, u, c, s, r, n)
 end

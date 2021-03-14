@@ -11,6 +11,6 @@ include("utils.jl")
 sbml = (sym::Symbol) -> dlsym(SBML_jll.libsbml_handle, sym)
 
 export SBMLVersion,
-    readSBML, Model, UnitPart, Species, Reaction, getS, getLBs, getUBs, getOCs
+    readSBML, Model, Maybe, UnitPart, Species, Reaction, getS, getLBs, getUBs, getOCs
 
 end # module

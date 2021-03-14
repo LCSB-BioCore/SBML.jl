@@ -31,6 +31,15 @@ function readSBML(fn::String)::Model
     end
 end
 
+function getNotes(x::VPtr)::Maybe{String}
+    str = ccall(sbml(:SBase_getNotesString), Cstring, (VPtr,), x)
+    if str != C_NULL
+        return unsafe_string(str)
+    else
+        return nothing
+    end
+end
+
 function extractModel(mdl::VPtr)::Model
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
@@ -104,6 +113,7 @@ function extractModel(mdl::VPtr)::Model
             unsafe_string(ccall(sbml(:Species_getCompartment), Cstring, (VPtr,), sp)),
             formula,
             charge,
+            getNotes(sp),
         )
     end
 
@@ -193,9 +203,14 @@ function extractModel(mdl::VPtr)::Model
         end
 
         reid = unsafe_string(ccall(sbml(:Reaction_getId), Cstring, (VPtr,), re))
-        reactions[reid] =
-            Reaction(stoi, lb, ub, haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc)
+        reactions[reid] = Reaction(
+            stoi,
+            lb,
+            ub,
+            haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
+            getNotes(re),
+        )
     end
 
-    return Model(parameters, units, compartments, species, reactions)
+    return Model(parameters, units, compartments, species, reactions, getNotes(mdl))
 end
