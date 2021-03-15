@@ -51,7 +51,7 @@ identifier
 struct Species
     name::String
     compartment::String
-    formula::String
+    formula::Maybe{String}
     charge::Maybe{Int}
     notes::Maybe{String}
     annotation::Maybe{String}

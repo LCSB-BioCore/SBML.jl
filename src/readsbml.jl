@@ -111,7 +111,7 @@ function extractModel(mdl::VPtr)::Model
     for i = 1:ccall(sbml(:Model_getNumSpecies), Cuint, (VPtr,), mdl)
         sp = ccall(sbml(:Model_getSpecies), VPtr, (VPtr, Cuint), mdl, i - 1)
         sp_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), sp, "fbc") # FbcSpeciesPlugin_t
-        formula = ""
+        formula = nothing
         charge = nothing
         if sp_fbc != C_NULL
             # if the FBC plugin is present, try to get the chemical formula and charge
