@@ -31,9 +31,36 @@ function readSBML(fn::String)::Model
     end
 end
 
+"""
+    function getOptionalString(x::VPtr, fn_sym)::Maybe{String}
+
+C-call the SBML function `fn_sym` with a single parameter `x`, interpret the result as a nullable string pointer and return appropriately.
+
+This is used to get notes and annotations and several other things (see `getNotes`, `getAnnotations`)
+"""
+function getOptionalString(x::VPtr, fn_sym)::Maybe{String}
+    str = ccall(sbml(fn_sym), Cstring, (VPtr,), x)
+    if str != C_NULL
+        return unsafe_string(str)
+    else
+        return nothing
+    end
+end
+
+getNotes(x::VPtr)::Maybe{String} = getOptionalString(x, :SBase_getNotesString)
+getAnnotation(x::VPtr)::Maybe{String} = getOptionalString(x, :SBase_getAnnotationString)
+
+"""
+    function extractModel(mdl::VPtr)::Model
+
+Take the `SBMLModel_t` pointer and extract all information required to make a
+valid [`Model`](@ref) structure.
+"""
 function extractModel(mdl::VPtr)::Model
+    # get the FBC plugin pointer (FbcModelPlugin_t)
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
+    # get the parameters
     parameters = Dict{String,Float64}()
     for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
         p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
@@ -42,6 +69,7 @@ function extractModel(mdl::VPtr)::Model
         parameters[id] = v
     end
 
+    # parse out the unit definitions
     units = Dict{String,Vector{UnitPart}}()
     for i = 1:ccall(sbml(:Model_getNumUnitDefinitions), Cuint, (VPtr,), mdl)
         ud = ccall(sbml(:Model_getUnitDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
@@ -66,6 +94,7 @@ function extractModel(mdl::VPtr)::Model
         ]
     end
 
+    # parse out compartment names
     compartments = [
         unsafe_string(
             ccall(
@@ -77,15 +106,42 @@ function extractModel(mdl::VPtr)::Model
         ) for i = 1:ccall(sbml(:Model_getNumCompartments), Cuint, (VPtr,), mdl)
     ]
 
+    # parse out species
     species = Dict{String,Species}()
     for i = 1:ccall(sbml(:Model_getNumSpecies), Cuint, (VPtr,), mdl)
         sp = ccall(sbml(:Model_getSpecies), VPtr, (VPtr, Cuint), mdl, i - 1)
+        sp_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), sp, "fbc") # FbcSpeciesPlugin_t
+        formula = nothing
+        charge = nothing
+        if sp_fbc != C_NULL
+            # if the FBC plugin is present, try to get the chemical formula and charge
+            if 0 !=
+               ccall(sbml(:FbcSpeciesPlugin_isSetChemicalFormula), Cint, (VPtr,), sp_fbc)
+                formula = unsafe_string(
+                    ccall(
+                        sbml(:FbcSpeciesPlugin_getChemicalFormula),
+                        Cstring,
+                        (VPtr,),
+                        sp_fbc,
+                    ),
+                )
+            end
+            if 0 != ccall(sbml(:FbcSpeciesPlugin_isSetCharge), Cint, (VPtr,), sp_fbc)
+                charge = ccall(sbml(:FbcSpeciesPlugin_getCharge), Cint, (VPtr,), sp_fbc)
+            end
+        end
         species[unsafe_string(ccall(sbml(:Species_getId), Cstring, (VPtr,), sp))] = Species(
             unsafe_string(ccall(sbml(:Species_getName), Cstring, (VPtr,), sp)),
             unsafe_string(ccall(sbml(:Species_getCompartment), Cstring, (VPtr,), sp)),
+            formula,
+            charge,
+            getNotes(sp),
+            getAnnotation(sp),
         )
     end
 
+    # parse out the flux objectives (these are complementary to the objectives
+    # that appear in the reactions, see comments lower)
     objectives_fbc = Dict{String,Float64}()
     if mdl_fbc != C_NULL
         for i = 1:ccall(sbml(:FbcModelPlugin_getNumObjectives), Cuint, (VPtr,), mdl_fbc)
@@ -96,7 +152,7 @@ function extractModel(mdl::VPtr)::Model
                 mdl_fbc,
                 i - 1,
             )
-            # this part seems missing in C API docs...
+
             for j = 1:ccall(sbml(:Objective_getNumFluxObjectives), Cuint, (VPtr,), o)
                 fo = ccall(sbml(:Objective_getFluxObjective), VPtr, (VPtr, Cuint), o, j - 1)
                 objectives_fbc[unsafe_string(
@@ -106,13 +162,15 @@ function extractModel(mdl::VPtr)::Model
         end
     end
 
+    # reactions!
     reactions = Dict{String,Reaction}()
     for i = 1:ccall(sbml(:Model_getNumReactions), Cuint, (VPtr,), mdl)
         re = ccall(sbml(:Model_getReaction), VPtr, (VPtr, Cuint), mdl, i - 1)
-        lb = (-Inf, "")
+        lb = (-Inf, "") # (bound value, unit id)
         ub = (Inf, "")
         oc = 0.0
 
+        # kinetic laws store a second version of the bounds and objectives
         kl = ccall(sbml(:Reaction_getKineticLaw), VPtr, (VPtr,), re)
         if kl != C_NULL
             for j = 1:ccall(sbml(:KineticLaw_getNumParameters), Cuint, (VPtr,), kl)
@@ -152,6 +210,7 @@ function extractModel(mdl::VPtr)::Model
             end
         end
 
+        # extract stoichiometry
         stoi = Dict{String,Float64}()
         add_stoi =
             (sr, factor) ->
@@ -161,6 +220,7 @@ function extractModel(mdl::VPtr)::Model
                     ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr) *
                     factor
 
+        # reactants and products
         for j = 1:ccall(sbml(:Reaction_getNumReactants), Cuint, (VPtr,), re)
             sr = ccall(sbml(:Reaction_getReactant), VPtr, (VPtr, Cuint), re, j - 1)
             add_stoi(sr, -1)
@@ -172,9 +232,49 @@ function extractModel(mdl::VPtr)::Model
         end
 
         reid = unsafe_string(ccall(sbml(:Reaction_getId), Cstring, (VPtr,), re))
-        reactions[reid] =
-            Reaction(stoi, lb, ub, haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc)
+        reactions[reid] = Reaction(
+            stoi,
+            lb,
+            ub,
+            haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
+            getNotes(re),
+            getAnnotation(re),
+        )
     end
 
-    return Model(parameters, units, compartments, species, reactions)
+    # extract gene products
+    gene_products = Dict{String,GeneProduct}()
+    if mdl_fbc != C_NULL
+        for i = 1:ccall(sbml(:FbcModelPlugin_getNumGeneProducts), Cuint, (VPtr,), mdl_fbc)
+            gp = ccall(
+                sbml(:FbcModelPlugin_getGeneProduct),
+                VPtr,
+                (VPtr, Cuint),
+                mdl_fbc,
+                i - 1,
+            )
+
+            id = getOptionalString(gp, :GeneProduct_getId) # IDs don't need to be set
+
+            if id != nothing
+                gene_products[id] = GeneProduct(
+                    getOptionalString(gp, :GeneProduct_getName),
+                    getOptionalString(gp, :GeneProduct_getLabel),
+                    getNotes(gp),
+                    getAnnotation(gp),
+                )
+            end
+        end
+    end
+
+    return Model(
+        parameters,
+        units,
+        compartments,
+        species,
+        reactions,
+        gene_products,
+        getNotes(mdl),
+        getAnnotation(mdl),
+    )
 end

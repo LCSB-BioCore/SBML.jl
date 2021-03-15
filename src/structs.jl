@@ -1,5 +1,13 @@
 
 """
+    Maybe{X}
+
+Type shortcut for "`X` or nothing" or "nullable `X`" in javaspeak. Name
+got inspired by our functional friends.
+"""
+const Maybe{X} = Union{Nothing,X}
+
+"""
 Part of a measurement unit definition that corresponds to the SBML definition
 of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
 
@@ -24,36 +32,58 @@ end
 Reaction with stoichiometry that assigns reactants and products their relative
 consumption/production rates (accessible in field `stoichiometry`), lower/upper
 bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
-(`oc`).
+(`oc`). Also may contains `notes` and `annotation`.
 """
 struct Reaction
     stoichiometry::Dict{String,Float64}
     lb::Tuple{Float64,String}
     ub::Tuple{Float64,String}
     oc::Float64
-    Reaction(s, l, u, o) = new(s, l, u, o)
+    notes::Maybe{String}
+    annotation::Maybe{String}
+    Reaction(s, l, u, o, n = nothing, a = nothing) = new(s, l, u, o, n, a)
 end
 
 """
-Species metadata -- contains a human-readable `name`, and a `compartment`
-identifier
+Species metadata -- contains a human-readable `name`, a `compartment`
+identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 """
 struct Species
     name::String
     compartment::String
-    Species(n, c) = new(n, c)
+    formula::Maybe{String}
+    charge::Maybe{Int}
+    notes::Maybe{String}
+    annotation::Maybe{String}
+    Species(na, co, f, ch, no = nothing, a = nothing) = new(na, co, f, ch, no, a)
 end
 
 """
-Structure that collects the model-related data. Contains `units`,
-`compartments`, `species` and `reactions`. The contained dictionaries are
-indexed by identifiers of the corresponding objects.
+Gene product metadata.
+"""
+struct GeneProduct
+    name::Maybe{String}
+    label::Maybe{String}
+    notes::Maybe{String}
+    annotation::Maybe{String}
+    GeneProduct(na, l, no = nothing, a = nothing) = new(na, l, no, a)
+end
+
+"""
+Structure that collects the model-related data. Contains `parameters`, `units`,
+`compartments`, `species` and `reactions` and `gene_products`, and additional
+`notes` and `annotation` (also present internally in some of the data fields).
+The contained dictionaries are indexed by identifiers of the corresponding
+objects.
 """
 struct Model
-    params::Dict{String,Float64}
+    parameters::Dict{String,Float64}
     units::Dict{String,Vector{UnitPart}}
     compartments::Vector{String}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
-    Model(p, u, c, s, r) = new(p, u, c, s, r)
+    gene_products::Dict{String,GeneProduct}
+    notes::Maybe{String}
+    annotation::Maybe{String}
+    Model(p, u, c, s, r, g, n = nothing, a = nothing) = new(p, u, c, s, r, g, n, a)
 end
