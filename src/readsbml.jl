@@ -32,6 +32,16 @@ function readSBML(fn::String)::Model
 end
 
 function extractModel(mdl::VPtr)::Model
+    mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
+
+    parameters = Dict{String,Float64}()
+    for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
+        p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
+        id = unsafe_string(ccall(sbml(:Parameter_getId), Cstring, (VPtr,), p))
+        v = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
+        parameters[id] = v
+    end
+
     units = Dict{String,Vector{UnitPart}}()
     for i = 1:ccall(sbml(:Model_getNumUnitDefinitions), Cuint, (VPtr,), mdl)
         ud = ccall(sbml(:Model_getUnitDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
@@ -76,8 +86,27 @@ function extractModel(mdl::VPtr)::Model
         )
     end
 
-    reactions = Dict{String,Reaction}()
+    objectives_fbc = Dict{String,Float64}()
+    if mdl_fbc != C_NULL
+        for i = 1:ccall(sbml(:FbcModelPlugin_getNumObjectives), Cuint, (VPtr,), mdl_fbc)
+            o = ccall(
+                sbml(:FbcModelPlugin_getObjective),
+                VPtr,
+                (VPtr, Cuint),
+                mdl_fbc,
+                i - 1,
+            )
+            # this part seems missing in C API docs...
+            for j = 1:ccall(sbml(:Objective_getNumFluxObjectives), Cuint, (VPtr,), o)
+                fo = ccall(sbml(:Objective_getFluxObjective), VPtr, (VPtr, Cuint), o, j - 1)
+                objectives_fbc[unsafe_string(
+                    ccall(sbml(:FluxObjective_getReaction), Cstring, (VPtr,), fo),
+                )] = ccall(sbml(:FluxObjective_getCoefficient), Cdouble, (VPtr,), fo)
+            end
+        end
+    end
 
+    reactions = Dict{String,Reaction}()
     for i = 1:ccall(sbml(:Model_getNumReactions), Cuint, (VPtr,), mdl)
         re = ccall(sbml(:Model_getReaction), VPtr, (VPtr, Cuint), mdl, i - 1)
         lb = (-Inf, "")
@@ -103,6 +132,26 @@ function extractModel(mdl::VPtr)::Model
             end
         end
 
+        # TRICKY: SBML spec is completely silent about what should happen if
+        # someone specifies both the above and below formats of the flux bounds
+        # for one reaction. Notably, these do not really specify much
+        # interaction with units. In this case, we'll just set a special
+        # "[fbc]" unit that has no specification in `units`, and hope the users
+        # can make something out of it.
+        re_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), re, "fbc")
+        if re_fbc != C_NULL
+            fbcb =
+                ccall(sbml(:FbcReactionPlugin_getLowerFluxBound), Cstring, (VPtr,), re_fbc)
+            if fbcb != C_NULL && haskey(parameters, unsafe_string(fbcb))
+                lb = (parameters[unsafe_string(fbcb)], "[fbc]")
+            end
+            fbcb =
+                ccall(sbml(:FbcReactionPlugin_getUpperFluxBound), Cstring, (VPtr,), re_fbc)
+            if fbcb != C_NULL && haskey(parameters, unsafe_string(fbcb))
+                ub = (parameters[unsafe_string(fbcb)], "[fbc]")
+            end
+        end
+
         stoi = Dict{String,Float64}()
         add_stoi =
             (sr, factor) ->
@@ -122,9 +171,10 @@ function extractModel(mdl::VPtr)::Model
             add_stoi(sr, 1)
         end
 
-        reactions[unsafe_string(ccall(sbml(:Reaction_getId), Cstring, (VPtr,), re))] =
-            Reaction(stoi, lb, ub, oc)
+        reid = unsafe_string(ccall(sbml(:Reaction_getId), Cstring, (VPtr,), re))
+        reactions[reid] =
+            Reaction(stoi, lb, ub, haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc)
     end
 
-    return Model(units, compartments, species, reactions)
+    return Model(parameters, units, compartments, species, reactions)
 end
