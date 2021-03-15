@@ -40,7 +40,8 @@ struct Reaction
     ub::Tuple{Float64,String}
     oc::Float64
     notes::Maybe{String}
-    Reaction(s, l, u, o, n) = new(s, l, u, o, n)
+    annotation::Maybe{String}
+    Reaction(s, l, u, o, n = nothing, a = nothing) = new(s, l, u, o, n, a)
 end
 
 """
@@ -53,7 +54,8 @@ struct Species
     formula::String
     charge::Maybe{Int}
     notes::Maybe{String}
-    Species(na, co, f, ch, no) = new(na, co, f, ch, no)
+    annotation::Maybe{String}
+    Species(na, co, f, ch, no = nothing, a = nothing) = new(na, co, f, ch, no, a)
 end
 
 """
@@ -68,5 +70,6 @@ struct Model
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
     notes::Maybe{String}
-    Model(p, u, c, s, r, n) = new(p, u, c, s, r, n)
+    annotation::Maybe{String}
+    Model(p, u, c, s, r, n = nothing, a = nothing) = new(p, u, c, s, r, n, a)
 end

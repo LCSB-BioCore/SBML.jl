@@ -31,14 +31,17 @@ function readSBML(fn::String)::Model
     end
 end
 
-function getNotes(x::VPtr)::Maybe{String}
-    str = ccall(sbml(:SBase_getNotesString), Cstring, (VPtr,), x)
+function getOptionalString(x::VPtr, fn_sym)::Maybe{String}
+    str = ccall(sbml(fn_sym), Cstring, (VPtr,), x)
     if str != C_NULL
         return unsafe_string(str)
     else
         return nothing
     end
 end
+
+getNotes(x::VPtr)::Maybe{String} = getOptionalString(x, :SBase_getNotesString)
+getAnnotation(x::VPtr)::Maybe{String} = getOptionalString(x, :SBase_getAnnotationString)
 
 function extractModel(mdl::VPtr)::Model
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
@@ -114,6 +117,7 @@ function extractModel(mdl::VPtr)::Model
             formula,
             charge,
             getNotes(sp),
+            getAnnotation(sp),
         )
     end
 
@@ -209,8 +213,17 @@ function extractModel(mdl::VPtr)::Model
             ub,
             haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
             getNotes(re),
+            getAnnotation(re),
         )
     end
 
-    return Model(parameters, units, compartments, species, reactions, getNotes(mdl))
+    return Model(
+        parameters,
+        units,
+        compartments,
+        species,
+        reactions,
+        getNotes(mdl),
+        getAnnotation(mdl),
+    )
 end
