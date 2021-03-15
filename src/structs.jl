@@ -59,6 +59,17 @@ struct Species
 end
 
 """
+Gene product metadata.
+"""
+struct GeneProduct
+    name::Maybe{String}
+    label::Maybe{String}
+    notes::Maybe{String}
+    annotation::Maybe{String}
+    GeneProduct(na, l, no = nothing, a = nothing) = new(na, l, no, a)
+end
+
+"""
 Structure that collects the model-related data. Contains `units`,
 `compartments`, `species` and `reactions`. The contained dictionaries are
 indexed by identifiers of the corresponding objects.
@@ -69,7 +80,8 @@ struct Model
     compartments::Vector{String}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
+    gene_products::Dict{String,GeneProduct}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Model(p, u, c, s, r, n = nothing, a = nothing) = new(p, u, c, s, r, n, a)
+    Model(p, u, c, s, r, g, n = nothing, a = nothing) = new(p, u, c, s, r, g, n, a)
 end

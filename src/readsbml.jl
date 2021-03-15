@@ -217,12 +217,37 @@ function extractModel(mdl::VPtr)::Model
         )
     end
 
+    gene_products = Dict{String,GeneProduct}()
+    if mdl_fbc != C_NULL
+        for i = 1:ccall(sbml(:FbcModelPlugin_getNumGeneProducts), Cuint, (VPtr,), mdl_fbc)
+            gp = ccall(
+                sbml(:FbcModelPlugin_getGeneProduct),
+                VPtr,
+                (VPtr, Cuint),
+                mdl_fbc,
+                i - 1,
+            )
+
+            id = getOptionalString(gp, :GeneProduct_getId) # IDs don't need to be set
+
+            if id != nothing
+                gene_products[id] = GeneProduct(
+                    getOptionalString(gp, :GeneProduct_getName),
+                    getOptionalString(gp, :GeneProduct_getLabel),
+                    getNotes(gp),
+                    getAnnotation(gp),
+                )
+            end
+        end
+    end
+
     return Model(
         parameters,
         units,
         compartments,
         species,
         reactions,
+        gene_products,
         getNotes(mdl),
         getAnnotation(mdl),
     )
