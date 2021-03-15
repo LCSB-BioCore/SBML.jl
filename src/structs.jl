@@ -32,7 +32,7 @@ end
 Reaction with stoichiometry that assigns reactants and products their relative
 consumption/production rates (accessible in field `stoichiometry`), lower/upper
 bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
-(`oc`).
+(`oc`). Also may contains `notes` and `annotation`.
 """
 struct Reaction
     stoichiometry::Dict{String,Float64}
@@ -45,8 +45,8 @@ struct Reaction
 end
 
 """
-Species metadata -- contains a human-readable `name`, and a `compartment`
-identifier
+Species metadata -- contains a human-readable `name`, a `compartment`
+identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 """
 struct Species
     name::String
@@ -70,12 +70,14 @@ struct GeneProduct
 end
 
 """
-Structure that collects the model-related data. Contains `units`,
-`compartments`, `species` and `reactions`. The contained dictionaries are
-indexed by identifiers of the corresponding objects.
+Structure that collects the model-related data. Contains `parameters`, `units`,
+`compartments`, `species` and `reactions` and `gene_products`, and additional
+`notes` and `annotation` (also present internally in some of the data fields).
+The contained dictionaries are indexed by identifiers of the corresponding
+objects.
 """
 struct Model
-    params::Dict{String,Float64}
+    parameters::Dict{String,Float64}
     units::Dict{String,Vector{UnitPart}}
     compartments::Vector{String}
     species::Dict{String,Species}
