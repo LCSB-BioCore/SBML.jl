@@ -274,7 +274,6 @@ function extractModel(mdl::VPtr)::Model
                 a = ccall(sbml(:GeneProductAssociation_getAssociation), VPtr, (VPtr,), gpa)
                 a != C_NULL
                 association = getAssociation(a)
-                @info "assoc:" association
             end
         end
 
@@ -284,6 +283,7 @@ function extractModel(mdl::VPtr)::Model
             lb,
             ub,
             haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
+            association,
             getNotes(re),
             getAnnotation(re),
         )

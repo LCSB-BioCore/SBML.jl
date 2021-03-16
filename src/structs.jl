@@ -70,7 +70,7 @@ struct Reaction
     gene_product_association::Maybe{GeneProductAssociation}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Reaction(s, l, u, o, n = nothing, a = nothing) = new(s, l, u, o, n, a)
+    Reaction(s, l, u, o, as, n = nothing, an = nothing) = new(s, l, u, o, as, n, an)
 end
 
 """
