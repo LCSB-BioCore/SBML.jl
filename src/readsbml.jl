@@ -51,6 +51,38 @@ getNotes(x::VPtr)::Maybe{String} = getOptionalString(x, :SBase_getNotesString)
 getAnnotation(x::VPtr)::Maybe{String} = getOptionalString(x, :SBase_getAnnotationString)
 
 """
+    function getAssociation(x::VPtr)::GeneProductAssociation
+
+Convert a pointer to SBML `FbcAssociation_t` to the `GeneProductAssociation`
+tree structure.
+"""
+function getAssociation(x::VPtr)::GeneProductAssociation
+    # libsbml C API is currently missing functions to check this in a normal
+    # way, so we use a bit of a hack.
+    typecode = ccall(sbml(:SBase_getTypeCode), Cint, (VPtr,), x)
+    if typecode == 808 # SBML_FBC_GENEPRODUCTREF
+        return GPARef(
+            unsafe_string(ccall(sbml(:GeneProductRef_getGeneProduct), Cstring, (VPtr,), x)),
+        )
+    elseif typecode == 809 # SBML_FBC_AND
+        return GPAAnd([
+            getAssociation(
+                ccall(sbml(:FbcAnd_getAssociation), VPtr, (VPtr, Cuint), x, i - 1),
+            ) for i = 1:ccall(sbml(:FbcAnd_getNumAssociations), Cuint, (VPtr,), x)
+        ])
+    elseif typecode == 810 # SBML_FBC_OR
+        return GPAOr([
+            getAssociation(
+                ccall(sbml(:FbcOr_getAssociation), VPtr, (VPtr, Cuint), x, i - 1),
+            ) for i = 1:ccall(sbml(:FbcOr_getNumAssociations), Cuint, (VPtr,), x)
+        ])
+    else
+        throw(ErrorException("Unsupported FbcAssociation type"))
+    end
+end
+
+
+""""
     function extractModel(mdl::VPtr)::Model
 
 Take the `SBMLModel_t` pointer and extract all information required to make a
@@ -152,7 +184,6 @@ function extractModel(mdl::VPtr)::Model
                 mdl_fbc,
                 i - 1,
             )
-
             for j = 1:ccall(sbml(:Objective_getNumFluxObjectives), Cuint, (VPtr,), o)
                 fo = ccall(sbml(:Objective_getFluxObjective), VPtr, (VPtr, Cuint), o, j - 1)
                 objectives_fbc[unsafe_string(
@@ -229,6 +260,22 @@ function extractModel(mdl::VPtr)::Model
         for j = 1:ccall(sbml(:Reaction_getNumProducts), Cuint, (VPtr,), re)
             sr = ccall(sbml(:Reaction_getProduct), VPtr, (VPtr, Cuint), re, j - 1)
             add_stoi(sr, 1)
+        end
+
+        association = nothing
+        if re_fbc != C_NULL
+            gpa = ccall(
+                sbml(:FbcReactionPlugin_getGeneProductAssociation),
+                VPtr,
+                (VPtr,),
+                re_fbc,
+            )
+            if gpa != C_NULL
+                a = ccall(sbml(:GeneProductAssociation_getAssociation), VPtr, (VPtr,), gpa)
+                a != C_NULL
+                association = getAssociation(a)
+                @info "assoc:" association
+            end
         end
 
         reid = unsafe_string(ccall(sbml(:Reaction_getId), Cstring, (VPtr,), re))
