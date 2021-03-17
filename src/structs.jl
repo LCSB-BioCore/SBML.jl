@@ -28,6 +28,34 @@ struct UnitPart
     UnitPart(k, e, s, m) = new(k, e, s, m)
 end
 
+
+"""
+Abstract type for all kinds of gene product associations
+"""
+abstract type GeneProductAssociation end
+
+"""
+Gene product reference in the association expression
+"""
+struct GPARef <: GeneProductAssociation
+    gene_product::String
+end
+
+"""
+Boolean binary "and" in the association expression
+"""
+struct GPAAnd <: GeneProductAssociation
+    terms::Vector{GeneProductAssociation}
+end
+
+"""
+Boolean binary "or" in the association expression
+"""
+struct GPAOr <: GeneProductAssociation
+    terms::Vector{GeneProductAssociation}
+end
+
+
 """
 Reaction with stoichiometry that assigns reactants and products their relative
 consumption/production rates (accessible in field `stoichiometry`), lower/upper
@@ -39,9 +67,10 @@ struct Reaction
     lb::Tuple{Float64,String}
     ub::Tuple{Float64,String}
     oc::Float64
+    gene_product_association::Maybe{GeneProductAssociation}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Reaction(s, l, u, o, n = nothing, a = nothing) = new(s, l, u, o, n, a)
+    Reaction(s, l, u, o, as, n = nothing, an = nothing) = new(s, l, u, o, as, n, an)
 end
 
 """
