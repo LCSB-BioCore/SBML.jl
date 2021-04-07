@@ -63,6 +63,7 @@ bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
 (`oc`). Also may contains `notes` and `annotation`.
 """
 struct Reaction
+    mathml::String
     stoichiometry::Dict{String,Float64}
     lb::Tuple{Float64,String}
     ub::Tuple{Float64,String}
@@ -108,8 +109,8 @@ objects.
 struct Model
     parameters::Dict{String,Float64}
     units::Dict{String,Vector{UnitPart}}
-    compartments::Vector{String}
-    species::Dict{String,Species}
+    compartments::Dict{String,Float64}  # PL: Float64 to describe size
+    species::Dict{String,Tuple{Species,Float64}}  # PL: Tuple of Species and initialAmount
     reactions::Dict{String,Reaction}
     gene_products::Dict{String,GeneProduct}
     notes::Maybe{String}

@@ -7,7 +7,7 @@ const VPtr = Ptr{Cvoid}
 Read the SBML from a XML file in `fn` and return the contained `Model`.
 """
 function readSBML(fn::String)::Model
-    doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
+    doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)  # PL: We need to promote local parameters. We may need to convert every species to extensive units.
     try
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
         for i = 0:n_errs-1
@@ -203,6 +203,7 @@ function extractModel(mdl::VPtr)::Model
 
         # kinetic laws store a second version of the bounds and objectives
         kl = ccall(sbml(:Reaction_getKineticLaw), VPtr, (VPtr,), re)
+        mathml = ccall(sbml(:KineticLaw_getMath), VPtr, (VPtr,), kl)  # PL: get MathML of kineticLaw; may need further conversion to XML string or EzXML node before converting to a symbolic formula via MathML.jl unless a future version of MathML accepts VPtr arguments.
         if kl != C_NULL
             for j = 1:ccall(sbml(:KineticLaw_getNumParameters), Cuint, (VPtr,), kl)
                 p = ccall(sbml(:KineticLaw_getParameter), VPtr, (VPtr, Cuint), kl, j - 1)
@@ -279,6 +280,7 @@ function extractModel(mdl::VPtr)::Model
 
         reid = unsafe_string(ccall(sbml(:Reaction_getId), Cstring, (VPtr,), re))
         reactions[reid] = Reaction(
+            mathml,
             stoi,
             lb,
             ub,
