@@ -1,5 +1,9 @@
 create_var(x) = Num(Variable(Symbol(x)))
-create_param(x) = Num(Sym{ModelingToolkit.Parameter{Real}}(Symbol(x)))
+function create_param(x)
+  p = Sym{Real}(Symbol(x))
+  ModelingToolkit.toparam(p)
+  p
+end
 
 
 """ ModelingToolkit.Reaction constructor """
