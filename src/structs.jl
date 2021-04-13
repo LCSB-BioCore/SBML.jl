@@ -129,14 +129,15 @@ identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 struct Species
     name::Maybe{String}
     compartment::String
+    boundary_condition::Maybe{Bool}
     formula::Maybe{String}
     charge::Maybe{Int}
     initial_amount::Maybe{Tuple{Float64,String}}
     only_substance_units::Maybe{Bool}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Species(na, co, f, ch, ia, osu, no = nothing, a = nothing) =
-        new(na, co, f, ch, ia, osu, no, a)
+    Species(na, co, b, f, ch, ia, osu, no = nothing, a = nothing) =
+        new(na, co, b, f, ch, ia, osu, no, a)
 end
 
 """

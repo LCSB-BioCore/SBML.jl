@@ -231,6 +231,11 @@ function extractModel(mdl::VPtr)::Model
         species[get_string(sp, :Species_getId)] = Species(
             get_optional_string(sp, :Species_getName),
             get_string(sp, :Species_getCompartment),
+            get_optional_bool(
+                sp,
+                :Species_isSetBoundaryCondition,
+                :Species_getBoundaryCondition,
+            ),
             formula,
             charge,
             ia,
