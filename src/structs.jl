@@ -78,7 +78,7 @@ Species metadata -- contains a human-readable `name`, a `compartment`
 identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 """
 struct Species
-    name::String
+    name::Maybe{String}
     compartment::String
     formula::Maybe{String}
     charge::Maybe{Int}
