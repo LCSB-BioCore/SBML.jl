@@ -172,6 +172,7 @@ function extractModel(mdl::VPtr)::Model
             get_string(sp, :Species_getCompartment),
             formula,
             charge,
+            ccall(sbml(:Species_getHasOnlySubstanceUnits), Cint, (VPtr,), sp) != 0,
             getNotes(sp),
             getAnnotation(sp),
         )
