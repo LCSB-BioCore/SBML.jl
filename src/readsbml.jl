@@ -2,6 +2,40 @@
 const VPtr = Ptr{Cvoid}
 
 """
+    function get_string(x::VPtr, fn_sym)::Maybe{String}
+
+C-call the SBML function `fn_sym` with a single parameter `x`, interpret the
+result as a string and return it, or throw exception in case the pointer is
+NULL.
+"""
+function get_string(x::VPtr, fn_sym)::String
+    str = ccall(sbml(fn_sym), Cstring, (VPtr,), x)
+    if str != C_NULL
+        return unsafe_string(str)
+    else
+        throw(DomainError(x, "Calling $fn_sym returned NULL, valid string expected."))
+    end
+end
+
+"""
+    function get_optional_string(x::VPtr, fn_sym)::Maybe{String}
+
+Like [`get_string`](@Ref), but returns `nothing` instead of throwing an
+exception.
+
+This is used to get notes and annotations and several other things (see
+`getNotes`, `getAnnotations`)
+"""
+function get_optional_string(x::VPtr, fn_sym)::Maybe{String}
+    str = ccall(sbml(fn_sym), Cstring, (VPtr,), x)
+    if str != C_NULL
+        return unsafe_string(str)
+    else
+        return nothing
+    end
+end
+
+"""
     function readSBML(fn::String)::Model
 
 Read the SBML from a XML file in `fn` and return the contained `Model`.
@@ -12,7 +46,7 @@ function readSBML(fn::String)::Model
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
         for i = 0:n_errs-1
             err = ccall(sbml(:SBMLDocument_getError), VPtr, (VPtr, Cuint), doc, i)
-            msg = unsafe_string(ccall(sbml(:XMLError_getMessage), Cstring, (VPtr,), err))
+            msg = get_string(err, :XMLError_getMessage)
             @warn "SBML reported error: $msg"
         end
         if n_errs > 0
@@ -31,24 +65,8 @@ function readSBML(fn::String)::Model
     end
 end
 
-"""
-    function getOptionalString(x::VPtr, fn_sym)::Maybe{String}
-
-C-call the SBML function `fn_sym` with a single parameter `x`, interpret the result as a nullable string pointer and return appropriately.
-
-This is used to get notes and annotations and several other things (see `getNotes`, `getAnnotations`)
-"""
-function getOptionalString(x::VPtr, fn_sym)::Maybe{String}
-    str = ccall(sbml(fn_sym), Cstring, (VPtr,), x)
-    if str != C_NULL
-        return unsafe_string(str)
-    else
-        return nothing
-    end
-end
-
-getNotes(x::VPtr)::Maybe{String} = getOptionalString(x, :SBase_getNotesString)
-getAnnotation(x::VPtr)::Maybe{String} = getOptionalString(x, :SBase_getAnnotationString)
+getNotes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString)
+getAnnotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)
 
 """
     function getAssociation(x::VPtr)::GeneProductAssociation
@@ -61,9 +79,7 @@ function getAssociation(x::VPtr)::GeneProductAssociation
     # way, so we use a bit of a hack.
     typecode = ccall(sbml(:SBase_getTypeCode), Cint, (VPtr,), x)
     if typecode == 808 # SBML_FBC_GENEPRODUCTREF
-        return GPARef(
-            unsafe_string(ccall(sbml(:GeneProductRef_getGeneProduct), Cstring, (VPtr,), x)),
-        )
+        return GPARef(get_string(x, :GeneProductRef_getGeneProduct))
     elseif typecode == 809 # SBML_FBC_AND
         return GPAAnd([
             getAssociation(
@@ -96,7 +112,7 @@ function extractModel(mdl::VPtr)::Model
     parameters = Dict{String,Float64}()
     for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
         p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
-        id = unsafe_string(ccall(sbml(:Parameter_getId), Cstring, (VPtr,), p))
+        id = get_string(p, :Parameter_getId)
         v = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
         parameters[id] = v
     end
@@ -105,7 +121,7 @@ function extractModel(mdl::VPtr)::Model
     units = Dict{String,Vector{UnitPart}}()
     for i = 1:ccall(sbml(:Model_getNumUnitDefinitions), Cuint, (VPtr,), mdl)
         ud = ccall(sbml(:Model_getUnitDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
-        id = unsafe_string(ccall(sbml(:UnitDefinition_getId), Cstring, (VPtr,), ud))
+        id = get_string(ud, :UnitDefinition_getId)
         units[id] = [
             begin
                 u = ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1)
@@ -128,13 +144,9 @@ function extractModel(mdl::VPtr)::Model
 
     # parse out compartment names
     compartments = [
-        unsafe_string(
-            ccall(
-                sbml(:Compartment_getId),
-                Cstring,
-                (VPtr,),
-                ccall(sbml(:Model_getCompartment), VPtr, (VPtr, Cuint), mdl, i - 1),
-            ),
+        get_string(
+            ccall(sbml(:Model_getCompartment), VPtr, (VPtr, Cuint), mdl, i - 1),
+            :Compartment_getId,
         ) for i = 1:ccall(sbml(:Model_getNumCompartments), Cuint, (VPtr,), mdl)
     ]
 
@@ -149,22 +161,15 @@ function extractModel(mdl::VPtr)::Model
             # if the FBC plugin is present, try to get the chemical formula and charge
             if 0 !=
                ccall(sbml(:FbcSpeciesPlugin_isSetChemicalFormula), Cint, (VPtr,), sp_fbc)
-                formula = unsafe_string(
-                    ccall(
-                        sbml(:FbcSpeciesPlugin_getChemicalFormula),
-                        Cstring,
-                        (VPtr,),
-                        sp_fbc,
-                    ),
-                )
+                formula = get_string(sp_fbc, :FbcSpeciesPlugin_getChemicalFormula)
             end
             if 0 != ccall(sbml(:FbcSpeciesPlugin_isSetCharge), Cint, (VPtr,), sp_fbc)
                 charge = ccall(sbml(:FbcSpeciesPlugin_getCharge), Cint, (VPtr,), sp_fbc)
             end
         end
-        species[unsafe_string(ccall(sbml(:Species_getId), Cstring, (VPtr,), sp))] = Species(
-            unsafe_string(ccall(sbml(:Species_getName), Cstring, (VPtr,), sp)),
-            unsafe_string(ccall(sbml(:Species_getCompartment), Cstring, (VPtr,), sp)),
+        species[get_string(sp, :Species_getId)] = Species(
+            get_string(sp, :Species_getName),
+            get_string(sp, :Species_getCompartment),
             formula,
             charge,
             getNotes(sp),
@@ -186,9 +191,8 @@ function extractModel(mdl::VPtr)::Model
             )
             for j = 1:ccall(sbml(:Objective_getNumFluxObjectives), Cuint, (VPtr,), o)
                 fo = ccall(sbml(:Objective_getFluxObjective), VPtr, (VPtr, Cuint), o, j - 1)
-                objectives_fbc[unsafe_string(
-                    ccall(sbml(:FluxObjective_getReaction), Cstring, (VPtr,), fo),
-                )] = ccall(sbml(:FluxObjective_getCoefficient), Cdouble, (VPtr,), fo)
+                objectives_fbc[get_string(fo, :FluxObjective_getReaction)] =
+                    ccall(sbml(:FluxObjective_getCoefficient), Cdouble, (VPtr,), fo)
             end
         end
     end
@@ -206,11 +210,9 @@ function extractModel(mdl::VPtr)::Model
         if kl != C_NULL
             for j = 1:ccall(sbml(:KineticLaw_getNumParameters), Cuint, (VPtr,), kl)
                 p = ccall(sbml(:KineticLaw_getParameter), VPtr, (VPtr, Cuint), kl, j - 1)
-                id = unsafe_string(ccall(sbml(:Parameter_getId), Cstring, (VPtr,), p))
+                id = get_string(p, :Parameter_getId)
                 pval = () -> ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
-                punit =
-                    () ->
-                        unsafe_string(ccall(sbml(:Parameter_getUnits), Cstring, (VPtr,), p))
+                punit = () -> get_string(p, :Parameter_getUnits)
                 if id == "LOWER_BOUND"
                     lb = (pval(), punit())
                 elseif id == "UPPER_BOUND"
@@ -229,15 +231,13 @@ function extractModel(mdl::VPtr)::Model
         # can make something out of it.
         re_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), re, "fbc")
         if re_fbc != C_NULL
-            fbcb =
-                ccall(sbml(:FbcReactionPlugin_getLowerFluxBound), Cstring, (VPtr,), re_fbc)
-            if fbcb != C_NULL && haskey(parameters, unsafe_string(fbcb))
-                lb = (parameters[unsafe_string(fbcb)], "[fbc]")
+            fbcb = get_optional_string(re_fbc, :FbcReactionPlugin_getLowerFluxBound)
+            if !isnothing(fbcb) && haskey(parameters, fbcb)
+                lb = (parameters[fbcb], "[fbc]")
             end
-            fbcb =
-                ccall(sbml(:FbcReactionPlugin_getUpperFluxBound), Cstring, (VPtr,), re_fbc)
-            if fbcb != C_NULL && haskey(parameters, unsafe_string(fbcb))
-                ub = (parameters[unsafe_string(fbcb)], "[fbc]")
+            fbcb = get_optional_string(re_fbc, :FbcReactionPlugin_getUpperFluxBound)
+            if !isnothing(fbcb) && haskey(parameters, fbcb)
+                ub = (parameters[fbcb], "[fbc]")
             end
         end
 
@@ -245,9 +245,7 @@ function extractModel(mdl::VPtr)::Model
         stoi = Dict{String,Float64}()
         add_stoi =
             (sr, factor) ->
-                stoi[unsafe_string(
-                    ccall(sbml(:SpeciesReference_getSpecies), Cstring, (VPtr,), sr),
-                )] =
+                stoi[get_string(sr, :SpeciesReference_getSpecies)] =
                     ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr) *
                     factor
 
@@ -277,7 +275,7 @@ function extractModel(mdl::VPtr)::Model
             end
         end
 
-        reid = unsafe_string(ccall(sbml(:Reaction_getId), Cstring, (VPtr,), re))
+        reid = get_string(re, :Reaction_getId)
         reactions[reid] = Reaction(
             stoi,
             lb,
@@ -301,12 +299,12 @@ function extractModel(mdl::VPtr)::Model
                 i - 1,
             )
 
-            id = getOptionalString(gp, :GeneProduct_getId) # IDs don't need to be set
+            id = get_optional_string(gp, :GeneProduct_getId) # IDs don't need to be set
 
             if id != nothing
                 gene_products[id] = GeneProduct(
-                    getOptionalString(gp, :GeneProduct_getName),
-                    getOptionalString(gp, :GeneProduct_getLabel),
+                    get_optional_string(gp, :GeneProduct_getName),
+                    get_optional_string(gp, :GeneProduct_getLabel),
                     getNotes(gp),
                     getAnnotation(gp),
                 )
