@@ -79,7 +79,6 @@ Function application ("call by name", no tricks allowed) in mathematical express
 """
 struct MathApply <: Math
     fn::String
-    attributes::Dict{String,String}
     args::Vector{Math}
 end
 

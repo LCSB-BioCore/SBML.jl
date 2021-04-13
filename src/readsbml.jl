@@ -236,7 +236,7 @@ function extractModel(mdl::VPtr)::Model
             end
 
             if ccall(sbml(:KineticLaw_isSetMath), Cint, (VPtr,), kl) != 0
-                math = parseMath(ccall(sbml(:KineticLaw_getMath), VPtr, (VPtr,), kl))
+                math = parse_math(ccall(sbml(:KineticLaw_getMath), VPtr, (VPtr,), kl))
             end
         end
 
