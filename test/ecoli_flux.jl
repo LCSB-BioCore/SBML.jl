@@ -2,7 +2,10 @@
 sbmlfile = "Ec_core_flux1.xml"
 
 if !isfile(sbmlfile)
-    download("http://systemsbiology.ucsd.edu/sites/systemsbiology.ucsd.edu/files/Attachments/Images/InSilicoOrganisms/Ecoli/Ecoli_SBML/Ec_core_flux1.xml", sbmlfile)
+    download(
+        "http://systemsbiology.ucsd.edu/sites/systemsbiology.ucsd.edu/files/Attachments/Images/InSilicoOrganisms/Ecoli/Ecoli_SBML/Ec_core_flux1.xml",
+        sbmlfile,
+    )
 end
 
 cksum = bytes2hex(sha256(open(sbmlfile)))
@@ -23,12 +26,12 @@ end
     mets, rxns, S = getS(mdl)
 
     @test typeof(S) <: AbstractMatrix{Float64}
-    @test typeof(getS(mdl; zeros=spzeros)[3]) <: SparseMatrixCSC{Float64}
-    @test typeof(getS(mdl; zeros=zeros)[3]) == Matrix{Float64}
+    @test typeof(getS(mdl; zeros = spzeros)[3]) <: SparseMatrixCSC{Float64}
+    @test typeof(getS(mdl; zeros = zeros)[3]) == Matrix{Float64}
 
     @test length(mets) == 77
     @test length(rxns) == 77
-    @test size(S) == (length(mets),length(rxns))
+    @test size(S) == (length(mets), length(rxns))
 
     # totally arbitrary value tests
     @test isapprox(sum(S), 42.1479)
@@ -47,10 +50,10 @@ end
     @test length(getLBs(mdl)) == length(rxns)
     @test length(getUBs(mdl)) == length(rxns)
 
-    getunit = (val,unit)::Tuple -> unit
+    getunit = (val, unit)::Tuple -> unit
     @test all([broadcast(getunit, lbs) broadcast(getunit, ubs)] .== "mmol_per_gDW_per_hr")
 
-    getval = (val,unit)::Tuple -> val
+    getval = (val, unit)::Tuple -> val
     lvals = broadcast(getval, lbs)
     uvals = broadcast(getval, ubs)
     @test isapprox(lvals[27], uvals[27])
