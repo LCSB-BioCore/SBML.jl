@@ -82,10 +82,12 @@ struct Species
     compartment::String
     formula::Maybe{String}
     charge::Maybe{Int}
+    initial_amount::Maybe{Tuple{Float64,String}}
     only_substance_units::Bool
     notes::Maybe{String}
     annotation::Maybe{String}
-    Species(na, co, f, ch, osu, no = nothing, a = nothing) = new(na, co, f, ch, osu, no, a)
+    Species(na, co, f, ch, ia, osu, no = nothing, a = nothing) =
+        new(na, co, f, ch, ia, osu, no, a)
 end
 
 """

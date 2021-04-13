@@ -155,6 +155,7 @@ function extractModel(mdl::VPtr)::Model
     for i = 1:ccall(sbml(:Model_getNumSpecies), Cuint, (VPtr,), mdl)
         sp = ccall(sbml(:Model_getSpecies), VPtr, (VPtr, Cuint), mdl, i - 1)
         sp_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), sp, "fbc") # FbcSpeciesPlugin_t
+
         formula = nothing
         charge = nothing
         if sp_fbc != C_NULL
@@ -167,11 +168,21 @@ function extractModel(mdl::VPtr)::Model
                 charge = ccall(sbml(:FbcSpeciesPlugin_getCharge), Cint, (VPtr,), sp_fbc)
             end
         end
+
+        ia = nothing
+        if ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0
+            ia = (
+                ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp),
+                get_string(sp, :Species_getSubstanceUnits),
+            )
+        end
+
         species[get_string(sp, :Species_getId)] = Species(
             get_optional_string(sp, :Species_getName),
             get_string(sp, :Species_getCompartment),
             formula,
             charge,
+            ia,
             ccall(sbml(:Species_getHasOnlySubstanceUnits), Cint, (VPtr,), sp) != 0,
             getNotes(sp),
             getAnnotation(sp),
