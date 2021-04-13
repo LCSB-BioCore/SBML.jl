@@ -91,6 +91,20 @@ struct MathLambda <: Math
 end
 
 """
+SBML Compartment with sizing information.
+"""
+struct Compartment
+    name::Maybe{String}
+    constant::Maybe{Bool}
+    spatial_dimensions::Maybe{Int}
+    size::Maybe{Float64}
+    units::Maybe{String}
+    notes::Maybe{String}
+    annotation::Maybe{String}
+    Compartment(na, c, sd, s, u, no = nothing, an = nothing) = new(na, c, sd, s, u, no, an)
+end
+
+"""
 Reaction with stoichiometry that assigns reactants and products their relative
 consumption/production rates (accessible in field `stoichiometry`), lower/upper
 bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
@@ -118,7 +132,7 @@ struct Species
     formula::Maybe{String}
     charge::Maybe{Int}
     initial_amount::Maybe{Tuple{Float64,String}}
-    only_substance_units::Bool
+    only_substance_units::Maybe{Bool}
     notes::Maybe{String}
     annotation::Maybe{String}
     Species(na, co, f, ch, ia, osu, no = nothing, a = nothing) =
@@ -157,7 +171,7 @@ objects.
 struct Model
     parameters::Dict{String,Float64}
     units::Dict{String,Vector{UnitPart}}
-    compartments::Vector{String}
+    compartments::Dict{String,Compartment}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
     gene_products::Dict{String,GeneProduct}

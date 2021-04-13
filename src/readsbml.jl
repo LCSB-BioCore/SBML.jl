@@ -36,6 +36,45 @@ function get_optional_string(x::VPtr, fn_sym)::Maybe{String}
 end
 
 """
+    get_optional_bool(x::VPtr, is_sym, get_sym)::Maybe{Bool}
+
+Helper for getting out boolean flags.
+"""
+function get_optional_bool(x::VPtr, is_sym, get_sym)::Maybe{Bool}
+    if ccall(sbml(is_sym), Cint, (VPtr,), x) != 0
+        return ccall(sbml(get_sym), Cint, (VPtr,), x) != 0
+    else
+        return nothing
+    end
+end
+
+"""
+    get_optional_int(x::VPtr, is_sym, get_sym)::Maybe{UInt}
+
+Helper for getting out unsigned integers.
+"""
+function get_optional_int(x::VPtr, is_sym, get_sym)::Maybe{Int}
+    if ccall(sbml(is_sym), Cint, (VPtr,), x) != 0
+        return ccall(sbml(get_sym), Cint, (VPtr,), x)
+    else
+        return nothing
+    end
+end
+
+"""
+    get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
+
+Helper for getting out C doubles aka Float64s.
+"""
+function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
+    if ccall(sbml(is_sym), Cint, (VPtr,), x) != 0
+        return ccall(sbml(get_sym), Cdouble, (VPtr,), x)
+    else
+        return nothing
+    end
+end
+
+"""
     function readSBML(fn::String)::Model
 
 Read the SBML from a XML file in `fn` and return the contained `Model`.
@@ -143,12 +182,24 @@ function extractModel(mdl::VPtr)::Model
     end
 
     # parse out compartment names
-    compartments = [
-        get_string(
-            ccall(sbml(:Model_getCompartment), VPtr, (VPtr, Cuint), mdl, i - 1),
-            :Compartment_getId,
-        ) for i = 1:ccall(sbml(:Model_getNumCompartments), Cuint, (VPtr,), mdl)
-    ]
+    compartments = Dict{String,Compartment}()
+    for i = 1:ccall(sbml(:Model_getNumCompartments), Cuint, (VPtr,), mdl)
+        co = ccall(sbml(:Model_getCompartment), VPtr, (VPtr, Cuint), mdl, i - 1)
+
+        compartments[get_string(co, :Compartment_getId)] = Compartment(
+            get_optional_string(co, :Compartment_getName),
+            get_optional_bool(co, :Compartment_isSetConstant, :Compartment_getConstant),
+            get_optional_int(
+                co,
+                :Compartment_isSetSpatialDimensions,
+                :Compartment_getSpatialDimensions,
+            ),
+            get_optional_double(co, :Compartment_isSetSize, :Compartment_getSize),
+            get_optional_string(co, :Compartment_getUnits),
+            get_notes(co),
+            get_annotation(co),
+        )
+    end
 
     # parse out species
     species = Dict{String,Species}()
@@ -183,7 +234,11 @@ function extractModel(mdl::VPtr)::Model
             formula,
             charge,
             ia,
-            ccall(sbml(:Species_getHasOnlySubstanceUnits), Cint, (VPtr,), sp) != 0,
+            get_optional_bool(
+                sp,
+                :Species_isSetHasOnlySubstanceUnits,
+                :Species_getHasOnlySubstanceUnits,
+            ),
             get_notes(sp),
             get_annotation(sp),
         )
