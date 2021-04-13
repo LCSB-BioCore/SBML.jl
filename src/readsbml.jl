@@ -168,7 +168,7 @@ function extractModel(mdl::VPtr)::Model
             end
         end
         species[get_string(sp, :Species_getId)] = Species(
-            get_string(sp, :Species_getName),
+            get_optional_string(sp, :Species_getName),
             get_string(sp, :Species_getCompartment),
             formula,
             charge,
