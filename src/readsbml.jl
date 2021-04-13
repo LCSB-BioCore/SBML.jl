@@ -24,7 +24,7 @@ Like [`get_string`](@Ref), but returns `nothing` instead of throwing an
 exception.
 
 This is used to get notes and annotations and several other things (see
-`getNotes`, `getAnnotations`)
+`get_notes`, `get_annotations`)
 """
 function get_optional_string(x::VPtr, fn_sym)::Maybe{String}
     str = ccall(sbml(fn_sym), Cstring, (VPtr,), x)
@@ -65,8 +65,8 @@ function readSBML(fn::String)::Model
     end
 end
 
-getNotes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString)
-getAnnotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)
+get_notes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString)
+get_annotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)
 
 """
     function getAssociation(x::VPtr)::GeneProductAssociation
@@ -184,8 +184,8 @@ function extractModel(mdl::VPtr)::Model
             charge,
             ia,
             ccall(sbml(:Species_getHasOnlySubstanceUnits), Cint, (VPtr,), sp) != 0,
-            getNotes(sp),
-            getAnnotation(sp),
+            get_notes(sp),
+            get_annotation(sp),
         )
     end
 
@@ -301,8 +301,8 @@ function extractModel(mdl::VPtr)::Model
             haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
             association,
             math,
-            getNotes(re),
-            getAnnotation(re),
+            get_notes(re),
+            get_annotation(re),
         )
     end
 
@@ -324,8 +324,8 @@ function extractModel(mdl::VPtr)::Model
                 gene_products[id] = GeneProduct(
                     get_optional_string(gp, :GeneProduct_getName),
                     get_optional_string(gp, :GeneProduct_getLabel),
-                    getNotes(gp),
-                    getAnnotation(gp),
+                    get_notes(gp),
+                    get_annotation(gp),
                 )
             end
         end
@@ -343,8 +343,8 @@ function extractModel(mdl::VPtr)::Model
             FunctionDefinition(
                 get_optional_string(fd, :FunctionDefinition_getName),
                 def,
-                getNotes(fd),
-                getAnnotation(fd),
+                get_notes(fd),
+                get_annotation(fd),
             )
     end
 
@@ -355,7 +355,8 @@ function extractModel(mdl::VPtr)::Model
         species,
         reactions,
         gene_products,
-        getNotes(mdl),
-        getAnnotation(mdl),
+        function_definitions,
+        get_notes(mdl),
+        get_annotation(mdl),
     )
 end
