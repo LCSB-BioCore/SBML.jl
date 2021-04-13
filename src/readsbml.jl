@@ -216,6 +216,7 @@ function extractModel(mdl::VPtr)::Model
         lb = (-Inf, "") # (bound value, unit id)
         ub = (Inf, "")
         oc = 0.0
+        math = nothing
 
         # kinetic laws store a second version of the bounds and objectives
         kl = ccall(sbml(:Reaction_getKineticLaw), VPtr, (VPtr,), re)
@@ -232,6 +233,10 @@ function extractModel(mdl::VPtr)::Model
                 elseif id == "OBJECTIVE_COEFFICIENT"
                     oc = pval()
                 end
+            end
+
+            if ccall(sbml(:KineticLaw_isSetMath), Cint, (VPtr,), kl) != 0
+                math = parseMath(ccall(sbml(:KineticLaw_getMath), VPtr, (VPtr,), kl))
             end
         end
 
@@ -272,6 +277,7 @@ function extractModel(mdl::VPtr)::Model
             add_stoi(sr, 1)
         end
 
+        # gene product associations
         association = nothing
         if re_fbc != C_NULL
             gpa = ccall(
@@ -294,6 +300,7 @@ function extractModel(mdl::VPtr)::Model
             ub,
             haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
             association,
+            math,
             getNotes(re),
             getAnnotation(re),
         )

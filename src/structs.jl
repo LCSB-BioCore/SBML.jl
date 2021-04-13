@@ -55,6 +55,33 @@ struct GPAOr <: GeneProductAssociation
     terms::Vector{GeneProductAssociation}
 end
 
+"""
+A simplified representation of MathML-specified math AST
+"""
+abstract type Math end
+
+"""
+A literal value (usually a numeric constant) in mathematical expression
+"""
+struct MathVal{T} <: Math where {T}
+    val::T
+end
+
+"""
+An identifier (usually a variable name) in mathematical expression
+"""
+struct MathIdent <: Math
+    id::String
+end
+
+"""
+Function application ("call by name", no tricks allowed) in mathematical expression
+"""
+struct MathApply <: Math
+    fn::String
+    attributes::Dict{String,String}
+    args::Vector{Math}
+end
 
 """
 Reaction with stoichiometry that assigns reactants and products their relative
@@ -68,9 +95,10 @@ struct Reaction
     ub::Tuple{Float64,String}
     oc::Float64
     gene_product_association::Maybe{GeneProductAssociation}
+    kinetic_math::Maybe{Math}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Reaction(s, l, u, o, as, n = nothing, an = nothing) = new(s, l, u, o, as, n, an)
+    Reaction(s, l, u, o, as, km, n = nothing, an = nothing) = new(s, l, u, o, as, km, n, an)
 end
 
 """
