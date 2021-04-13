@@ -331,6 +331,23 @@ function extractModel(mdl::VPtr)::Model
         end
     end
 
+    function_definitions = Dict{String,FunctionDefinition}()
+    for i = 1:ccall(sbml(:Model_getNumFunctionDefinitions), Cuint, (VPtr,), mdl)
+        fd = ccall(sbml(:Model_getFunctionDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
+        def = nothing
+        if ccall(sbml(:FunctionDefinition_isSetMath), Cint, (VPtr,), fd) != 0
+            def = parse_math(ccall(sbml(:FunctionDefinition_getMath), VPtr, (VPtr,), fd))
+        end
+
+        function_definitions[get_string(fd, :FunctionDefinition_getId)] =
+            FunctionDefinition(
+                get_optional_string(fd, :FunctionDefinition_getName),
+                def,
+                getNotes(fd),
+                getAnnotation(fd),
+            )
+    end
+
     return Model(
         parameters,
         units,

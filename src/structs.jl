@@ -83,6 +83,14 @@ struct MathApply <: Math
 end
 
 """
+Function definition (aka "lambda") in mathematical expression
+"""
+struct MathLambda <: Math
+    args::Vector{String}
+    body::Math
+end
+
+"""
 Reaction with stoichiometry that assigns reactants and products their relative
 consumption/production rates (accessible in field `stoichiometry`), lower/upper
 bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
@@ -129,6 +137,17 @@ struct GeneProduct
 end
 
 """
+Custom function definition.
+"""
+struct FunctionDefinition
+    name::Maybe{String}
+    body::Maybe{Math}
+    notes::Maybe{String}
+    annotation::Maybe{String}
+    FunctionDefinition(na, b, no = nothing, a = nothing) = new(na, b, no, a)
+end
+
+"""
 Structure that collects the model-related data. Contains `parameters`, `units`,
 `compartments`, `species` and `reactions` and `gene_products`, and additional
 `notes` and `annotation` (also present internally in some of the data fields).
@@ -142,7 +161,8 @@ struct Model
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
     gene_products::Dict{String,GeneProduct}
+    function_definitions::Dict{String,FunctionDefinition}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Model(p, u, c, s, r, g, n = nothing, a = nothing) = new(p, u, c, s, r, g, n, a)
+    Model(p, u, c, s, r, g, f, n = nothing, a = nothing) = new(p, u, c, s, r, g, f, n, a)
 end
