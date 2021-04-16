@@ -27,3 +27,6 @@ Manifest.toml
 
 #vim
 .*.swp
+
+# vscode
+/.vscode/
