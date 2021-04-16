@@ -55,6 +55,54 @@ struct GPAOr <: GeneProductAssociation
     terms::Vector{GeneProductAssociation}
 end
 
+"""
+A simplified representation of MathML-specified math AST
+"""
+abstract type Math end
+
+"""
+A literal value (usually a numeric constant) in mathematical expression
+"""
+struct MathVal{T} <: Math where {T}
+    val::T
+end
+
+"""
+An identifier (usually a variable name) in mathematical expression
+"""
+struct MathIdent <: Math
+    id::String
+end
+
+"""
+Function application ("call by name", no tricks allowed) in mathematical expression
+"""
+struct MathApply <: Math
+    fn::String
+    args::Vector{Math}
+end
+
+"""
+Function definition (aka "lambda") in mathematical expression
+"""
+struct MathLambda <: Math
+    args::Vector{String}
+    body::Math
+end
+
+"""
+SBML Compartment with sizing information.
+"""
+struct Compartment
+    name::Maybe{String}
+    constant::Maybe{Bool}
+    spatial_dimensions::Maybe{Int}
+    size::Maybe{Float64}
+    units::Maybe{String}
+    notes::Maybe{String}
+    annotation::Maybe{String}
+    Compartment(na, c, sd, s, u, no = nothing, an = nothing) = new(na, c, sd, s, u, no, an)
+end
 
 """
 Reaction with stoichiometry that assigns reactants and products their relative
@@ -68,9 +116,10 @@ struct Reaction
     ub::Tuple{Float64,String}
     oc::Float64
     gene_product_association::Maybe{GeneProductAssociation}
+    kinetic_math::Maybe{Math}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Reaction(s, l, u, o, as, n = nothing, an = nothing) = new(s, l, u, o, as, n, an)
+    Reaction(s, l, u, o, as, km, n = nothing, an = nothing) = new(s, l, u, o, as, km, n, an)
 end
 
 """
@@ -80,11 +129,15 @@ identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 struct Species
     name::Maybe{String}
     compartment::String
+    boundary_condition::Maybe{Bool}
     formula::Maybe{String}
     charge::Maybe{Int}
+    initial_amount::Maybe{Tuple{Float64,String}}
+    only_substance_units::Maybe{Bool}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Species(na, co, f, ch, no = nothing, a = nothing) = new(na, co, f, ch, no, a)
+    Species(na, co, b, f, ch, ia, osu, no = nothing, a = nothing) =
+        new(na, co, b, f, ch, ia, osu, no, a)
 end
 
 """
@@ -99,6 +152,17 @@ struct GeneProduct
 end
 
 """
+Custom function definition.
+"""
+struct FunctionDefinition
+    name::Maybe{String}
+    body::Maybe{Math}
+    notes::Maybe{String}
+    annotation::Maybe{String}
+    FunctionDefinition(na, b, no = nothing, a = nothing) = new(na, b, no, a)
+end
+
+"""
 Structure that collects the model-related data. Contains `parameters`, `units`,
 `compartments`, `species` and `reactions` and `gene_products`, and additional
 `notes` and `annotation` (also present internally in some of the data fields).
@@ -108,11 +172,12 @@ objects.
 struct Model
     parameters::Dict{String,Float64}
     units::Dict{String,Vector{UnitPart}}
-    compartments::Vector{String}
+    compartments::Dict{String,Compartment}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
     gene_products::Dict{String,GeneProduct}
+    function_definitions::Dict{String,FunctionDefinition}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Model(p, u, c, s, r, g, n = nothing, a = nothing) = new(p, u, c, s, r, g, n, a)
+    Model(p, u, c, s, r, g, f, n = nothing, a = nothing) = new(p, u, c, s, r, g, f, n, a)
 end

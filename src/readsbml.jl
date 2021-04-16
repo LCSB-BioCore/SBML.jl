@@ -24,12 +24,51 @@ Like [`get_string`](@Ref), but returns `nothing` instead of throwing an
 exception.
 
 This is used to get notes and annotations and several other things (see
-`getNotes`, `getAnnotations`)
+`get_notes`, `get_annotations`)
 """
 function get_optional_string(x::VPtr, fn_sym)::Maybe{String}
     str = ccall(sbml(fn_sym), Cstring, (VPtr,), x)
     if str != C_NULL
         return unsafe_string(str)
+    else
+        return nothing
+    end
+end
+
+"""
+    get_optional_bool(x::VPtr, is_sym, get_sym)::Maybe{Bool}
+
+Helper for getting out boolean flags.
+"""
+function get_optional_bool(x::VPtr, is_sym, get_sym)::Maybe{Bool}
+    if ccall(sbml(is_sym), Cint, (VPtr,), x) != 0
+        return ccall(sbml(get_sym), Cint, (VPtr,), x) != 0
+    else
+        return nothing
+    end
+end
+
+"""
+    get_optional_int(x::VPtr, is_sym, get_sym)::Maybe{UInt}
+
+Helper for getting out unsigned integers.
+"""
+function get_optional_int(x::VPtr, is_sym, get_sym)::Maybe{Int}
+    if ccall(sbml(is_sym), Cint, (VPtr,), x) != 0
+        return ccall(sbml(get_sym), Cint, (VPtr,), x)
+    else
+        return nothing
+    end
+end
+
+"""
+    get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
+
+Helper for getting out C doubles aka Float64s.
+"""
+function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
+    if ccall(sbml(is_sym), Cint, (VPtr,), x) != 0
+        return ccall(sbml(get_sym), Cdouble, (VPtr,), x)
     else
         return nothing
     end
@@ -65,8 +104,8 @@ function readSBML(fn::String)::Model
     end
 end
 
-getNotes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString)
-getAnnotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)
+get_notes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString)
+get_annotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)
 
 """
     function getAssociation(x::VPtr)::GeneProductAssociation
@@ -143,18 +182,31 @@ function extractModel(mdl::VPtr)::Model
     end
 
     # parse out compartment names
-    compartments = [
-        get_string(
-            ccall(sbml(:Model_getCompartment), VPtr, (VPtr, Cuint), mdl, i - 1),
-            :Compartment_getId,
-        ) for i = 1:ccall(sbml(:Model_getNumCompartments), Cuint, (VPtr,), mdl)
-    ]
+    compartments = Dict{String,Compartment}()
+    for i = 1:ccall(sbml(:Model_getNumCompartments), Cuint, (VPtr,), mdl)
+        co = ccall(sbml(:Model_getCompartment), VPtr, (VPtr, Cuint), mdl, i - 1)
+
+        compartments[get_string(co, :Compartment_getId)] = Compartment(
+            get_optional_string(co, :Compartment_getName),
+            get_optional_bool(co, :Compartment_isSetConstant, :Compartment_getConstant),
+            get_optional_int(
+                co,
+                :Compartment_isSetSpatialDimensions,
+                :Compartment_getSpatialDimensions,
+            ),
+            get_optional_double(co, :Compartment_isSetSize, :Compartment_getSize),
+            get_optional_string(co, :Compartment_getUnits),
+            get_notes(co),
+            get_annotation(co),
+        )
+    end
 
     # parse out species
     species = Dict{String,Species}()
     for i = 1:ccall(sbml(:Model_getNumSpecies), Cuint, (VPtr,), mdl)
         sp = ccall(sbml(:Model_getSpecies), VPtr, (VPtr, Cuint), mdl, i - 1)
         sp_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), sp, "fbc") # FbcSpeciesPlugin_t
+
         formula = nothing
         charge = nothing
         if sp_fbc != C_NULL
@@ -167,13 +219,33 @@ function extractModel(mdl::VPtr)::Model
                 charge = ccall(sbml(:FbcSpeciesPlugin_getCharge), Cint, (VPtr,), sp_fbc)
             end
         end
+
+        ia = nothing
+        if ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0
+            ia = (
+                ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp),
+                get_string(sp, :Species_getSubstanceUnits),
+            )
+        end
+
         species[get_string(sp, :Species_getId)] = Species(
             get_optional_string(sp, :Species_getName),
             get_string(sp, :Species_getCompartment),
+            get_optional_bool(
+                sp,
+                :Species_isSetBoundaryCondition,
+                :Species_getBoundaryCondition,
+            ),
             formula,
             charge,
-            getNotes(sp),
-            getAnnotation(sp),
+            ia,
+            get_optional_bool(
+                sp,
+                :Species_isSetHasOnlySubstanceUnits,
+                :Species_getHasOnlySubstanceUnits,
+            ),
+            get_notes(sp),
+            get_annotation(sp),
         )
     end
 
@@ -204,6 +276,7 @@ function extractModel(mdl::VPtr)::Model
         lb = (-Inf, "") # (bound value, unit id)
         ub = (Inf, "")
         oc = 0.0
+        math = nothing
 
         # kinetic laws store a second version of the bounds and objectives
         kl = ccall(sbml(:Reaction_getKineticLaw), VPtr, (VPtr,), re)
@@ -220,6 +293,10 @@ function extractModel(mdl::VPtr)::Model
                 elseif id == "OBJECTIVE_COEFFICIENT"
                     oc = pval()
                 end
+            end
+
+            if ccall(sbml(:KineticLaw_isSetMath), Cint, (VPtr,), kl) != 0
+                math = parse_math(ccall(sbml(:KineticLaw_getMath), VPtr, (VPtr,), kl))
             end
         end
 
@@ -260,6 +337,7 @@ function extractModel(mdl::VPtr)::Model
             add_stoi(sr, 1)
         end
 
+        # gene product associations
         association = nothing
         if re_fbc != C_NULL
             gpa = ccall(
@@ -282,8 +360,9 @@ function extractModel(mdl::VPtr)::Model
             ub,
             haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
             association,
-            getNotes(re),
-            getAnnotation(re),
+            math,
+            get_notes(re),
+            get_annotation(re),
         )
     end
 
@@ -305,11 +384,28 @@ function extractModel(mdl::VPtr)::Model
                 gene_products[id] = GeneProduct(
                     get_optional_string(gp, :GeneProduct_getName),
                     get_optional_string(gp, :GeneProduct_getLabel),
-                    getNotes(gp),
-                    getAnnotation(gp),
+                    get_notes(gp),
+                    get_annotation(gp),
                 )
             end
         end
+    end
+
+    function_definitions = Dict{String,FunctionDefinition}()
+    for i = 1:ccall(sbml(:Model_getNumFunctionDefinitions), Cuint, (VPtr,), mdl)
+        fd = ccall(sbml(:Model_getFunctionDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
+        def = nothing
+        if ccall(sbml(:FunctionDefinition_isSetMath), Cint, (VPtr,), fd) != 0
+            def = parse_math(ccall(sbml(:FunctionDefinition_getMath), VPtr, (VPtr,), fd))
+        end
+
+        function_definitions[get_string(fd, :FunctionDefinition_getId)] =
+            FunctionDefinition(
+                get_optional_string(fd, :FunctionDefinition_getName),
+                def,
+                get_notes(fd),
+                get_annotation(fd),
+            )
     end
 
     return Model(
@@ -319,7 +415,8 @@ function extractModel(mdl::VPtr)::Model
         species,
         reactions,
         gene_products,
-        getNotes(mdl),
-        getAnnotation(mdl),
+        function_definitions,
+        get_notes(mdl),
+        get_annotation(mdl),
     )
 end
