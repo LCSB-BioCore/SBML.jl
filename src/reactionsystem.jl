@@ -54,10 +54,12 @@ end
 """ Convert intensive to extensive expressions """
 function make_extensive(model)
     model = to_initial_amounts(model)
+    model = to_extensive_math(model)
     model  # Todo: For spevies with `hOSU=false` multiply all occurences in mathematical expressions by compartment size.
            # Also convert species initialConcentrations to initialAmounts
 end
 
+""" Convert initial_concentration to initial_amount """
 function to_initial_amounts(model::Model)
     model = deepcopy(model)
     for specie in model.species
@@ -68,6 +70,16 @@ function to_initial_amounts(model::Model)
         end
     end
     model
+end
+
+""" Convert intensive to extensive mathematical expression """
+function to_extensive_math(model::Model)
+    model = deepcopy(model)
+    for reaction in model.reactions
+        km = reaction.kinetic_math
+        reaction.km = ...  # PL: Todo: @Anand can you multiply species with `hOSU=true` with their compartment volume?
+    end
+    reaction
 end
 
 """ Expand reversible reactions to two reactions """
@@ -93,7 +105,7 @@ function mtk_reaction(reaction::SBML.Reaction)
         end
     end
     subsdict = _get_substitutions(model)
-    # PL: Todo: convert kinetic_math to Symbolic MTK expression
+    # PL: Todo: @Anand: can you convert kinetic_math to Symbolic expression. Perhaps it would actually better if kinetic Math would be a Symbolics.jl expression rather than of type `Math`? But Mirek wants `Math`, I think.
     kl = substitute(reaction.kinetic_math, subsdict)  # PL: Todo: might need conversion of kinetic_math to Symbolic MTK expression
     ModelingToolkit.Reaction(reaction.kinetic_math,reactants,prodcts,rstoich,pstoich;only_use_rate=true)
 end

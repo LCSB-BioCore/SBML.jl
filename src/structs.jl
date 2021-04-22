@@ -110,7 +110,7 @@ consumption/production rates (accessible in field `stoichiometry`), lower/upper
 bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
 (`oc`). Also may contains `notes` and `annotation`.
 """
-struct Reaction
+mutable struct Reaction
     stoichiometry::Dict{String,Float64}
     lb::Tuple{Float64,String}
     ub::Tuple{Float64,String}
