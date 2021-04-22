@@ -133,6 +133,7 @@ struct Species
     formula::Maybe{String}
     charge::Maybe{Int}
     initial_amount::Maybe{Tuple{Float64,String}}
+    initial_concentration::Maybe{Tuple{Float64,String}}
     only_substance_units::Maybe{Bool}
     notes::Maybe{String}
     annotation::Maybe{String}

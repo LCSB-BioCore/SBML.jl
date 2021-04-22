@@ -228,6 +228,14 @@ function extractModel(mdl::VPtr)::Model
             )
         end
 
+        ic = nothing
+        if ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0
+            ic = (
+                ccall(sbml(:Species_getInitialConcentration), Cdouble, (VPtr,), sp),
+                get_string(sp, :Species_getSubstanceUnits),
+            )
+        end
+
         species[get_string(sp, :Species_getId)] = Species(
             get_optional_string(sp, :Species_getName),
             get_string(sp, :Species_getCompartment),
@@ -239,6 +247,7 @@ function extractModel(mdl::VPtr)::Model
             formula,
             charge,
             ia,
+            ic,
             get_optional_bool(
                 sp,
                 :Species_isSetHasOnlySubstanceUnits,
