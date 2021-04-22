@@ -8,25 +8,25 @@ using Catalyst, ModelingToolkit, Symbolics
 # end
 
 """ ReactionSystem constructor """
-function ModelingToolkit.ReactionSystem(model::Model)  # Todo: requires unique parameters (i.e. SBML must have been imported with localParameter promotion in libSBML)
+function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requires unique parameters (i.e. SBML must have been imported with localParameter promotion in libSBML)
     model = make_extensive(model)
     model = expand_reversible(model)
     rxs = mtk_reaction.(model.reactions)
     t = DEFAULT_IV
     species = [create_var(k) for k in keys(model.species)]
     params = vcat([create_var(k) for k in keys(model.parameters)], [create_par(k) for k in keys(model.compartments)])
-    ReactionSystem(rxs,t,species,params)
+    ReactionSystem(rxs,t,species,params; kwargs...)
 end
 
 """ ReactionSystem constructor """
-function ModelingToolkit.ReactionSystem(sbmlfile::String)
+function ModelingToolkit.ReactionSystem(sbmlfile::String; kwargs...)
     model = readSBML(sbmlfile)
-    ReactionSystem(model)
+    ReactionSystem(model; kwargs...)
 end
 
 """ ODESystem constructor """
-function ModelingToolkit.ODESystem(model::Model)
-    rs = ReactionSystem(model)
+function ModelingToolkit.ODESystem(model::Model; kwargs...)
+    rs = ReactionSystem(model, kwargs...)
     u0map = get_u0(model)
     parammap = get_paramap(model)
     defaults = vcat(u0map, parammap)
@@ -34,20 +34,20 @@ function ModelingToolkit.ODESystem(model::Model)
 end
 
 """ ODESystem constructor """
-function ModelingToolkit.ODESystem(sbmlfile::String)
+function ModelingToolkit.ODESystem(sbmlfile::String; kwargs...)
     model = readSBML(sbmlfile)
-    ODESystem(model)
+    ODESystem(model; kwargs...)
 end
 
 """ ODEProblem constructor """
-function ModelingToolkit.ODEProblem(model::Model,tspan)  # Todo: add u0 and parameters argument
-    odesys = ODESystem(model)
+function ModelingToolkit.ODEProblem(model::Model,tspan;kwargs...)  # PL: Todo: add u0 and parameters argument
+    odesys = ODESystem(model,kwargs...)
     ODEProblem(odesys, [], tspan)
 end
 
 """ ODEProblem constructor """
-function ModelingToolkit.ODEProblem(sbmlfile::String,tspan)  # Todo: add u0 and parameters argument
-    odesys = ODESystem(sbmlfile)
+function ModelingToolkit.ODEProblem(sbmlfile::String,tspan;kwargs...)  # PL: Todo: add u0 and parameters argument
+    odesys = ODESystem(sbmlfile;kwargs...)
     ODEProblem(odesys, [], tspan)
 end
 
