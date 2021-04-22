@@ -126,7 +126,7 @@ end
 Species metadata -- contains a human-readable `name`, a `compartment`
 identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 """
-struct Species
+mutable struct Species
     name::Maybe{String}
     compartment::String
     boundary_condition::Maybe{Bool}

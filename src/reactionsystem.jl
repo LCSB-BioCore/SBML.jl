@@ -53,8 +53,21 @@ end
 
 """ Convert intensive to extensive expressions """
 function make_extensive(model)
-    model  # Todo: For spevies with `hOSU=false` divide all occurences in mathematical expressions by compartment size.
+    model = to_initial_amounts(model)
+    model  # Todo: For spevies with `hOSU=false` multiply all occurences in mathematical expressions by compartment size.
            # Also convert species initialConcentrations to initialAmounts
+end
+
+function to_initial_amounts(model::Model)
+    model = deepcopy(model)
+    for specie in model.species
+        if isequal(specie.initial_amount, nothing)
+            compartment = model.compartments[specie.compartment]
+            specie.initial_amount = specie.initial_concentration * compartment.size
+            specie.initial_concentration = nothing
+        end
+    end
+    model
 end
 
 """ Expand reversible reactions to two reactions """
