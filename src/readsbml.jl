@@ -283,7 +283,7 @@ function extractModel(mdl::VPtr)::Model
     for i = 1:ccall(sbml(:Model_getNumReactions), Cuint, (VPtr,), mdl)
         re = ccall(sbml(:Model_getReaction), VPtr, (VPtr, Cuint), mdl, i - 1)
         if ccall(sbml(:Reaction_getReversible), Cint, (VPtr,), re)
-            throw(AssertionError("Reaction $(ccall(sbml(:Reaction_getId))) is reversible, but currently only irreversible reactions are supported."))
+            throw(AssertionError("Reaction $(get_string(re, :Reaction_getId)) is reversible, but currently only irreversible reactions are supported."))
         end     
         lb = (-Inf, "") # (bound value, unit id)
         ub = (Inf, "")

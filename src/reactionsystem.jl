@@ -54,7 +54,7 @@ end
 """ Convert intensive to extensive expressions """
 function make_extensive(model)
     model = to_initial_amounts(model)
-    model = to_extensive_math(model)
+    # model = to_extensive_math(model)
     model  # Todo: For spevies with `hOSU=false` multiply all occurences in mathematical expressions by compartment size.
            # Also convert species initialConcentrations to initialAmounts
 end
@@ -62,10 +62,10 @@ end
 """ Convert initial_concentration to initial_amount """
 function to_initial_amounts(model::Model)
     model = deepcopy(model)
-    for specie in model.species
+    for specie in values(model.species)
         if isequal(specie.initial_amount, nothing)
             compartment = model.compartments[specie.compartment]
-            specie.initial_amount = specie.initial_concentration * compartment.size
+            specie.initial_amount = (specie.initial_concentration[1] * compartment.size, "")
             specie.initial_concentration = nothing
         end
     end
@@ -77,7 +77,7 @@ function to_extensive_math(model::Model)
     model = deepcopy(model)
     for reaction in model.reactions
         km = reaction.kinetic_math
-        reaction.km = ...  # PL: Todo: @Anand can you multiply species with `hOSU=true` with their compartment volume?
+        reaction.km = 1.  # PL: Todo: @Anand can you multiply species with `hOSU=true` with their compartment volume?
     end
     reaction
 end

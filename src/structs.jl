@@ -111,10 +111,10 @@ bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
 (`oc`). Also may contains `notes` and `annotation`.
 """
 mutable struct Reaction
-    stoichiometry::Dict{String,Float64}
-    lb::Tuple{Float64,String}
-    ub::Tuple{Float64,String}
-    oc::Float64
+    stoichiometry::Dict{String,Float64}  # PL: Why do we allow/require non-integer stoichiometries?
+    lb::Maybe{Tuple{Float64,String}}
+    ub::Maybe{Tuple{Float64,String}}
+    oc::Maybe{Float64}
     gene_product_association::Maybe{GeneProductAssociation}
     kinetic_math::Maybe{Math}
     notes::Maybe{String}
@@ -176,8 +176,8 @@ struct Model
     compartments::Dict{String,Compartment}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
-    gene_products::Dict{String,GeneProduct}
-    function_definitions::Dict{String,FunctionDefinition}
+    gene_products::Maybe{Dict{String,GeneProduct}}
+    function_definitions::Maybe{Dict{String,FunctionDefinition}}
     notes::Maybe{String}
     annotation::Maybe{String}
     Model(p, u, c, s, r, g, f, n = nothing, a = nothing) = new(p, u, c, s, r, g, f, n, a)
