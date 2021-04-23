@@ -10,9 +10,9 @@ using Catalyst, ModelingToolkit, Symbolics
 """ ReactionSystem constructor """
 function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requires unique parameters (i.e. SBML must have been imported with localParameter promotion in libSBML)
     model = make_extensive(model)
-    model = expand_reversible(model)
+    # model = expand_reversible(model)
     rxs = mtk_reactions(model)
-    t = DEFAULT_IV
+    t = Catalyst.DEFAULT_IV
     species = [create_var(k) for k in keys(model.species)]
     params = vcat([create_var(k) for k in keys(model.parameters)], [create_param(k) for k in keys(model.compartments)])
     ReactionSystem(rxs,t,species,params; kwargs...)
@@ -160,4 +160,4 @@ create_var(x) = Num(Variable(Symbol(x)))
 function create_param(x)
     p = Sym{Real}(Symbol(x))
     ModelingToolkit.toparam(p)
-  end
+end

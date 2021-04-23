@@ -137,8 +137,8 @@ mutable struct Species
     only_substance_units::Maybe{Bool}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Species(na, co, b, f, ch, ia, osu, no = nothing, a = nothing) =
-        new(na, co, b, f, ch, ia, osu, no, a)
+    Species(na, co, b, f, ch, ia, ic, osu, no = nothing, a = nothing) =
+        new(na, co, b, f, ch, ia, ic, osu, no, a)
 end
 
 """

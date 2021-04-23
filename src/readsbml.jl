@@ -237,7 +237,7 @@ function extractModel(mdl::VPtr)::Model
         end
 
         species[get_string(sp, :Species_getId)] = Species(
-            get_optional_string(sp, :Species_getName),
+            get_optional_string(sp, :Species_getName),  # PL: wondering if we should use Id instead of name here
             get_string(sp, :Species_getCompartment),
             get_optional_bool(
                 sp,
@@ -282,7 +282,7 @@ function extractModel(mdl::VPtr)::Model
     reactions = Dict{String,Reaction}()
     for i = 1:ccall(sbml(:Model_getNumReactions), Cuint, (VPtr,), mdl)
         re = ccall(sbml(:Model_getReaction), VPtr, (VPtr, Cuint), mdl, i - 1)
-        if ccall(sbml(:Reaction_getReversible), Cint, (VPtr,), re)
+        if ccall(sbml(:Reaction_getReversible), Cint, (VPtr,), re) == 1
             throw(AssertionError("Reaction $(get_string(re, :Reaction_getId)) is reversible, but currently only irreversible reactions are supported."))
         end     
         lb = (-Inf, "") # (bound value, unit id)

@@ -1,9 +1,9 @@
-using ModelingToolkit
+using Catalyst, ModelingToolkit
 
-# sbmlfile = "reactionsystem_01.xml"
+sbmlfile = "reactionsystem_01.xml"
 
 @parameters t, k1, c1
-@variables s1, s2
+@variables s1, s2, s1s2
 
 # t = Variable(:t)
 # k1 = Num(Sym{ModelingToolkit.Parameter{Real}}(:k1))
@@ -50,6 +50,23 @@ MODEL2 = Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => SPECI
     trueparamap = [k1 => 1., c1 => 2.]
     paramap = SBML.get_paramap(MODEL1)
     @test isequal(paramap, trueparamap)
+
+    # Test ReactionSystem constructor
+    rs = ReactionSystem(MODEL1)
+    @test isequal(Catalyst.get_eqs(rs), ModelingToolkit.Reaction[ModelingToolkit.Reaction(k1, [s1], nothing, [1.], nothing; use_only_rate=true)])
+    @test isequal(Catalyst.get_iv(rs), t)
+    @test isequal(Catalyst.get_states(rs), [s1])
+    @test isequal(Catalyst.get_ps(rs), [k1,c1])
+    @named rs = ReactionSystem(MODEL1)
+    isequal(rs.name, :rs)
+
+    rs = ReactionSystem(sbmlfile)
+    @test isequal(Catalyst.get_eqs(rs), ModelingToolkit.Reaction[ModelingToolkit.Reaction(k1, [s1, s2], [s1s2], [1., 1.], [1.]; use_only_rate=true)])
+    @test isequal(Catalyst.get_iv(rs), t)
+    @test isequal(Catalyst.get_states(rs), [s1, s2, s1s2])
+    @test isequal(Catalyst.get_ps(rs), [k1,c1])
+    @named rs = ReactionSystem(MODEL1)
+    isequal(rs.name, :rs)
 
 
 
