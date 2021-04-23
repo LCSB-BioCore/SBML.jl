@@ -11,10 +11,10 @@ using Catalyst, ModelingToolkit, Symbolics
 function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requires unique parameters (i.e. SBML must have been imported with localParameter promotion in libSBML)
     model = make_extensive(model)
     model = expand_reversible(model)
-    rxs = mtk_reaction.(model.reactions)
+    rxs = mtk_reactions(model)
     t = DEFAULT_IV
     species = [create_var(k) for k in keys(model.species)]
-    params = vcat([create_var(k) for k in keys(model.parameters)], [create_par(k) for k in keys(model.compartments)])
+    params = vcat([create_var(k) for k in keys(model.parameters)], [create_param(k) for k in keys(model.compartments)])
     ReactionSystem(rxs,t,species,params; kwargs...)
 end
 
@@ -60,7 +60,7 @@ function make_extensive(model)
 end
 
 """ Convert initial_concentration to initial_amount """
-function to_initial_amounts(model::Model)
+function to_initial_amounts(model::Model)  # Test written
     model = deepcopy(model)
     for specie in values(model.species)
         if isequal(specie.initial_amount, nothing)
@@ -87,43 +87,59 @@ function expand_reversible(model)
     model  # Todo: convert all Reactions that are `reversible=true` to a forward and reverse reaction with `reversible=false`.
 end
 
-""" Convert SBML.Reaction to MTK.Reaction """
-function mtk_reaction(reaction::SBML.Reaction)
-    reactants = []
-    rstoich = []
-    products = []
-    pstoich = []
-    for (k,v) in reaction.stoichiometry
-        if v < 0
-            push!(reactants, create_var(k))
-            push!(rstoich, -v)
-        elseif v > 0
-            push!(products, create_var(k))
-            push!(pstoich, -v)
-        else
-            @error("Stoichiometry of $k must be non-zero")
-        end
-    end
-    subsdict = _get_substitutions(model)
-    # PL: Todo: @Anand: can you convert kinetic_math to Symbolic expression. Perhaps it would actually better if kinetic Math would be a Symbolics.jl expression rather than of type `Math`? But Mirek wants `Math`, I think.
-    kl = substitute(reaction.kinetic_math, subsdict)  # PL: Todo: might need conversion of kinetic_math to Symbolic MTK expression
-    ModelingToolkit.Reaction(reaction.kinetic_math,reactants,prodcts,rstoich,pstoich;only_use_rate=true)
-end
-
 """ Get dictonary to change types in kineticLaw """
-function _get_substitution(model)
+function _get_substitutions(model)
     subsdict = Dict()
     for k in keys(model.species)
-        push!(substict, Pair(Num(Variable(Symbol(k))),create_var(k)))
+        push!(subsdict, Pair(Num(Variable(Symbol(k))),create_var(k)))
     end
     for k in keys(model.parameters)
-        push!(subsdict, Pair(Num(Variable(Symbol(k))),create_par(k)))
+        push!(subsdict, Pair(Num(Variable(Symbol(k))),create_param(k)))
     end
     for k in keys(model.compartments)
-        push!(subsdict, Pair(Num(Variable(Symbol(k))),create_par(k)))
+        push!(subsdict, Pair(Num(Variable(Symbol(k))),create_param(k)))
     end
     subsdict
 end
+
+""" Convert SBML.Reaction to MTK.Reaction """
+function mtk_reactions(model::Model)
+    rxs = []
+    for reaction in values(model.reactions)
+        reactants = Num[]
+        rstoich = Num[]
+        products = Num[]
+        pstoich = Num[]
+        println(model)
+        println(reaction.stoichiometry)
+        for (k,v) in reaction.stoichiometry
+            if v < 0
+                push!(reactants, create_var(k))
+                push!(rstoich, -v)
+            elseif v > 0
+                push!(products, create_var(k))
+                push!(pstoich, v)
+            else
+                @error("Stoichiometry of $k must be non-zero")
+            end
+        end
+        if (length(reactants)==0) reactants = nothing; rstoich = nothing end
+        if (length(products)==0) products = nothing; pstoich = nothing end
+        subsdict = _get_substitutions(model)
+        # PL: Todo: @Anand: can you convert kinetic_math to Symbolic expression. Perhaps it would actually better if kinetic Math would be a Symbolics.jl expression rather than of type `Math`? But Mirek wants `Math`, I think.
+        symbolic_math = Num(Variable(Symbol("k1")))  # PL: Just a dummy to get tests running.
+        kl = substitute(symbolic_math, subsdict)  # PL: Todo: might need conversion of kinetic_math to Symbolic MTK expression
+        # println(typeof(products[1]))
+        # println(reactants)
+        # println(rstoich)
+        # println(products)
+        # println(pstoich)
+        push!(rxs, ModelingToolkit.Reaction(kl,reactants,products,rstoich,pstoich;only_use_rate=true))
+    end
+    rxs
+end
+
+
 
 """ Extract u0map from Model """
 function get_u0(model)
@@ -138,10 +154,10 @@ end
 function get_paramap(model)
     paramap = []
     for (k,v) in model.parameters
-        push!(Pair(create_par(k),v))
+        push!(Pair(create_param(k),v))
     end
     for (k,v) in model.compartments
-        push!(Pair(create_par(k),v.size))
+        push!(Pair(create_param(k),v.size))
     end
     paramap
 end
@@ -149,4 +165,7 @@ end
 create_var(x) = Num(Variable(Symbol(x)))
 # # create_var(x, iv) = Num(Sym{FnType{Tuple{Real}}}(Symbol(x))(Variable(Symbol(iv)))).val
 # # create_var(x, iv) = Num(Variable{Symbolics.FnType{Tuple{Any},Real}}(Symbol(x)))(Variable(Symbol(iv)))
-create_param(x) = Num(Sym{ModelingToolkit.Parameter{Real}}(Symbol(x)))
+function create_param(x)
+    p = Sym{Real}(Symbol(x))
+    ModelingToolkit.toparam(p)
+  end
