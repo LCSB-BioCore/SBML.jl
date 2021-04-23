@@ -144,12 +144,12 @@ end
 
 """ Extract paramap from Model """
 function get_paramap(model)
-    paramap = []
+    paramap = Pair{Num, Float64}[]
     for (k,v) in model.parameters
-        push!(Pair(create_param(k),v))
+        push!(paramap,Pair(create_param(k),v))
     end
     for (k,v) in model.compartments
-        push!(Pair(create_param(k),v.size))
+        push!(paramap,Pair(create_param(k),v.size))
     end
     paramap
 end

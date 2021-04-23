@@ -38,13 +38,18 @@ MODEL2 = Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => SPECI
     truesubs = Dict(Num(Variable(:c1)) => c1,
                 Num(Variable(:k1)) => k1,
                 Num(Variable(:s1)) => s1)
-    subs = SBML._get_substitutions(model)
+    subs = SBML._get_substitutions(MODEL1)
     @test isequal(subs, truesubs)
 
     # Test get_u0
     true_u0map = [s1 => 1.]
-    u0map = SBML.get_u0(model)
+    u0map = SBML.get_u0(MODEL1)
     @test isequal(true_u0map, u0map)
+
+    # Test get_paramap
+    trueparamap = [k1 => 1., c1 => 2.]
+    paramap = SBML.get_paramap(MODEL1)
+    @test isequal(paramap, trueparamap)
 
 
 
