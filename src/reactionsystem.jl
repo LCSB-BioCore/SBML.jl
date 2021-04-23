@@ -110,8 +110,6 @@ function mtk_reactions(model::Model)
         rstoich = Num[]
         products = Num[]
         pstoich = Num[]
-        println(model)
-        println(reaction.stoichiometry)
         for (k,v) in reaction.stoichiometry
             if v < 0
                 push!(reactants, create_var(k))
@@ -129,23 +127,17 @@ function mtk_reactions(model::Model)
         # PL: Todo: @Anand: can you convert kinetic_math to Symbolic expression. Perhaps it would actually better if kinetic Math would be a Symbolics.jl expression rather than of type `Math`? But Mirek wants `Math`, I think.
         symbolic_math = Num(Variable(Symbol("k1")))  # PL: Just a dummy to get tests running.
         kl = substitute(symbolic_math, subsdict)  # PL: Todo: might need conversion of kinetic_math to Symbolic MTK expression
-        # println(typeof(products[1]))
-        # println(reactants)
-        # println(rstoich)
-        # println(products)
-        # println(pstoich)
         push!(rxs, ModelingToolkit.Reaction(kl,reactants,products,rstoich,pstoich;only_use_rate=true))
     end
     rxs
 end
 
 
-
 """ Extract u0map from Model """
 function get_u0(model)
     u0map = []
     for (k,v) in model.species
-        push!(Pair(create_var(k),vinitial_amount))
+        push!(u0map,Pair(create_var(k), v.initial_amount[1]))
     end
     u0map
 end

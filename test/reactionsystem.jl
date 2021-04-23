@@ -41,6 +41,11 @@ MODEL2 = Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => SPECI
     subs = SBML._get_substitutions(model)
     @test isequal(subs, truesubs)
 
+    # Test get_u0
+    true_u0map = [s1 => 1.]
+    u0map = SBML.get_u0(model)
+    @test isequal(true_u0map, u0map)
+
 
 
     # @test length(mdl.compartments) == 2
