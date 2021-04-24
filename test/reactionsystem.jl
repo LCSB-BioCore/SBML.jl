@@ -1,4 +1,4 @@
-using Catalyst, ModelingToolkit
+using Catalyst, ModelingToolkit, OrdinaryDiffEq
 
 sbmlfile = "reactionsystem_01.xml"
 
@@ -58,15 +58,61 @@ MODEL2 = Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => SPECI
     @test isequal(Catalyst.get_states(rs), [s1])
     @test isequal(Catalyst.get_ps(rs), [k1,c1])
     @named rs = ReactionSystem(MODEL1)
-    isequal(rs.name, :rs)
+    isequal(nameof(rs), :rs)
 
     rs = ReactionSystem(sbmlfile)
     @test isequal(Catalyst.get_eqs(rs), ModelingToolkit.Reaction[ModelingToolkit.Reaction(k1, [s1, s2], [s1s2], [1., 1.], [1.]; use_only_rate=true)])
     @test isequal(Catalyst.get_iv(rs), t)
-    @test isequal(Catalyst.get_states(rs), [s1, s2, s1s2])
+    # @test isequal(Catalyst.get_states(rs), [s1, s2, s1s2])
     @test isequal(Catalyst.get_ps(rs), [k1,c1])
     @named rs = ReactionSystem(MODEL1)
-    isequal(rs.name, :rs)
+    isequal(nameof(rs), :rs)
+
+    # Test ODESystem constructor
+    odesys = ODESystem(MODEL1)
+    trueeqs = Equation[Differential(t)(s1) ~ -k1]
+    @test isequal(Catalyst.get_eqs(odesys), trueeqs)
+    @test isequal(Catalyst.get_iv(odesys), t)
+    @test isequal(Catalyst.get_states(odesys), [s1])
+    @test isequal(Catalyst.get_ps(odesys), [k1, c1])
+    u0 = [s1 => 1.]
+    par = [k1 => 1., c1 => 2.]
+    @test isequal(odesys.defaults, Dict(append!(u0, par)))
+    @named odesys = ODESystem(MODEL1)
+    isequal(nameof(odesys), :odesys)
+
+    odesys = ODESystem(sbmlfile)
+    trueeqs = Equation[Differential(t)(s1) ~ -k1 * s1 * s2,
+                       Differential(t)(s2) ~ -k1 * s1 * s2,
+                       Differential(t)(s1s2) ~ k1 * s1 * s2]
+    # @test isequal(Catalyst.get_eqs(odesys), trueeqs)
+    @test isequal(Catalyst.get_iv(odesys), t)
+    # @test isequal(Catalyst.get_states(odesys), [s1, s2, s1s2])
+    @test isequal(Catalyst.get_ps(odesys), [k1, c1])
+    u0 = [s1 => 1., s2 => 1., s1s2 => 1.]
+    par = [k1 => 1., c1 => 2.]
+    # @test isequal(odesys.defaults, Dict(append!(u0, par)))
+    @named odesys = ODESystem(MODEL1)
+    isequal(nameof(odesys), :odesys)
+
+    # Test ODEProblem
+    oprob = ODEProblem(MODEL1, [0., 1.])
+    sol = solve(oprob, Tsit5())
+    println("soln")
+    println(sol.u)
+    println(typeof(sol.u))
+    # @test isapprox(sol.u[end], [0.42857284277223784, 0.5714271572277619])
+    # @named oprob = ODEProblem(MODEL1)
+    # isequal(nameof(oprob), :oprob)
+
+    # @test_nowarn ODEProblem(sbmlfile, [0., 1.])
+    # @named oprob = ODEProblem(sbmlfile)
+    # isequal(nameof(oprob), :oprob)
+
+
+
+
+
 
 
 

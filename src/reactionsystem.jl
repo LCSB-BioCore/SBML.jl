@@ -14,7 +14,7 @@ function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requir
     rxs = mtk_reactions(model)
     t = Catalyst.DEFAULT_IV
     species = [create_var(k) for k in keys(model.species)]
-    params = vcat([create_var(k) for k in keys(model.parameters)], [create_param(k) for k in keys(model.compartments)])
+    params = vcat([create_param(k) for k in keys(model.parameters)], [create_param(k) for k in keys(model.compartments)])
     ReactionSystem(rxs,t,species,params; kwargs...)
 end
 
@@ -26,10 +26,11 @@ end
 
 """ ODESystem constructor """
 function ModelingToolkit.ODESystem(model::Model; kwargs...)
-    rs = ReactionSystem(model, kwargs...)
+    rs = ReactionSystem(model; kwargs...)
+    model = make_extensive(model)  # PL: consider making `make_extensive!` to avoid duplicate calling in ReactionSystem and here
     u0map = get_u0(model)
     parammap = get_paramap(model)
-    defaults = vcat(u0map, parammap)
+    defaults = Dict(vcat(u0map, parammap))
     convert(ODESystem, rs, defaults=defaults)
 end
 
@@ -41,7 +42,7 @@ end
 
 """ ODEProblem constructor """
 function ModelingToolkit.ODEProblem(model::Model,tspan;kwargs...)  # PL: Todo: add u0 and parameters argument
-    odesys = ODESystem(model,kwargs...)
+    odesys = ODESystem(model;kwargs...)
     ODEProblem(odesys, [], tspan)
 end
 
@@ -137,6 +138,7 @@ end
 function get_u0(model)
     u0map = []
     for (k,v) in model.species
+        println(v)
         push!(u0map,Pair(create_var(k), v.initial_amount[1]))
     end
     u0map
