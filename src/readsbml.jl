@@ -96,8 +96,8 @@ function readSBML(fn::String;conversion_options=Dict())::Model
             throw(AssertionError("SBML document contains no model"))
         end
 
-        props = ccall(sbml(:ConversionProperties_create), VPtr, ())
         for (converter, kwargs) in conversion_options
+            props = ccall(sbml(:ConversionProperties_create), VPtr, ())
             option = ccall(sbml(:ConversionOption_create), VPtr, (Cstring,), converter)
             ccall(sbml(:ConversionProperties_addOption), Cvoid, (VPtr, VPtr), props, option)
             if !(kwargs==nothing)
@@ -107,12 +107,18 @@ function readSBML(fn::String;conversion_options=Dict())::Model
                     ccall(sbml(:ConversionProperties_addOption), Cvoid, (VPtr, VPtr), props, option)
                 end
             end
+            success = ccall(sbml(:SBMLDocument_convert), Cint, (VPtr,VPtr), doc, props)
         end
-        success = ccall(sbml(:SBMLDocument_convert), Cint, (VPtr,VPtr), doc, props)
 
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
-        if n_errs > 0
-            throw(AssertionError("Opening SBML document has reported errors"))
+        for i = 0:n_errs-1
+            err = ccall(sbml(:SBMLDocument_getError), VPtr, (VPtr, Cuint), doc, i)
+            msg = SBML.get_string(err, :XMLError_getMessage)
+            @warn "SBML reported error after conversion: $msg"
+        end
+        if n_errs > 0  # PL: @Mirek: Maybe we should only throw an error if certain severity is exceeded using `SBMLDocument_getNumErrorsWithSeverity`?
+            # throw(AssertionError("Opening SBML document has reported errors"))
+            println("Opening SBML document has reported errors")
         end
 
         # if success != 1  # PL: @Mirek: I think this should be `1` instead of `0`, right?
