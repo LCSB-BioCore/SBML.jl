@@ -77,7 +77,7 @@ MODEL2 = Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => SPECI
     @test isequal(Catalyst.get_ps(odesys), [k1, c1])
     u0 = [s1 => 1.]
     par = [k1 => 1., c1 => 2.]
-    @test isequal(odesys.defaults, Dict(append!(u0, par)))
+    @test isequal(odesys.defaults, Dict(append!(u0, par)))  # PL: @Anand: for some reason this does not work with `Catalyst.get_default()`
     @named odesys = ODESystem(MODEL1)
     isequal(nameof(odesys), :odesys)
 

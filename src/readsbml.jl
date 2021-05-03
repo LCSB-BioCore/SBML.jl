@@ -75,7 +75,7 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
 end
 
 """
-    function readSBML(fn::String)::Model
+    function readSBML(fn::String;conversion_options=Dict())::Model
 
 Read the SBML from a XML file in `fn` and return the contained `Model`.
 """
@@ -115,9 +115,9 @@ function readSBML(fn::String;conversion_options=Dict())::Model
             throw(AssertionError("Opening SBML document has reported errors"))
         end
 
-        if success != 0  # PL: @Mirek: I think this should be `1` instead of `0`, right?
-            throw(AssertionError("Conversion of SBML document failed"))
-        end
+        # if success != 1  # PL: @Mirek: I think this should be `1` instead of `0`, right?
+        #     throw(AssertionError("Conversion of SBML document failed"))
+        # end
 
         model = ccall(sbml(:SBMLDocument_getModel), VPtr, (VPtr,), doc)
 
