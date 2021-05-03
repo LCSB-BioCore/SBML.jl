@@ -79,7 +79,7 @@ end
 
 Read the SBML from a XML file in `fn` and return the contained `Model`.
 """
-function readSBML(fn::String)::Model
+function readSBML(fn::String;conversion_options=Dict())::Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
@@ -94,6 +94,29 @@ function readSBML(fn::String)::Model
 
         if 0 == ccall(sbml(:SBMLDocument_isSetModel), Cint, (VPtr,), doc)
             throw(AssertionError("SBML document contains no model"))
+        end
+
+        props = ccall(sbml(:ConversionProperties_create), VPtr, ())
+        for (converter, kwargs) in conversion_options
+            option = ccall(sbml(:ConversionOption_create), VPtr, (Cstring,), converter)
+            ccall(sbml(:ConversionProperties_addOption), Cvoid, (VPtr, VPtr), props, option)
+            if !(kwargs==nothing)
+                for (k, v) in kwargs
+                    option = ccall(sbml(:ConversionOption_create), VPtr, (Cstring,), k)
+                    ccall(sbml(:ConversionOption_setValue), Cvoid, (VPtr, Cstring), option, v)
+                    ccall(sbml(:ConversionProperties_addOption), Cvoid, (VPtr, VPtr), props, option)
+                end
+            end
+        end
+        success = ccall(sbml(:SBMLDocument_convert), Cint, (VPtr,VPtr), doc, props)
+
+        n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
+        if n_errs > 0
+            throw(AssertionError("Opening SBML document has reported errors"))
+        end
+
+        if success != 0  # PL: @Mirek: I think this should be `1` instead of `0`, right?
+            throw(AssertionError("Conversion of SBML document failed"))
         end
 
         model = ccall(sbml(:SBMLDocument_getModel), VPtr, (VPtr,), doc)
