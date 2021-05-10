@@ -97,6 +97,10 @@ function readSBML(fn::String;conversion_options=Dict())::Model
         end
 
         for (converter, kwargs) in conversion_options
+            if converter == "setLevelAndVersion"
+                success = ccall(sbml(:SBMLDocument_setLevelAndVersion), Cint, (VPtr,Cint,Cint), doc, kwargs["level"], kwargs["version"])
+                continue
+            end
             props = ccall(sbml(:ConversionProperties_create), VPtr, ())
             option = ccall(sbml(:ConversionOption_create), VPtr, (Cstring,), converter)
             ccall(sbml(:ConversionProperties_addOption), Cvoid, (VPtr, VPtr), props, option)
@@ -106,8 +110,8 @@ function readSBML(fn::String;conversion_options=Dict())::Model
                     ccall(sbml(:ConversionOption_setValue), Cvoid, (VPtr, Cstring), option, v)
                     ccall(sbml(:ConversionProperties_addOption), Cvoid, (VPtr, VPtr), props, option)
                 end
-            end
             success = ccall(sbml(:SBMLDocument_convert), Cint, (VPtr,VPtr), doc, props)
+            end
         end
 
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
