@@ -75,11 +75,11 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
 end
 
 """
-    function readSBML(fn::String)::Model
+    function readSBML(fn::String)::SBML.Model
 
-Read the SBML from a XML file in `fn` and return the contained `Model`.
+Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
 """
-function readSBML(fn::String)::Model
+function readSBML(fn::String)::SBML.Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
@@ -138,12 +138,12 @@ end
 
 
 """"
-    function extractModel(mdl::VPtr)::Model
+    function extractModel(mdl::VPtr)::SBML.Model
 
 Take the `SBMLModel_t` pointer and extract all information required to make a
-valid [`Model`](@ref) structure.
+valid [`SBML.Model`](@ref) structure.
 """
-function extractModel(mdl::VPtr)::Model
+function extractModel(mdl::VPtr)::SBML.Model
     # get the FBC plugin pointer (FbcModelPlugin_t)
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
