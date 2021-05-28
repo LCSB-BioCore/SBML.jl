@@ -105,6 +105,7 @@ end
 
 """ Convert SBML.Reaction to MTK.Reaction """
 function mtk_reactions(model::Model)
+    subsdict = _get_substitutions(model)
     rxs = []
     for reaction in values(model.reactions)
         reactants = Num[]
@@ -124,9 +125,7 @@ function mtk_reactions(model::Model)
         end
         if (length(reactants)==0) reactants = nothing; rstoich = nothing end
         if (length(products)==0) products = nothing; pstoich = nothing end
-        subsdict = _get_substitutions(model)
-        # PL: Todo: @Anand: can you convert kinetic_math to Symbolic expression. Perhaps it would actually better if kinetic Math would be a Symbolics.jl expression rather than of type `Math`? But Mirek wants `Math`, I think.
-        symbolic_math = Num(Variable(Symbol("k1")))  # PL: Just a dummy to get tests running.
+        symbolic_math = SBML.SBML2Symbolics(reaction.kinetic_math)  # Num(Variable(Symbol("k1")))  # PL: Just a dummy to get tests running.
         kl = substitute(symbolic_math, subsdict)  # PL: Todo: might need conversion of kinetic_math to Symbolic MTK expression
         push!(rxs, ModelingToolkit.Reaction(kl,reactants,products,rstoich,pstoich;only_use_rate=true))
     end
@@ -138,7 +137,6 @@ end
 function get_u0(model)
     u0map = []
     for (k,v) in model.species
-        println(v)
         push!(u0map,Pair(create_var(k), v.initial_amount[1]))
     end
     u0map
@@ -156,7 +154,7 @@ function get_paramap(model)
     paramap
 end
 
-create_var(x) = Num(Variable(Symbol(x)))
+create_var(x) = Num(Variable(Symbol(x))).val
 # # create_var(x, iv) = Num(Sym{FnType{Tuple{Real}}}(Symbol(x))(Variable(Symbol(iv)))).val
 # # create_var(x, iv) = Num(Variable{Symbolics.FnType{Tuple{Any},Real}}(Symbol(x)))(Variable(Symbol(iv)))
 function create_param(x)

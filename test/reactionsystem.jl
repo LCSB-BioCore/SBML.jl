@@ -61,9 +61,9 @@ MODEL2 = Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => SPECI
     isequal(nameof(rs), :rs)
 
     rs = ReactionSystem(sbmlfile)
-    @test isequal(Catalyst.get_eqs(rs), ModelingToolkit.Reaction[ModelingToolkit.Reaction(k1, [s1, s2], [s1s2], [1., 1.], [1.]; use_only_rate=true)])
+    @test isequal(Catalyst.get_eqs(rs), ModelingToolkit.Reaction[ModelingToolkit.Reaction(c1*k1*s1*s2, [s1, s2], [s1s2], [1., 1.], [1.]; use_only_rate=true)])
     @test isequal(Catalyst.get_iv(rs), t)
-    # @test isequal(Catalyst.get_states(rs), [s1, s2, s1s2])
+    @test isequal(Catalyst.get_states(rs), [s1, s1s2, s2])
     @test isequal(Catalyst.get_ps(rs), [k1,c1])
     @named rs = ReactionSystem(MODEL1)
     isequal(nameof(rs), :rs)
