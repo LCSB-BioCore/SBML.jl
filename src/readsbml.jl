@@ -157,14 +157,14 @@ function extractModel(mdl::VPtr)::SBML.Model
     end
 
     # parse out the unit definitions
-    units = Dict{String,Vector{UnitPart}}()
+    units = Dict{String,Vector{SBML.UnitPart}}()
     for i = 1:ccall(sbml(:Model_getNumUnitDefinitions), Cuint, (VPtr,), mdl)
         ud = ccall(sbml(:Model_getUnitDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
         id = get_string(ud, :UnitDefinition_getId)
         units[id] = [
             begin
                 u = ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1)
-                UnitPart(
+                SBML.UnitPart(
                     unsafe_string(
                         ccall(
                             sbml(:UnitKind_toString),

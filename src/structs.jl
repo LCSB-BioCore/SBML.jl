@@ -11,7 +11,7 @@ const Maybe{X} = Union{Nothing,X}
 Part of a measurement unit definition that corresponds to the SBML definition
 of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
 
-    UnitPart("second",  # base SI unit, this says we are measuring time
+    SBML.UnitPart("second",  # base SI unit, this says we are measuring time
              -2,        # exponent, says "per square"
              6,         # log-10 scale of the unit, says "mega"
              1/3600)    # second-to-hour multiplier
