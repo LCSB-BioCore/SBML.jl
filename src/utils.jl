@@ -1,8 +1,8 @@
 """
-    function getS(m::Model; zeros=spzeros)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
+    function getS(m::SBML.Model; zeros=spzeros)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
 
 Extract the vector of species (aka metabolite) identifiers, vector of reaction
-identifiers, and the (dense) stoichiometry matrix from an existing `Model`.
+identifiers, and the (dense) stoichiometry matrix from an existing `SBML.Model`.
 Returns a tuple with these values.
 
 The matrix is sparse by default (initially constructed by
@@ -10,7 +10,7 @@ The matrix is sparse by default (initially constructed by
 argument `zeros`; e.g. running with `zeros=zeros` will produce a dense matrix.
 """
 function getS(
-    m::Model;
+    m::SBML.Model;
     zeros = spzeros,
 )::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
     rows = [k for k in keys(m.species)]
@@ -25,30 +25,30 @@ function getS(
 end
 
 """
-    function getLBs(m::Model)::Vector{Tuple{Float64,String}}
+    function getLBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
 
 Extract a vector of lower bounds of reaction rates from the model. All bounds
 are accompanied with the unit of the corresponding value (this behavior is
 based on SBML specification).
 """
-function getLBs(m::Model)::Vector{Tuple{Float64,String}}
+function getLBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
     return broadcast(x -> x.lb, values(m.reactions))
 end
 
 """
-    function getUBs(m::Model)::Vector{Tuple{Float64,String}}
+    function getUBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
 
 Likewise to `getLBs`, extract the upper bounds.
 """
-function getUBs(m::Model)::Vector{Tuple{Float64,String}}
+function getUBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
     return broadcast(x -> x.ub, values(m.reactions))
 end
 
 """
-    function getOCs(m::Model)::Vector{Float64}
+    function getOCs(m::SBML.Model)::Vector{Float64}
 
 Extract the vector of objective coefficients of each reaction.
 """
-function getOCs(m::Model)::Vector{Float64}
+function getOCs(m::SBML.Model)::Vector{Float64}
     return broadcast(x -> x.oc, values(m.reactions))
 end

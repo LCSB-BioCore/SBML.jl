@@ -5,12 +5,12 @@ This package provides a straightforward way to load model- and
 simulation-relevant information from SBML files.
 
 The library provides a single function [`readSBML`](@ref) to load a
-[`Model`](@ref):
+[`SBML.Model`](@ref):
 
 ```julia
 julia> using SBML
 julia> mdl = readSBML("Ec_core_flux1.xml")
-Model(…)
+SBML.Model(…)
 
 julia> mdl.compartments
 2-element Array{String,1}:

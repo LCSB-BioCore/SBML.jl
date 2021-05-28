@@ -18,7 +18,7 @@ of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
 
 Compound units (such as "volt-amperes" and "dozens of yards per ounce") are
 built from multiple `UnitPart`s; see the definition of field `units` in
-[`Model`](@ref).
+[`SBML.Model`](@ref).
 """
 struct UnitPart
     kind::String
