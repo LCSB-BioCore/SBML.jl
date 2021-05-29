@@ -75,11 +75,15 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
 end
 
 """
+<<<<<<< HEAD
     function readSBML(fn::String;conversion_options=Dict())::Model
+=======
+    function readSBML(fn::String)::SBML.Model
+>>>>>>> master
 
-Read the SBML from a XML file in `fn` and return the contained `Model`.
+Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
 """
-function readSBML(fn::String;conversion_options=Dict())::Model
+function readSBML(fn::String;conversion_options=Dict())::SBML.Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
@@ -171,12 +175,12 @@ end
 
 
 """"
-    function extractModel(mdl::VPtr)::Model
+    function extractModel(mdl::VPtr)::SBML.Model
 
 Take the `SBMLModel_t` pointer and extract all information required to make a
-valid [`Model`](@ref) structure.
+valid [`SBML.Model`](@ref) structure.
 """
-function extractModel(mdl::VPtr)::Model
+function extractModel(mdl::VPtr)::SBML.Model
     # get the FBC plugin pointer (FbcModelPlugin_t)
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
@@ -190,14 +194,14 @@ function extractModel(mdl::VPtr)::Model
     end
 
     # parse out the unit definitions
-    units = Dict{String,Vector{UnitPart}}()
+    units = Dict{String,Vector{SBML.UnitPart}}()
     for i = 1:ccall(sbml(:Model_getNumUnitDefinitions), Cuint, (VPtr,), mdl)
         ud = ccall(sbml(:Model_getUnitDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
         id = get_string(ud, :UnitDefinition_getId)
         units[id] = [
             begin
                 u = ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1)
-                UnitPart(
+                SBML.UnitPart(
                     unsafe_string(
                         ccall(
                             sbml(:UnitKind_toString),
