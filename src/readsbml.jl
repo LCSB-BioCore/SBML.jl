@@ -75,11 +75,7 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
 end
 
 """
-<<<<<<< HEAD
     function readSBML(fn::String;conversion_options=Dict())::Model
-=======
-    function readSBML(fn::String)::SBML.Model
->>>>>>> master
 
 Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
 """
