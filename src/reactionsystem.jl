@@ -1,16 +1,9 @@
 using Catalyst, ModelingToolkit, Symbolics
 
-# module SBML
-# struct Model end
-# struct Reaction end
-# struct Compartment end
-# struct Species end
-# end
-
 """ ReactionSystem constructor """
 function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requires unique parameters (i.e. SBML must have been imported with localParameter promotion in libSBML)
+    checksupport(model)
     model = make_extensive(model)
-    # model = expand_reversible(model)
     rxs = mtk_reactions(model)
     t = Catalyst.DEFAULT_IV
     species = [create_var(k) for k in keys(model.species)]
@@ -52,10 +45,15 @@ function ModelingToolkit.ODEProblem(sbmlfile::String,tspan;kwargs...)  # PL: Tod
     ODEProblem(odesys, [], tspan)
 end
 
+""" Check if conversion to ReactionSystem is possible """
+function checksupport(model)
+    return  # Todo: convert all Reactions that are `reversible=true` to a forward and reverse reaction with `reversible=false`.
+end
+
 """ Convert intensive to extensive expressions """
 function make_extensive(model)
     model = to_initial_amounts(model)
-    # model = to_extensive_math(model)
+    model = to_extensive_math!(model)
     model  # Todo: For spevies with `hOSU=false` multiply all occurences in mathematical expressions by compartment size.
            # Also convert species initialConcentrations to initialAmounts
 end
@@ -74,18 +72,31 @@ function to_initial_amounts(model::Model)  # Test written
 end
 
 """ Convert intensive to extensive mathematical expression """
-function to_extensive_math(model::Model)
-    model = deepcopy(model)
-    for reaction in model.reactions
-        km = reaction.kinetic_math
-        reaction.km = 1.  # PL: Todo: @Anand can you multiply species with `hOSU=true` with their compartment volume?
+function to_extensive_math!(model::SBML.Model)
+    function conv(x::SBML.MathApply)
+        SBML.MathApply(x.fn, SBML.Math[conv(x) for x in x.args])
     end
-    reaction
-end
-
-""" Expand reversible reactions to two reactions """
-function expand_reversible(model)
-    model  # Todo: convert all Reactions that are `reversible=true` to a forward and reverse reaction with `reversible=false`.
+    function conv(x::SBML.MathIdent)
+        x_new = x
+        if x.id in keys(model.species)
+            specie = model.species[x.id]
+            if !specie.only_substance_units
+                size = model.compartments[specie.compartment].size
+                x_new = SBML.MathApply("*", SBML.Math[
+                            SBML.MathVal(size),
+                            x])
+            specie.only_substance_units = true
+            end
+        end
+        x_new
+    end
+    # conv(x::SBML.MathVal) = x
+    conv(x::SBML.MathLambda) =
+        throw(DomainError(x, "can't translate lambdas to extensive units"))
+    for reaction in values(model.reactions)
+        reaction.kinetic_math = conv(reaction.kinetic_math)
+    end
+    model
 end
 
 """ Get dictonary to change types in kineticLaw """
@@ -125,8 +136,8 @@ function mtk_reactions(model::Model)
         end
         if (length(reactants)==0) reactants = nothing; rstoich = nothing end
         if (length(products)==0) products = nothing; pstoich = nothing end
-        symbolic_math = SBML.SBML2Symbolics(reaction.kinetic_math)  # Num(Variable(Symbol("k1")))  # PL: Just a dummy to get tests running.
-        kl = substitute(symbolic_math, subsdict)  # PL: Todo: might need conversion of kinetic_math to Symbolic MTK expression
+        symbolic_math = SBML.SBML2Symbolics(reaction.kinetic_math)
+        kl = substitute(symbolic_math, subsdict)
         push!(rxs, ModelingToolkit.Reaction(kl,reactants,products,rstoich,pstoich;only_use_rate=true))
     end
     rxs
@@ -155,8 +166,6 @@ function get_paramap(model)
 end
 
 create_var(x) = Num(Variable(Symbol(x))).val
-# # create_var(x, iv) = Num(Sym{FnType{Tuple{Real}}}(Symbol(x))(Variable(Symbol(iv)))).val
-# # create_var(x, iv) = Num(Variable{Symbolics.FnType{Tuple{Any},Real}}(Symbol(x)))(Variable(Symbol(iv)))
 function create_param(x)
     p = Sym{Real}(Symbol(x))
     ModelingToolkit.toparam(p)

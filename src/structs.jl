@@ -77,7 +77,7 @@ end
 """
 Function application ("call by name", no tricks allowed) in mathematical expression
 """
-struct MathApply <: Math
+mutable struct MathApply <: Math
     fn::String
     args::Vector{Math}
 end
