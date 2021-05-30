@@ -35,14 +35,14 @@ end
 
 """ ODEProblem constructor """
 function ModelingToolkit.ODEProblem(model::Model,tspan;kwargs...)  # PL: Todo: add u0 and parameters argument
-    odesys = ODESystem(model;kwargs...)
-    ODEProblem(odesys, [], tspan)
+    odesys = ODESystem(model)
+    ODEProblem(odesys, [], tspan; kwargs...)
 end
 
 """ ODEProblem constructor """
 function ModelingToolkit.ODEProblem(sbmlfile::String,tspan;kwargs...)  # PL: Todo: add u0 and parameters argument
-    odesys = ODESystem(sbmlfile;kwargs...)
-    ODEProblem(odesys, [], tspan)
+    odesys = ODESystem(sbmlfile)
+    ODEProblem(odesys, [], tspan; kwargs...)
 end
 
 """ Check if conversion to ReactionSystem is possible """
@@ -85,9 +85,9 @@ function to_extensive_math!(model::SBML.Model)
         if x.id in keys(model.species)
             specie = model.species[x.id]
             if !specie.only_substance_units
-                size = model.compartments[specie.compartment].size
+                compartment = model.compartments[specie.compartment]
                 x_new = SBML.MathApply("*", SBML.Math[
-                            SBML.MathVal(size),
+                            SBML.MathVal(compartment.size),
                             x])
             specie.only_substance_units = true
             end

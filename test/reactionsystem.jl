@@ -59,9 +59,9 @@ MODEL2 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => 
                        Differential(t)(s2) ~ -c1 * k1 * 2.0s1 * 2.0s2]
     @test isequal(Catalyst.get_eqs(odesys), trueeqs)
     @test isequal(Catalyst.get_iv(odesys), t)
-    @test isequal(Catalyst.get_states(odesys), [s1, s2, s1s2])
+    @test isequal(Catalyst.get_states(odesys), [s1, s1s2, s2])
     @test isequal(Catalyst.get_ps(odesys), [k1, c1])
-    u0 = [s1 => 1., s2 => 1., s1s2 => 1.]
+    u0 = [s1 => 2*1., s2 => 2*1., s1s2 => 2*1.]
     par = [k1 => 1., c1 => 2.]
     @test isequal(odesys.defaults, Dict(append!(u0, par)))
     @named odesys = ODESystem(MODEL1)
@@ -71,12 +71,8 @@ MODEL2 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => 
     oprob = ODEProblem(MODEL1, [0., 1.])
     sol = solve(oprob, Tsit5())
     @test isapprox(sol.u, [[1.], [2.]])
-    @named oprob = ODEProblem(MODEL1)
-    @test isequal(nameof(oprob), :oprob)
 
     @test_nowarn ODEProblem(sbmlfile, [0., 1.])
-    @named oprob = ODEProblem(sbmlfile)
-    isequal(nameof(oprob), :oprob)
 
     # Test checksupport
 
