@@ -15,7 +15,7 @@ SPECIES2 = SBML.Species("s2", "c1", false, nothing, nothing, nothing, (1., "subs
 KINETICMATH1 = SBML.MathIdent("k1")
 KINETICMATH2 = SBML.MathApply("*", SBML.Math[
     SBML.MathIdent("k1"), SBML.MathIdent("s2")])
-REACTION1 = SBML.Reaction(Dict("s1" => -1), nothing, nothing, nothing, nothing, KINETICMATH1)
+REACTION1 = SBML.Reaction(Dict("s1" => 1), nothing, nothing, nothing, nothing, KINETICMATH1)
 REACTION2 = SBML.Reaction(Dict("s2" => -1), nothing, nothing, nothing, nothing, KINETICMATH2)
 MODEL1 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s1" => SPECIES1), Dict("r1" => REACTION1), nothing, nothing)  # PL: For instance in the compartments dict, we may want to enforce that key and compartment.name are identical
 MODEL2 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => SPECIES2), Dict("r2" => REACTION2), nothing, nothing)
@@ -25,7 +25,7 @@ MODEL2 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => 
 
     # Test ReactionSystem constructor
     rs = ReactionSystem(MODEL1)
-    @test isequal(Catalyst.get_eqs(rs), ModelingToolkit.Reaction[ModelingToolkit.Reaction(k1, [s1], nothing, [1.], nothing; use_only_rate=true)])
+    @test isequal(Catalyst.get_eqs(rs), ModelingToolkit.Reaction[ModelingToolkit.Reaction(k1, nothing, [s1], nothing, [1.]; use_only_rate=true)])
     @test isequal(Catalyst.get_iv(rs), t)
     @test isequal(Catalyst.get_states(rs), [s1])
     @test isequal(Catalyst.get_ps(rs), [k1,c1])
@@ -42,7 +42,7 @@ MODEL2 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => 
 
     # Test ODESystem constructor
     odesys = ODESystem(MODEL1)
-    trueeqs = Equation[Differential(t)(s1) ~ -k1]
+    trueeqs = Equation[Differential(t)(s1) ~ k1]
     @test isequal(Catalyst.get_eqs(odesys), trueeqs)
     @test isequal(Catalyst.get_iv(odesys), t)
     @test isequal(Catalyst.get_states(odesys), [s1])
@@ -70,10 +70,7 @@ MODEL2 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => 
     # Test ODEProblem
     oprob = ODEProblem(MODEL1, [0., 1.])
     sol = solve(oprob, Tsit5())
-    println("soln")
-    println(sol.u)
-    println(typeof(sol.u))
-    # @test isapprox(sol.u[end], [0.42857284277223784, 0.5714271572277619])
+    @test isapprox(sol.u, [[1.], [2.]])
     # @named oprob = ODEProblem(MODEL1)
     # isequal(nameof(oprob), :oprob)
 
@@ -123,7 +120,7 @@ MODEL2 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => 
 
     # Test mtk_reactions
     reaction = SBML.mtk_reactions(MODEL1)[1]
-    truereaction = ModelingToolkit.Reaction(k1, [s1], nothing, [1], nothing; only_use_rate=true)  # Todo: implement Sam's suggestion on mass action kinetics
+    truereaction = ModelingToolkit.Reaction(k1, nothing, [s1], nothing, [1]; only_use_rate=true)  # Todo: implement Sam's suggestion on mass action kinetics
     @test isequal(reaction, truereaction)
 
     # Test get_u0
