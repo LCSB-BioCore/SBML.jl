@@ -84,25 +84,31 @@ MODEL2 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => 
     # Test checksupport
 
     # Test make_extensive
-
-    # Test to_initial_amounts
-    model = SBML.to_initial_amounts(MODEL2)
+    model = SBML.make_extensive(MODEL2)
     @test isequal(model.species["s2"].initial_amount, (2., ""))
     @test isequal(model.species["s2"].initial_concentration, nothing)
-    model = SBML.to_initial_amounts(MODEL1)
-    @test isequal(model.species["s1"].initial_amount, (1., "substance"))
-    @test isequal(model.species["s1"].initial_concentration, nothing)
 
-    # Test to_extensive_math!
-    model = SBML.to_extensive_math!(MODEL1)
-    @test isequal(model.reactions["r1"].kinetic_math, KINETICMATH1)
-    model = SBML.to_extensive_math!(MODEL2)
     kineticmath2_true = SBML.MathApply("*", SBML.Math[
         SBML.MathIdent("k1"),
         SBML.MathApply("*", SBML.Math[
             SBML.MathVal(2.0),
             SBML.MathIdent("s2")])
         ])
+    @test isequal(repr(model.reactions["r2"].kinetic_math), repr(kineticmath2_true))
+    @test model.species["s2"].only_substance_units
+
+    # Test to_initial_amounts
+    model = SBML.to_initial_amounts(MODEL1)
+    @test isequal(model.species["s1"].initial_amount, (1., "substance"))
+    @test isequal(model.species["s1"].initial_concentration, nothing)
+    model = SBML.to_initial_amounts(MODEL2)
+    @test isequal(model.species["s2"].initial_amount, (2., ""))
+    @test isequal(model.species["s2"].initial_concentration, nothing)
+
+    # Test to_extensive_math!
+    model = SBML.to_extensive_math!(MODEL1)
+    @test isequal(model.reactions["r1"].kinetic_math, KINETICMATH1)
+    model = SBML.to_extensive_math!(MODEL2)
     @test isequal(repr(model.reactions["r2"].kinetic_math), repr(kineticmath2_true))
     #PL: Todo @Mirek/Anand: Why does this not work without the `repr()`?
     # Do we need to write a isequal(x::SBML.Math, y::SBML.Math) method to get this work?

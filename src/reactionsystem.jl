@@ -47,6 +47,11 @@ end
 
 """ Check if conversion to ReactionSystem is possible """
 function checksupport(model)
+    # for reaction in model.reactions
+    #     if reaction.reversible
+    #         throw(DomainError(reaction, "Cannot convert `kineticLaw` of reversible reaction to MTK.Reaction.rate"))
+    #     end
+    # end
     return  # Todo: convert all Reactions that are `reversible=true` to a forward and reverse reaction with `reversible=false`.
 end
 
@@ -54,12 +59,11 @@ end
 function make_extensive(model)
     model = to_initial_amounts(model)
     model = to_extensive_math!(model)
-    model  # Todo: For spevies with `hOSU=false` multiply all occurences in mathematical expressions by compartment size.
-           # Also convert species initialConcentrations to initialAmounts
+    model
 end
 
 """ Convert initial_concentration to initial_amount """
-function to_initial_amounts(model::Model)  # Test written
+function to_initial_amounts(model::Model)
     model = deepcopy(model)
     for specie in values(model.species)
         if isequal(specie.initial_amount, nothing)
