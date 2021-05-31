@@ -177,8 +177,8 @@ struct Model
     compartments::Dict{String,Compartment}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
-    gene_products::Maybe{Dict{String,GeneProduct}}
-    function_definitions::Maybe{Dict{String,FunctionDefinition}}
+    gene_products::Dict{String,GeneProduct}
+    function_definitions::Dict{String,FunctionDefinition}
     notes::Maybe{String}
     annotation::Maybe{String}
     Model(p, u, c, s, r, g, f, n = nothing, a = nothing) = new(p, u, c, s, r, g, f, n, a)
