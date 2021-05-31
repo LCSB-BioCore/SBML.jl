@@ -1,4 +1,4 @@
-
+using ModelingToolkit
 using Test, SHA, SparseArrays
 using SBML
 using SBML: Model, Reaction, Species
