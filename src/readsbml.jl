@@ -314,10 +314,7 @@ function extractModel(mdl::VPtr)::SBML.Model
     # reactions!
     reactions = Dict{String,Reaction}()
     for i = 1:ccall(sbml(:Model_getNumReactions), Cuint, (VPtr,), mdl)
-        re = ccall(sbml(:Model_getReaction), VPtr, (VPtr, Cuint), mdl, i - 1)
-        if ccall(sbml(:Reaction_getReversible), Cint, (VPtr,), re) == 1
-            throw(AssertionError("Reaction $(get_string(re, :Reaction_getId)) is reversible, but currently only irreversible reactions are supported."))
-        end     
+        re = ccall(sbml(:Model_getReaction), VPtr, (VPtr, Cuint), mdl, i - 1)   
         lb = (-Inf, "") # (bound value, unit id)
         ub = (Inf, "")
         oc = 0.0
@@ -344,6 +341,8 @@ function extractModel(mdl::VPtr)::SBML.Model
                 math = parse_math(ccall(sbml(:KineticLaw_getMath), VPtr, (VPtr,), kl))
             end
         end
+
+        rev = ccall(sbml(:Reaction_getReversible), Cint, (VPtr,), re)
 
         # TRICKY: SBML spec is completely silent about what should happen if
         # someone specifies both the above and below formats of the flux bounds
@@ -406,6 +405,7 @@ function extractModel(mdl::VPtr)::SBML.Model
             haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
             association,
             math,
+            rev,
             get_notes(re),
             get_annotation(re),
         )
