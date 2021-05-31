@@ -64,7 +64,7 @@ end
 function to_initial_amounts(model::Model)
     model = deepcopy(model)
     for specie in values(model.species)
-        if isequal(specie.initial_amount, nothing)
+        if isnothing(specie.initial_amount)
             compartment = model.compartments[specie.compartment]
             specie.initial_amount = (specie.initial_concentration[1] * compartment.size, "")
             specie.initial_concentration = nothing
