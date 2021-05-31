@@ -5,10 +5,6 @@ sbmlfile = "reactionsystem_01.xml"
 @parameters t, k1, c1
 @variables s1, s2, s1s2
 
-# t = Variable(:t)
-# k1 = Num(Sym{ModelingToolkit.Parameter{Real}}(:k1))
-# c1 = Num(Sym{ModelingToolkit.Parameter{Real}}(:c1))
-
 COMP1 = SBML.Compartment("c1", true, 3, 2., "nl") 
 SPECIES1 = SBML.Species("s1", "c1", false, nothing, nothing, (1., "substance"), nothing, true)  # Todo: Maybe not support units in initial_concentration?
 SPECIES2 = SBML.Species("s2", "c1", false, nothing, nothing, nothing, (1., "substance/nl"), false)

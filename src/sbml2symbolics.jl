@@ -20,12 +20,3 @@ function SBML2Symbolics(x::Math)
         throw(DomainError(x, "can't translate lambdas to symbolics"))
     conv(x)
 end
-
-
-# SBML.MathApply("*", SBML.Math[
-#     SBML.MathApply("*", SBML.Math[
-#         SBML.MathApply("*", SBML.Math[
-#             SBML.MathIdent("c1"),
-#             SBML.MathIdent("k1")]),
-#         SBML.MathIdent("s1")]),
-#     SBML.MathIdent("s2")])

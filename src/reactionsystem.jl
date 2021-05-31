@@ -50,7 +50,7 @@ function checksupport(model)
             throw(AssertionError("Reaction $(k) is reversible. Its `kineticLaw` cannot safely be converted to forward and reverse `MTK.Reaction.rate`s."))
         end
     end
-    return  # Todo: convert all Reactions that are `reversible=true` to a forward and reverse reaction with `reversible=false`.
+    return
 end
 
 """ Convert intensive to extensive expressions """
@@ -144,7 +144,6 @@ function mtk_reactions(model::Model)
     end
     rxs
 end
-
 
 """ Extract u0map from Model """
 function get_u0(model)
