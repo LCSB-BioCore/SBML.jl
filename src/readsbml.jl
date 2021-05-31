@@ -254,10 +254,12 @@ function extractModel(mdl::VPtr)::SBML.Model
         end
 
         ia = nothing
+
         if ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0
             ia = (
                 ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp),
-                get_string(sp, :Species_getSubstanceUnits),
+                ccall(sbml(:Species_isSetSubstanceUnits), Cint, (VPtr,), sp) == 1 ?
+                    get_string(sp, :Species_getSubstanceUnits) : "",
             )
         end
 
@@ -265,7 +267,8 @@ function extractModel(mdl::VPtr)::SBML.Model
         if ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0
             ic = (
                 ccall(sbml(:Species_getInitialConcentration), Cdouble, (VPtr,), sp),
-                get_string(sp, :Species_getSubstanceUnits),
+                ccall(sbml(:Species_isSetSubstanceUnits), Cint, (VPtr,), sp) == 1 ?
+                    get_string(sp, :Species_getSubstanceUnits) : "",
             )
         end
 
