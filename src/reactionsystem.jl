@@ -1,5 +1,3 @@
-using Catalyst, ModelingToolkit, Symbolics
-
 """ ReactionSystem constructor """
 function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requires unique parameters (i.e. SBML must have been imported with localParameter promotion in libSBML)
     checksupport(model)
