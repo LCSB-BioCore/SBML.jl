@@ -45,11 +45,11 @@ end
 
 """ Check if conversion to ReactionSystem is possible """
 function checksupport(model)
-    # for reaction in model.reactions
-    #     if reaction.reversible
-    #         throw(DomainError(reaction, "Cannot convert `kineticLaw` of reversible reaction to MTK.Reaction.rate"))
-    #     end
-    # end
+    for (k, v) in model.reactions
+        if v.reversible
+            throw(AssertionError("Reaction $(k) is reversible. Its `kineticLaw` cannot safely be converted to forward and reverse `MTK.Reaction.rate`s."))
+        end
+    end
     return  # Todo: convert all Reactions that are `reversible=true` to a forward and reverse reaction with `reversible=false`.
 end
 
