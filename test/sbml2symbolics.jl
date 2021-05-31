@@ -20,6 +20,6 @@ E = Symbolics.Variable(Symbol("E"))
         SBML.MathIdent("E")])
 
     expr_true = (A*B - C*D) * E
-    SBML.SBML2Symbolics(test)
-    @test isequal(SBML.SBML2Symbolics(test), expr_true)
+    ex = convert(Num,test)
+    @test isequal(convert(Num,test), expr_true)
 end

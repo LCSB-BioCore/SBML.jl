@@ -138,7 +138,7 @@ function mtk_reactions(model::Model)
         end
         if (length(reactants)==0) reactants = nothing; rstoich = nothing end
         if (length(products)==0) products = nothing; pstoich = nothing end
-        symbolic_math = SBML.SBML2Symbolics(reaction.kinetic_math)
+        symbolic_math = convert(Num, reaction.kinetic_math)
         kl = substitute(symbolic_math, subsdict)
         push!(rxs, ModelingToolkit.Reaction(kl,reactants,products,rstoich,pstoich;only_use_rate=true))
     end

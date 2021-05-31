@@ -10,7 +10,7 @@ allowed_funs = Dict(
 
 allowed_sym(x) = haskey(allowed_funs,x) ? allowed_funs[x] : DomainError(x,"Unknown SBML function")
 
-function SBML2Symbolics(x::Math)
+function Base.convert(::Type{Num}, x::Math)
     conv(x::SBML.MathApply) =
         eval(allowed_sym(x.fn))(conv.(x.args)...)
     conv(x::SBML.MathIdent) =

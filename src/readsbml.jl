@@ -273,7 +273,7 @@ function extractModel(mdl::VPtr)::SBML.Model
         end
 
         species[get_string(sp, :Species_getId)] = Species(
-            get_optional_string(sp, :Species_getName),  # PL: wondering if we should use Id instead of name here
+            get_optional_string(sp, :Species_getName),
             get_string(sp, :Species_getCompartment),
             get_optional_bool(
                 sp,
