@@ -104,14 +104,14 @@ function readSBML(fn::String;conversion_options=Dict())::SBML.Model
             props = ccall(sbml(:ConversionProperties_create), VPtr, ())
             option = ccall(sbml(:ConversionOption_create), VPtr, (Cstring,), converter)
             ccall(sbml(:ConversionProperties_addOption), Cvoid, (VPtr, VPtr), props, option)
-            if !(kwargs==nothing)
+            if !isnothing(kwargs)
                 for (k, v) in kwargs
                     option = ccall(sbml(:ConversionOption_create), VPtr, (Cstring,), k)
                     ccall(sbml(:ConversionOption_setValue), Cvoid, (VPtr, Cstring), option, v)
                     ccall(sbml(:ConversionProperties_addOption), Cvoid, (VPtr, VPtr), props, option)
                 end
-            success = ccall(sbml(:SBMLDocument_convert), Cint, (VPtr,VPtr), doc, props)
             end
+            success = ccall(sbml(:SBMLDocument_convert), Cint, (VPtr,VPtr), doc, props)  
         end
 
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
