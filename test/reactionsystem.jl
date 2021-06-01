@@ -1,6 +1,6 @@
 @testset "Model to MTK conversions" begin
     
-    sbmlfile = "reactionsystem_01.xml"
+    sbmlfile = joinpath("data", "reactionsystem_01.xml")
     @parameters t, k1, c1
     @variables s1, s2, s1s2
 
