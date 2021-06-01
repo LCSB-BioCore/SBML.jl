@@ -1,4 +1,4 @@
-using ModelingToolkit
+using Catalyst, ModelingToolkit, OrdinaryDiffEq
 using Test, SHA, SparseArrays
 using SBML
 using SBML: Model, Reaction, Species
@@ -9,6 +9,6 @@ import Pkg
     # include("ecoli_flux.jl")
     # include("loadmodels.jl")
     # include("sbml2symbolics.jl")
-    # include("reactionsystem.jl")
-    include("loaddynamicmodels.jl")
+    include("reactionsystem.jl")
+    # include("loaddynamicmodels.jl")
 end

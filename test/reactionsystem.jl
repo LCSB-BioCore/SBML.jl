@@ -1,23 +1,19 @@
-using Catalyst, ModelingToolkit, OrdinaryDiffEq
-
-sbmlfile = "reactionsystem_01.xml"
-
-@parameters t, k1, c1
-@variables s1, s2, s1s2
-
-COMP1 = SBML.Compartment("c1", true, 3, 2., "nl") 
-SPECIES1 = SBML.Species("s1", "c1", false, nothing, nothing, (1., "substance"), nothing, true)  # Todo: Maybe not support units in initial_concentration?
-SPECIES2 = SBML.Species("s2", "c1", false, nothing, nothing, nothing, (1., "substance/nl"), false)
-KINETICMATH1 = SBML.MathIdent("k1")
-KINETICMATH2 = SBML.MathApply("*", SBML.Math[
-    SBML.MathIdent("k1"), SBML.MathIdent("s2")])
-REACTION1 = SBML.Reaction(Dict("s1" => 1), nothing, nothing, nothing, nothing, KINETICMATH1, false)
-REACTION2 = SBML.Reaction(Dict("s2" => -1), nothing, nothing, nothing, nothing, KINETICMATH2, false)
-MODEL1 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s1" => SPECIES1), Dict("r1" => REACTION1), nothing, nothing)  # PL: For instance in the compartments dict, we may want to enforce that key and compartment.name are identical
-MODEL2 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => SPECIES2), Dict("r2" => REACTION2), nothing, nothing)
-
-
 @testset "Model to MTK conversions" begin
+    
+    sbmlfile = "reactionsystem_01.xml"
+    @parameters t, k1, c1
+    @variables s1, s2, s1s2
+
+    COMP1 = SBML.Compartment("c1", true, 3, 2., "nl") 
+    SPECIES1 = SBML.Species("s1", "c1", false, nothing, nothing, (1., "substance"), nothing, true)  # Todo: Maybe not support units in initial_concentration?
+    SPECIES2 = SBML.Species("s2", "c1", false, nothing, nothing, nothing, (1., "substance/nl"), false)
+    KINETICMATH1 = SBML.MathIdent("k1")
+    KINETICMATH2 = SBML.MathApply("*", SBML.Math[
+        SBML.MathIdent("k1"), SBML.MathIdent("s2")])
+    REACTION1 = SBML.Reaction(Dict("s1" => 1), nothing, nothing, nothing, nothing, KINETICMATH1, false)
+    REACTION2 = SBML.Reaction(Dict("s2" => -1), nothing, nothing, nothing, nothing, KINETICMATH2, false)
+    MODEL1 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s1" => SPECIES1), Dict("r1" => REACTION1), Dict(), Dict())  # PL: For instance in the compartments dict, we may want to enforce that key and compartment.name are identical
+    MODEL2 = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("s2" => SPECIES2), Dict("r2" => REACTION2), Dict(), Dict())
 
     # Test ReactionSystem constructor
     rs = ReactionSystem(MODEL1)
