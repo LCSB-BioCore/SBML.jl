@@ -2,6 +2,7 @@ using Catalyst, ModelingToolkit, OrdinaryDiffEq
 using Test, SHA, SparseArrays
 using SBML
 using SBML: Model, Reaction, Species
+using Symbolics
 import Pkg
 
 @testset "SBML test suite" begin
