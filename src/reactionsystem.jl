@@ -85,9 +85,7 @@ function to_extensive_math!(model::SBML.Model)
             if !specie.only_substance_units
                 compartment = model.compartments[specie.compartment]
                 if isnothing(compartment.size)
-                    @warn "Specie $(x.id) hasOnlySubstanceUnits but its compartment "
-                    "$(compartment.name) has no size. Cannot auto-correct the rate laws "
-                    "$(x.id) is involved in. Please check manually."
+                    @warn "Specie $(x.id) hasOnlySubstanceUnits but its compartment $(compartment.name) has no size. Cannot auto-correct the rate laws $(x.id) is involved in. Please check manually."
                 else
                     x_new = SBML.MathApply("*", SBML.Math[
                                 SBML.MathVal(compartment.size),
@@ -145,10 +143,39 @@ function mtk_reactions(model::Model)
         if (length(reactants)==0) reactants = nothing; rstoich = nothing end
         if (length(products)==0) products = nothing; pstoich = nothing end
         symbolic_math = convert(Num, reaction.kinetic_math)
-        kl = substitute(symbolic_math, subsdict)
-        push!(rxs, ModelingToolkit.Reaction(kl,reactants,products,rstoich,pstoich;only_use_rate=true))
+        
+        if reaction.reversible
+            symbolic_math = getunidirectionalcomponents(symbolic_math)
+            kl = (substitute(x, subsdict) for x in symbolic_math)
+            push!(rxs, ModelingToolkit.Reaction(kl[1],reactants,products,rstoich,pstoich;only_use_rate=true))
+            push!(rxs, ModelingToolkit.Reaction(kl[2],products,reactants,pstoich,rstoich;only_use_rate=true))
+        else
+            kl = substitute(symbolic_math, subsdict)
+            push!(rxs, ModelingToolkit.Reaction(kl,reactants,products,rstoich,pstoich;only_use_rate=true))
+        end
     end
     rxs
+end
+
+""" Infer forward and reverse components of bidirectional kineticLaw """
+function getunidirectionalcomponents(bidirectional_math::SymbolicUtils.Symbolic)
+    bidirectional_math = Symbolics.tosymbol(bidirectional_math)
+    terms = SymbolicUtils.arguments(bidirectional_math)
+    fw_terms = []
+    rv_terms = []
+    for term in terms
+        if (term isa SymbolicUtils.Mul) && (term.coeff < 0)
+            println(term)
+            println(typeof(term))
+            push!(rv_terms, Num(-term))  # PL: @Anand: Perhaps we should to create_var(term) or so?
+        else
+            push!(fw_terms, Num(term))  # PL: @Anand: Perhaps we should to create_var(term) or so?
+        end
+    end
+    if (length(fw_terms) != 1) || (length(rv_terms) != 1)
+        throw(ErrorException("Cannot separate bidirectional kineticLaw of reaction $(reaction.name) to forward and reverse part. Please make reaction $(reaction.name) irreversible or rearrange kineticLaw to the form `term1 - term2`."))
+    end
+    return (fw_terms[1], rv_terms[1])
 end
 
 """ Extract u0map from Model """

@@ -119,6 +119,16 @@
     truereaction = ModelingToolkit.Reaction(k1, nothing, [s1], nothing, [1]; only_use_rate=true)  # Todo: implement Sam's suggestion on mass action kinetics
     @test isequal(reaction, truereaction)
 
+    # Test getunidirectionalcomponents
+    km = SBML.MathApply("-", SBML.Math[KINETICMATH1, KINETICMATH2])
+    sm = convert(Num, km)
+    kl = SBML.getunidirectionalcomponents(sm)
+    @test isequal(kl, (k1, k1*s2))
+
+    km = SBML.MathApply("-", SBML.Math[KINETICMATH1, KINETICMATH2, SBML.MathIdent("s1s2")])
+    sm = convert(Num, km)
+    @test_throws ErrorException getunidirectionalcomponents(sm)
+
     # Test get_u0
     true_u0map = [s1 => 1.]
     u0map = SBML.get_u0(MODEL1)

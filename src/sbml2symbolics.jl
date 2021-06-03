@@ -1,5 +1,7 @@
 using ModelingToolkit, Symbolics
 
+# @register ceil(x)
+
 allowed_funs = Dict(
     "+" => :+,
     "-" => :-,
@@ -8,6 +10,8 @@ allowed_funs = Dict(
     "/" => :/,
     "power" => :^,
     "factorial" => :factorial,
+    # "ceiling" => :ceil,
+    # "piecewise" => 
     #TODO add translations of SBML functions to Julia
 )
 
