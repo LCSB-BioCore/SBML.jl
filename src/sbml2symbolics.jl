@@ -7,6 +7,7 @@ allowed_funs = Dict(
     "multiply" => :*,
     "/" => :/,
     "power" => :^,
+    "factorial" => :factorial,
     #TODO add translations of SBML functions to Julia
 )
 
