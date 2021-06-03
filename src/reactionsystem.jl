@@ -92,7 +92,7 @@ function to_extensive_math!(model::SBML.Model)
         end
         x_new
     end
-    # conv(x::SBML.MathVal) = x
+    conv(x::SBML.MathVal) = x
     conv(x::SBML.MathLambda) =
         throw(DomainError(x, "can't translate lambdas to extensive units"))
     for reaction in values(model.reactions)
