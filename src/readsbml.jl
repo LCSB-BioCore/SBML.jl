@@ -169,14 +169,26 @@ function getAssociation(x::VPtr)::GeneProductAssociation
     end
 end
 
+"""
+    function checksupport(mdl::VPtr)
 
-""""
+Throws errors when conversion of SBML file to SBML.Model is not supported.
+"""
+function checksupport(mdl::VPtr)  # PL: Todo: discuss which of these we want to support
+    if ccall(sbml(:Model_getNumRules), Cuint, (VPtr,), mdl) > 0
+        throw(ErrorException("SBML files with rules are not supported."))
+    end
+end
+
+"""
     function extractModel(mdl::VPtr)::SBML.Model
 
 Take the `SBMLModel_t` pointer and extract all information required to make a
 valid [`SBML.Model`](@ref) structure.
 """
 function extractModel(mdl::VPtr)::SBML.Model
+    checksupport(mdl)
+
     # get the FBC plugin pointer (FbcModelPlugin_t)
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
