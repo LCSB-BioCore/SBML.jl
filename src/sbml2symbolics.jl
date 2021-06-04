@@ -1,5 +1,6 @@
 using ModelingToolkit, Symbolics
 
+@register factorial(x)
 @register ceil(x)
 
 allowed_funs = Dict(
