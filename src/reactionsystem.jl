@@ -1,6 +1,6 @@
 """ ReactionSystem constructor """
 function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requires unique parameters (i.e. SBML must have been imported with localParameter promotion in libSBML)
-    checksupport(model)
+    # checksupport(model)
     model = make_extensive(model)
     rxs = mtk_reactions(model)
     t = Catalyst.DEFAULT_IV
@@ -11,7 +11,10 @@ end
 
 """ ReactionSystem constructor """
 function ModelingToolkit.ReactionSystem(sbmlfile::String; kwargs...)
-    model = readSBML(sbmlfile)
+    conversion_options = Dict("promoteLocalParameters" => nothing,
+                              "expandFunctionDefinitions" => nothing,
+                              "expandInitialAssignments" => nothing)
+    model = readSBML(sbmlfile;conversion_options=conversion_options)
     ReactionSystem(model; kwargs...)
 end
 
@@ -43,15 +46,10 @@ function ModelingToolkit.ODEProblem(sbmlfile::String,tspan;kwargs...)  # PL: Tod
     ODEProblem(odesys, [], tspan; kwargs...)
 end
 
-""" Check if conversion to ReactionSystem is possible """
-function checksupport(model)
-    for (k, v) in model.reactions
-        if v.reversible
-            throw(AssertionError("Reaction $(k) is reversible. Its `kineticLaw` cannot safely be converted to forward and reverse `MTK.Reaction.rate`s."))
-        end
-    end
-    return
-end
+# """ Check if conversion to ReactionSystem is possible """
+# function checksupport(model::Model)
+#     return
+# end
 
 """ Convert intensive to extensive expressions """
 function make_extensive(model)
@@ -146,7 +144,7 @@ function mtk_reactions(model::Model)
         
         if reaction.reversible
             symbolic_math = getunidirectionalcomponents(symbolic_math)
-            kl = (substitute(x, subsdict) for x in symbolic_math)
+            kl = [substitute(x, subsdict) for x in symbolic_math]
             push!(rxs, ModelingToolkit.Reaction(kl[1],reactants,products,rstoich,pstoich;only_use_rate=true))
             push!(rxs, ModelingToolkit.Reaction(kl[2],products,reactants,pstoich,rstoich;only_use_rate=true))
         else
@@ -159,21 +157,24 @@ end
 
 """ Infer forward and reverse components of bidirectional kineticLaw """
 function getunidirectionalcomponents(bidirectional_math::SymbolicUtils.Symbolic)
+    err = "Cannot separate bidirectional kineticLaw `$bidirectional_math` to forward and reverse part. Please make reaction irreversible or rearrange kineticLaw to the form `term1 - term2`."
     bidirectional_math = Symbolics.tosymbol(bidirectional_math)
+    bidirectional_math = simplify(bidirectional_math; expand=true)
+    if SymbolicUtils.operation(bidirectional_math) != +
+        throw(ErrorException(err))
+    end
     terms = SymbolicUtils.arguments(bidirectional_math)
     fw_terms = []
     rv_terms = []
     for term in terms
         if (term isa SymbolicUtils.Mul) && (term.coeff < 0)
-            println(term)
-            println(typeof(term))
             push!(rv_terms, Num(-term))  # PL: @Anand: Perhaps we should to create_var(term) or so?
         else
             push!(fw_terms, Num(term))  # PL: @Anand: Perhaps we should to create_var(term) or so?
         end
     end
     if (length(fw_terms) != 1) || (length(rv_terms) != 1)
-        throw(ErrorException("Cannot separate bidirectional kineticLaw of reaction $(reaction.name) to forward and reverse part. Please make reaction $(reaction.name) irreversible or rearrange kineticLaw to the form `term1 - term2`."))
+        throw(ErrorException(err))
     end
     return (fw_terms[1], rv_terms[1])
 end

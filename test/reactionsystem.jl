@@ -32,7 +32,16 @@
     @named rs = ReactionSystem(MODEL1)
     isequal(nameof(rs), :rs)
 
-    @test_throws AssertionError ReactionSystem("reactionsystem_05.xml")
+    rs = ReactionSystem(joinpath("data","reactionsystem_05.xml"))  # Contains reversible reaction
+    @test isequal(Catalyst.get_eqs(rs),
+                  ModelingToolkit.Reaction[
+                      ModelingToolkit.Reaction(c1*k1*s1*s2, [s1,s2], [s1s2],
+                          [1.,1.], [1.]; use_only_rate=true),
+                      ModelingToolkit.Reaction(c1*k1*s1s2, [s1s2], [s1,s2],
+                          [1.], [1.,1.]; use_only_rate=true)])
+    @test isequal(Catalyst.get_iv(rs), t)
+    @test isequal(Catalyst.get_states(rs), [s1, s1s2, s2])
+    @test isequal(Catalyst.get_ps(rs), [k1,c1])
 
     # Test ODESystem constructor
     odesys = ODESystem(MODEL1)
@@ -69,12 +78,12 @@
     @test_nowarn ODEProblem(sbmlfile, [0., 1.])
 
     # Test checksupport
-    @test_nowarn SBML.checksupport(MODEL1)
-    r1 = deepcopy(REACTION1)
-    r1.reversible = true
-    mod = deepcopy(MODEL1)
-    mod.reactions["r1"] = r1
-    @test_throws AssertionError SBML.checksupport(mod)
+    # @test_nowarn SBML.checksupport(MODEL1)
+    # r1 = deepcopy(REACTION1)
+    # r1.reversible = true
+    # mod = deepcopy(MODEL1)
+    # mod.reactions["r1"] = r1
+    # @test_throws AssertionError SBML.checksupport(mod)
 
     # Test make_extensive
     model = SBML.make_extensive(MODEL2)
@@ -120,14 +129,19 @@
     @test isequal(reaction, truereaction)
 
     # Test getunidirectionalcomponents
+    km = SBML.MathApply("-", SBML.Math[KINETICMATH1, SBML.MathIdent("c1")])
+    sm = convert(Num, km)
+    kl = SBML.getunidirectionalcomponents(sm)
+    @test isequal(kl, (k1, c1))
+
     km = SBML.MathApply("-", SBML.Math[KINETICMATH1, KINETICMATH2])
     sm = convert(Num, km)
     kl = SBML.getunidirectionalcomponents(sm)
     @test isequal(kl, (k1, k1*s2))
 
-    km = SBML.MathApply("-", SBML.Math[KINETICMATH1, KINETICMATH2, SBML.MathIdent("s1s2")])
-    sm = convert(Num, km)
-    @test_throws ErrorException getunidirectionalcomponents(sm)
+    km = SBML.MathIdent("s1s2")
+    sm1 = sm - convert(Num, km)
+    @test_throws ErrorException SBML.getunidirectionalcomponents(sm1)
 
     # Test get_u0
     true_u0map = [s1 => 1.]

@@ -1,39 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created by COPASI version 4.27 (Build 217) on 2021-05-31 00:15 with libSBML version 5.18.0. -->
-<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:layout="http://www.sbml.org/sbml/level3/version1/layout/version1" xmlns:render="http://www.sbml.org/sbml/level3/version1/render/version1" level="3" version="1" layout:required="false" render:required="false">
-  <model metaid="COPASI0" id="New_Model" name="New Model_1" substanceUnits="substance" timeUnits="time" volumeUnits="volume" areaUnits="area" lengthUnits="length" extentUnits="substance">
+<!-- Created by COPASI version 4.27 (Build 217) on 2021-06-04 22:22 with libSBML version 5.18.0. -->
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" level="2" version="4">
+  <model metaid="COPASI0" id="New_Model" name="New Model_1">
     <annotation>
       <COPASI xmlns="http://www.copasi.org/static/sbml">
         <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
           <rdf:Description rdf:about="#COPASI0">
             <dcterms:created>
               <rdf:Description>
-                <dcterms:W3CDTF>2021-04-23T21:20:34Z</dcterms:W3CDTF>
+                <dcterms:W3CDTF>2021-06-04T21:17:35Z</dcterms:W3CDTF>
               </rdf:Description>
             </dcterms:created>
           </rdf:Description>
         </rdf:RDF>
       </COPASI>
     </annotation>
+    <listOfFunctionDefinitions>
+      <functionDefinition metaid="COPASI8" id="Function_for_reaction" name="Function for reaction">
+        <annotation>
+          <COPASI xmlns="http://www.copasi.org/static/sbml">
+            <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+              <rdf:Description rdf:about="#COPASI8">
+                <dcterms:created>
+                  <rdf:Description>
+                    <dcterms:W3CDTF>2021-06-04T21:21:50Z</dcterms:W3CDTF>
+                  </rdf:Description>
+                </dcterms:created>
+              </rdf:Description>
+            </rdf:RDF>
+          </COPASI>
+        </annotation>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <lambda>
+            <bvar>
+              <ci> k1 </ci>
+            </bvar>
+            <bvar>
+              <ci> s1 </ci>
+            </bvar>
+            <bvar>
+              <ci> s2 </ci>
+            </bvar>
+            <bvar>
+              <ci> s2s2 </ci>
+            </bvar>
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> k1 </ci>
+                <ci> s1 </ci>
+                <ci> s2 </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> k1 </ci>
+                <ci> s2s2 </ci>
+              </apply>
+            </apply>
+          </lambda>
+        </math>
+      </functionDefinition>
+    </listOfFunctionDefinitions>
     <listOfUnitDefinitions>
-      <unitDefinition id="length" name="length">
-        <listOfUnits>
-          <unit kind="metre" exponent="1" scale="0" multiplier="1"/>
-        </listOfUnits>
-      </unitDefinition>
-      <unitDefinition id="area" name="area">
-        <listOfUnits>
-          <unit kind="metre" exponent="2" scale="0" multiplier="1"/>
-        </listOfUnits>
-      </unitDefinition>
       <unitDefinition id="volume" name="volume">
         <listOfUnits>
           <unit kind="litre" exponent="1" scale="-3" multiplier="1"/>
-        </listOfUnits>
-      </unitDefinition>
-      <unitDefinition id="time" name="time">
-        <listOfUnits>
-          <unit kind="second" exponent="1" scale="0" multiplier="1"/>
         </listOfUnits>
       </unitDefinition>
       <unitDefinition id="substance" name="substance">
@@ -43,14 +75,14 @@
       </unitDefinition>
     </listOfUnitDefinitions>
     <listOfCompartments>
-      <compartment metaid="COPASI1" id="c1" name="c1" spatialDimensions="3" size="2" units="volume" constant="true">
+      <compartment metaid="COPASI1" id="c1" name="c1" spatialDimensions="3" size="1" constant="true">
         <annotation>
           <COPASI xmlns="http://www.copasi.org/static/sbml">
             <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
               <rdf:Description rdf:about="#COPASI1">
                 <dcterms:created>
                   <rdf:Description>
-                    <dcterms:W3CDTF>2021-04-23T21:21:26Z</dcterms:W3CDTF>
+                    <dcterms:W3CDTF>2021-06-04T21:18:25Z</dcterms:W3CDTF>
                   </rdf:Description>
                 </dcterms:created>
               </rdf:Description>
@@ -60,14 +92,14 @@
       </compartment>
     </listOfCompartments>
     <listOfSpecies>
-      <species metaid="COPASI2" id="s1" name="s1" compartment="c1" initialConcentration="1" substanceUnits="substance" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+      <species metaid="COPASI2" id="s1" name="s1" compartment="c1" initialConcentration="1" boundaryCondition="false" constant="false">
         <annotation>
           <COPASI xmlns="http://www.copasi.org/static/sbml">
             <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
               <rdf:Description rdf:about="#COPASI2">
                 <dcterms:created>
                   <rdf:Description>
-                    <dcterms:W3CDTF>2021-04-23T21:21:26Z</dcterms:W3CDTF>
+                    <dcterms:W3CDTF>2021-06-04T21:18:25Z</dcterms:W3CDTF>
                   </rdf:Description>
                 </dcterms:created>
               </rdf:Description>
@@ -75,14 +107,14 @@
           </COPASI>
         </annotation>
       </species>
-      <species metaid="COPASI3" id="s1s2" name="s1s2" compartment="c1" initialConcentration="1" substanceUnits="substance" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+      <species metaid="COPASI3" id="s2" name="s2" compartment="c1" initialConcentration="1" boundaryCondition="false" constant="false">
         <annotation>
           <COPASI xmlns="http://www.copasi.org/static/sbml">
             <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
               <rdf:Description rdf:about="#COPASI3">
                 <dcterms:created>
                   <rdf:Description>
-                    <dcterms:W3CDTF>2021-04-23T21:21:26Z</dcterms:W3CDTF>
+                    <dcterms:W3CDTF>2021-06-04T21:18:25Z</dcterms:W3CDTF>
                   </rdf:Description>
                 </dcterms:created>
               </rdf:Description>
@@ -90,14 +122,14 @@
           </COPASI>
         </annotation>
       </species>
-      <species metaid="COPASI4" id="s2" name="s2" compartment="c1" initialConcentration="1" substanceUnits="substance" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false">
+      <species metaid="COPASI7" id="s1s2" name="s1s2" compartment="c1" initialConcentration="1" boundaryCondition="false" constant="false">
         <annotation>
           <COPASI xmlns="http://www.copasi.org/static/sbml">
             <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-              <rdf:Description rdf:about="#COPASI4">
+              <rdf:Description rdf:about="#COPASI7">
                 <dcterms:created>
                   <rdf:Description>
-                    <dcterms:W3CDTF>2021-04-23T21:22:14Z</dcterms:W3CDTF>
+                    <dcterms:W3CDTF>2021-06-04T21:22:07Z</dcterms:W3CDTF>
                   </rdf:Description>
                 </dcterms:created>
               </rdf:Description>
@@ -114,7 +146,7 @@
               <rdf:Description rdf:about="#COPASI5">
                 <dcterms:created>
                   <rdf:Description>
-                    <dcterms:W3CDTF>2021-04-23T21:21:01Z</dcterms:W3CDTF>
+                    <dcterms:W3CDTF>2021-06-04T21:18:30Z</dcterms:W3CDTF>
                   </rdf:Description>
                 </dcterms:created>
               </rdf:Description>
@@ -124,14 +156,14 @@
       </parameter>
     </listOfParameters>
     <listOfReactions>
-      <reaction metaid="COPASI6" id="reaction" name="reaction" reversible="true" fast="false">
+      <reaction metaid="COPASI6" id="reaction" name="reaction" reversible="true">
         <annotation>
           <COPASI xmlns="http://www.copasi.org/static/sbml">
             <rdf:RDF xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
               <rdf:Description rdf:about="#COPASI6">
                 <dcterms:created>
                   <rdf:Description>
-                    <dcterms:W3CDTF>2021-04-23T21:21:10Z</dcterms:W3CDTF>
+                    <dcterms:W3CDTF>2021-06-04T21:17:46Z</dcterms:W3CDTF>
                   </rdf:Description>
                 </dcterms:created>
               </rdf:Description>
@@ -139,20 +171,24 @@
           </COPASI>
         </annotation>
         <listOfReactants>
-          <speciesReference species="s1" stoichiometry="1" constant="true"/>
-          <speciesReference species="s2" stoichiometry="1" constant="true"/>
+          <speciesReference species="s1" stoichiometry="1"/>
+          <speciesReference species="s2" stoichiometry="1"/>
         </listOfReactants>
         <listOfProducts>
-          <speciesReference species="s1s2" stoichiometry="1" constant="true"/>
+          <speciesReference species="s1s2" stoichiometry="1"/>
         </listOfProducts>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
             <apply>
               <times/>
               <ci> c1 </ci>
-              <ci> k1 </ci>
-              <ci> s1 </ci>
-              <ci> s2 </ci>
+              <apply>
+                <ci> Function_for_reaction </ci>
+                <ci> k1 </ci>
+                <ci> s1 </ci>
+                <ci> s2 </ci>
+                <ci> s1s2 </ci>
+              </apply>
             </apply>
           </math>
         </kineticLaw>

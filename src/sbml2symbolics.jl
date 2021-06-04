@@ -1,6 +1,6 @@
 using ModelingToolkit, Symbolics
 
-# @register ceil(x)
+@register ceil(x)
 
 allowed_funs = Dict(
     "+" => :+,
@@ -10,12 +10,12 @@ allowed_funs = Dict(
     "/" => :/,
     "power" => :^,
     "factorial" => :factorial,
-    # "ceiling" => :ceil,
+    "ceiling" => :ceil,
     # "piecewise" => 
     #TODO add translations of SBML functions to Julia
 )
 
-allowed_sym(x) = haskey(allowed_funs,x) ? allowed_funs[x] : DomainError(x,"Unknown SBML function")
+allowed_sym(x) = haskey(allowed_funs,x) ? allowed_funs[x] : throw(DomainError(x,"Unknown SBML function"))
 
 function Base.convert(::Type{Num}, x::Math)
     conv(x::SBML.MathApply) =
