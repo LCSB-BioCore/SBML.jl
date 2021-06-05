@@ -3,16 +3,30 @@ using ModelingToolkit, Symbolics
 @register factorial(x)
 @register ceil(x)
 
+function parse_piecewise(val, cond, other)
+    println((val, cond, other))
+    println(typeof(cond))
+    () -> cond ? val : other
+end
+
 allowed_funs = Dict(
+    # Operators    
     "+" => :+,
     "-" => :-,
     "*" => :*,
-    "multiply" => :*,
     "/" => :/,
     "power" => :^,
+
+    # Relational functions
+    "lt" => :<,
+    "leq" => :<=,
+    "geq" => :>=,
+    "gt" => :>,
+    
+    # Other
     "factorial" => :factorial,
     "ceiling" => :ceil,
-    # "piecewise" => 
+    "piecewise" => SBML.parse_piecewise,
     #TODO add translations of SBML functions to Julia
 )
 

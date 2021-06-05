@@ -29,7 +29,7 @@ function parse_math(ast::VPtr)::Math
         return MathVal(ccall(sbml(:ASTNode_getInteger), Cint, (VPtr,), ast))
     elseif ast_is(ast, :ASTNode_isReal)
         return MathVal(ccall(sbml(:ASTNode_getReal), Cdouble, (VPtr,), ast))
-    elseif ast_is(ast, :ASTNode_isFunction)
+    elseif ast_is(ast, :ASTNode_isFunction) || ast_is(ast, :ASTNode_isRelational)
         return MathApply(get_string(ast, :ASTNode_getName), parse_math_children(ast))
     elseif ast_is(ast, :ASTNode_isOperator)
         return MathApply(
