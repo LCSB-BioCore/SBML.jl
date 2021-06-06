@@ -64,7 +64,12 @@ function to_initial_amounts(model::Model)
     for specie in values(model.species)
         if isnothing(specie.initial_amount)
             compartment = model.compartments[specie.compartment]
-            specie.initial_amount = (specie.initial_concentration[1] * compartment.size, "")
+            if !isnothing(compartment.size)
+                specie.initial_amount = (specie.initial_concentration[1] * compartment.size, "")
+            else
+                @warn "Compartment $(compartment.name) has no `size`. Cannot calculate `initial_amount` of Species $(specie.name). Setting `initial_amount` to `initial_concentration`."
+                specie.initial_amount = (specie.initial_concentration[1], "")
+            end
             specie.initial_concentration = nothing
         end
     end
