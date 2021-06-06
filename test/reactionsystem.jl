@@ -43,6 +43,8 @@
     @test isequal(Catalyst.get_states(rs), [s1, s1s2, s2])
     @test isequal(Catalyst.get_ps(rs), [k1,c1])
 
+    @test_nowarn convert(ModelingToolkit.ODESystem, rs)
+
     # Test ODESystem constructor
     odesys = ODESystem(MODEL1)
     trueeqs = Equation[Differential(t)(s1) ~ k1]
@@ -69,6 +71,8 @@
     @test isequal(odesys.defaults, Dict(append!(u0, par)))
     @named odesys = ODESystem(MODEL1)
     isequal(nameof(odesys), :odesys)
+
+    @test_nowarn ODEProblem(odesys, [], [0., 1.], [])
 
     # Test ODEProblem
     oprob = ODEProblem(MODEL1, [0., 1.])
