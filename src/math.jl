@@ -46,7 +46,7 @@ function parse_math(ast::VPtr)::Math
             return MathIdent("?invalid?")
         end
     else
-        @warn "unsupported math element found"
+        @warn "unsupported math element found: $(get_string(ast, :ASTNode_getName))"
         return MathIdent("?unsupported?")
     end
 end
