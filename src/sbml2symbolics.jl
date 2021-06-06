@@ -1,7 +1,7 @@
 using ModelingToolkit, Symbolics
 
-@register factorial(x)
-@register ceil(x)
+@register Base.factorial(x)
+@register Base.ceil(x)
 
 function parse_piecewise(val, cond, other)
     # () -> cond ? val : other
