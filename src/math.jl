@@ -23,7 +23,9 @@ This attempts to parse out a decent Julia-esque ([`Math`](@ref) AST from a
 pointer to `ASTNode_t`.
 """
 function parse_math(ast::VPtr)::Math
-    if ast_is(ast, :ASTNode_isName) || ast_is(ast, :ASTNode_isConstant)
+    if ast_is(ast, :ASTNode_isBoolean)
+        return MathVal(Bool(ccall(sbml(:ASTNode_getInteger), Cint, (VPtr,), ast)))
+    elseif ast_is(ast, :ASTNode_isName) || ast_is(ast, :ASTNode_isConstant)
         return MathIdent(get_string(ast, :ASTNode_getName))
     elseif ast_is(ast, :ASTNode_isInteger)
         return MathVal(ccall(sbml(:ASTNode_getInteger), Cint, (VPtr,), ast))
