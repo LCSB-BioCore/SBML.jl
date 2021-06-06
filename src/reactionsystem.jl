@@ -127,6 +127,9 @@ end
 function mtk_reactions(model::Model)
     subsdict = _get_substitutions(model)
     rxs = []
+    if length(model.reactions) == 0
+        throw(ErrorException("Model contains no reactions."))
+    end
     for reaction in values(model.reactions)
         reactants = Num[]
         rstoich = Num[]
