@@ -2,6 +2,7 @@ using ModelingToolkit, Symbolics
 
 @register Base.factorial(x)
 @register Base.ceil(x)
+@register Base.floor(x)
 
 function parse_piecewise(val, cond, other)
     # () -> cond ? val : other
@@ -25,6 +26,7 @@ allowed_funs = Dict(
     # Other
     "factorial" => :factorial,
     "ceiling" => :ceil,
+    "floor" => :floor,
     "piecewise" => SBML.parse_piecewise,
     #TODO add translations of SBML functions to Julia
 )
