@@ -6,7 +6,9 @@ using ModelingToolkit, Symbolics
 function parse_piecewise(val, cond, other)
     println((val, cond, other))
     println(typeof(cond))
-    () -> cond ? val : other
+    println(typeof(IfElse.ifelse(cond, val, other)))
+    # () -> cond ? val : other
+    IfElse.ifelse(cond, val, other)
 end
 
 allowed_funs = Dict(
@@ -33,7 +35,7 @@ allowed_funs = Dict(
 allowed_sym(x) = haskey(allowed_funs,x) ? allowed_funs[x] : throw(DomainError(x,"Unknown SBML function"))
 
 function Base.convert(::Type{Num}, x::Math)
-    conv(x::SBML.MathApply) =
+    conv(x::SBML.MathApply) = println(x.fn), println(x.args),
         eval(allowed_sym(x.fn))(conv.(x.args)...)
     conv(x::SBML.MathIdent) =
         Symbolics.Variable(Symbol(x.id))

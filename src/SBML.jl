@@ -3,6 +3,7 @@ module SBML
 using SBML_jll, Libdl, Pkg
 using SparseArrays
 using Catalyst, ModelingToolkit, Symbolics
+using IfElse
 
 include("structs.jl")
 include("version.jl")
