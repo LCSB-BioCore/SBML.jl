@@ -5,7 +5,7 @@ function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requir
     rxs = mtk_reactions(model)
     t = Catalyst.DEFAULT_IV
     species = [create_var(k) for k in keys(model.species)]
-    params = vcat([create_param(k) for k in keys(model.parameters)], [create_param(k) for k in keys(model.compartments)])
+    params = vcat([create_param(k) for k in keys(model.parameters)], [create_param(k) for (k,v) in model.compartments if !isnothing(v.size)])
     ReactionSystem(rxs,t,species,params; kwargs...)
 end
 
@@ -195,7 +195,9 @@ function get_paramap(model)
         push!(paramap,Pair(create_param(k),v))
     end
     for (k,v) in model.compartments
-        push!(paramap,Pair(create_param(k),v.size))
+        if !isnothing(v.size)
+            push!(paramap,Pair(create_param(k),v.size))
+        end
     end
     paramap
 end
