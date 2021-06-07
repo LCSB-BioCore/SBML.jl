@@ -53,5 +53,5 @@ parameters, and initial assignments in the SBML document.
 """
 convert_simplify_math = libsbml_convert(
     ["promoteLocalParameters", "expandFunctionDefinitions", "setLevelAndVersion"] .=>
-        Dict(),
+        Ref(Dict{String,String}()),
 )
