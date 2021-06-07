@@ -1,7 +1,7 @@
 name = "SBML"
 uuid = "e5567a89-2604-4b09-9718-f5f78e97c3bb"
 authors = ["Mirek Kratochvil <miroslav.kratochvil@uni.lu>", "LCSB R3 team <lcsb-r3@uni.lu>"]
-version = "0.4.0"
+version = "0.4.1"
 
 [deps]
 Catalyst = "479239e8-5488-4da2-87a7-35f2df7eef83"
