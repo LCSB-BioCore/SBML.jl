@@ -75,11 +75,11 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
 end
 
 """
-    function readSBML(fn::String)::SBML.Model
+    function readSBML(fn::String, sbml_conversion = model->nothing)::SBML.Model
 
 Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
 """
-function readSBML(fn::String)::SBML.Model
+function readSBML(fn::String, sbml_conversion = document -> nothing)::SBML.Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
@@ -91,6 +91,8 @@ function readSBML(fn::String)::SBML.Model
         if n_errs > 0
             throw(AssertionError("Opening SBML document has reported errors"))
         end
+
+        sbml_conversion(doc)
 
         if 0 == ccall(sbml(:SBMLDocument_isSetModel), Cint, (VPtr,), doc)
             throw(AssertionError("SBML document contains no model"))
