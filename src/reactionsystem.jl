@@ -4,7 +4,11 @@ function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requir
     model = make_extensive(model)
     rxs = mtk_reactions(model)
     t = Catalyst.DEFAULT_IV
-    species = [create_var(k) for k in keys(model.species)]
+    species = []
+    for k in keys(model.species)
+        create_var(k,t)
+        push!(species, create_var(k))
+    end
     params = vcat([create_param(k) for k in keys(model.parameters)], [create_param(k) for (k,v) in model.compartments if !isnothing(v.size)])
     ReactionSystem(rxs,t,species,params; kwargs...)
 end
@@ -210,6 +214,7 @@ function get_paramap(model)
     paramap
 end
 
+create_var(x, iv) = Num(Variable{Symbolics.FnType{Tuple{Any},Real}}(Symbol(x)))(iv).val
 create_var(x) = Num(Variable(Symbol(x))).val
 function create_param(x)
     p = Sym{Real}(Symbol(x))
