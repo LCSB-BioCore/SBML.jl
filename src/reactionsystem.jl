@@ -3,14 +3,12 @@ function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requir
     # checksupport(model)
     model = make_extensive(model)
     rxs = mtk_reactions(model)
-    t = Catalyst.DEFAULT_IV
     species = []
     for k in keys(model.species)
-        create_var(k,t)
-        push!(species, create_var(k))
+        push!(species, create_var(k,Catalyst.DEFAULT_IV))
     end
     params = vcat([create_param(k) for k in keys(model.parameters)], [create_param(k) for (k,v) in model.compartments if !isnothing(v.size)])
-    ReactionSystem(rxs,t,species,params; kwargs...)
+    ReactionSystem(rxs,Catalyst.DEFAULT_IV,species,params; kwargs...)
 end
 
 """ ReactionSystem constructor """
@@ -116,13 +114,13 @@ end
 function _get_substitutions(model)
     subsdict = Dict()
     for k in keys(model.species)
-        push!(subsdict, Pair(Num(Variable(Symbol(k))),create_var(k)))
+        push!(subsdict, Pair(create_var(k),create_var(k,Catalyst.DEFAULT_IV)))
     end
     for k in keys(model.parameters)
-        push!(subsdict, Pair(Num(Variable(Symbol(k))),create_param(k)))
+        push!(subsdict, Pair(create_var(k),create_param(k)))
     end
     for k in keys(model.compartments)
-        push!(subsdict, Pair(Num(Variable(Symbol(k))),create_param(k)))
+        push!(subsdict, Pair(create_var(k),create_param(k)))
     end
     subsdict
 end
@@ -141,10 +139,10 @@ function mtk_reactions(model::Model)
         pstoich = Num[]
         for (k,v) in reaction.stoichiometry
             if v < 0
-                push!(reactants, create_var(k))
+                push!(reactants, create_var(k,Catalyst.DEFAULT_IV))
                 push!(rstoich, -v)
             elseif v > 0
-                push!(products, create_var(k))
+                push!(products, create_var(k,Catalyst.DEFAULT_IV))
                 push!(pstoich, v)
             else
                 @error("Stoichiometry of $k must be non-zero")
@@ -168,7 +166,7 @@ function mtk_reactions(model::Model)
 end
 
 """ Infer forward and reverse components of bidirectional kineticLaw """
-function getunidirectionalcomponents(bidirectional_math::SymbolicUtils.Symbolic)
+function getunidirectionalcomponents(bidirectional_math)
     err = "Cannot separate bidirectional kineticLaw `$bidirectional_math` to forward and reverse part. Please make reaction irreversible or rearrange kineticLaw to the form `term1 - term2`."
     bidirectional_math = Symbolics.tosymbol(bidirectional_math)
     bidirectional_math = simplify(bidirectional_math; expand=true)
@@ -195,7 +193,7 @@ end
 function get_u0(model)
     u0map = []
     for (k,v) in model.species
-        push!(u0map,Pair(create_var(k), v.initial_amount[1]))
+        push!(u0map,Pair(create_var(k,Catalyst.DEFAULT_IV), v.initial_amount[1]))
     end
     u0map
 end

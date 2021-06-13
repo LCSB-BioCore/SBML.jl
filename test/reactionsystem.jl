@@ -2,7 +2,7 @@
     
     sbmlfile = joinpath("data", "reactionsystem_01.xml")
     @parameters t, k1, c1
-    @variables s1, s2, s1s2
+    @variables s1(t), s2(t), s1s2(t)
 
     COMP1 = SBML.Compartment("c1", true, 3, 2., "nl") 
     SPECIES1 = SBML.Species("s1", "c1", false, nothing, nothing, (1., "substance"), nothing, true)  # Todo: Maybe not support units in initial_concentration?
@@ -25,6 +25,8 @@
     isequal(nameof(rs), :rs)
 
     rs = ReactionSystem(sbmlfile)
+    # println(Catalyst.get_eqs(rs))
+    # println(ModelingToolkit.Reaction[ModelingToolkit.Reaction(c1*k1*2.0*s1*2.0*s2, [s1, s2], [s1s2], [1., 1.], [1.]; use_only_rate=true)])
     @test isequal(Catalyst.get_eqs(rs), ModelingToolkit.Reaction[ModelingToolkit.Reaction(c1*k1*2.0*s1*2.0*s2, [s1, s2], [s1s2], [1., 1.], [1.]; use_only_rate=true)])
     @test isequal(Catalyst.get_iv(rs), t)
     @test isequal(Catalyst.get_states(rs), [s1, s1s2, s2])
@@ -140,12 +142,14 @@
 
     km = SBML.MathApply("-", SBML.Math[KINETICMATH1, KINETICMATH2])
     sm = convert(Num, km)
-    kl = SBML.getunidirectionalcomponents(sm)
-    @test isequal(kl, (k1, k1*s2))
+    fw, rv = SBML.getunidirectionalcomponents(sm)
+    rv = substitute(rv, Dict(SBML.create_var("s2") => SBML.create_var("s2",Catalyst.DEFAULT_IV)))
+    @test isequal((fw, rv), (k1, k1*s2))
 
     km = SBML.MathIdent("s1s2")
-    sm1 = sm - convert(Num, km)
-    @test_throws ErrorException SBML.getunidirectionalcomponents(sm1)
+    sm1 = convert(Num, km)
+    sm2 = sm - sm1
+    @test_throws ErrorException SBML.getunidirectionalcomponents(sm2)
 
     # Test get_u0
     true_u0map = [s1 => 1.]

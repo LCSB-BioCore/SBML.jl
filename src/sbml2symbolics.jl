@@ -37,7 +37,7 @@ function Base.convert(::Type{Num}, x::Math)
     conv(x::SBML.MathApply) =
         eval(allowed_sym(x.fn))(conv.(x.args)...)
     conv(x::SBML.MathIdent) =
-        Symbolics.Variable(Symbol(x.id))
+        create_var(x.id)
     conv(x::SBML.MathVal) = x.val
     conv(x::SBML.MathLambda) =
         throw(DomainError(x, "can't translate lambdas to symbolics"))
