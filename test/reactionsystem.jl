@@ -46,6 +46,7 @@
     @test isequal(Catalyst.get_ps(rs), [k1,c1])
 
     @test_nowarn convert(ModelingToolkit.ODESystem, rs)
+    @test_nowarn structural_simplify(convert(ModelingToolkit.ODESystem, rs))
 
     # Test ODESystem constructor
     odesys = ODESystem(MODEL1)
@@ -59,6 +60,7 @@
     @test isequal(odesys.defaults, Dict(append!(u0, par)))  # PL: @Anand: for some reason this does not work with `Catalyst.get_default()`
     @named odesys = ODESystem(MODEL1)
     isequal(nameof(odesys), :odesys)
+    @test_nowarn structural_simplify(odesys)
 
     odesys = ODESystem(sbmlfile)
     trueeqs = Equation[Differential(t)(s1) ~ -c1 * k1 * 2.0s1 * 2.0s2,
