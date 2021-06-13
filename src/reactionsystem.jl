@@ -1,6 +1,6 @@
 """ ReactionSystem constructor """
 function ModelingToolkit.ReactionSystem(model::Model; kwargs...)  # Todo: requires unique parameters (i.e. SBML must have been imported with localParameter promotion in libSBML)
-    # checksupport(model)
+    checksupport(model)
     model = make_extensive(model)
     rxs = mtk_reactions(model)
     species = []
@@ -48,10 +48,14 @@ function ModelingToolkit.ODEProblem(sbmlfile::String,tspan;kwargs...)  # PL: Tod
     ODEProblem(odesys, [], tspan; kwargs...)
 end
 
-# """ Check if conversion to ReactionSystem is possible """
-# function checksupport(model::Model)
-#     return
-# end
+""" Check if conversion to ReactionSystem is possible """
+function checksupport(model::Model)
+    for s in values(model.species)
+        if s.boundary_condition
+            @warn "Species $(s.name) has `boundaryCondition` or is `constant`. This will lead to wrong results when simulating the `ReactionSystem`."
+        end
+    end
+end
 
 """ Convert intensive to extensive expressions """
 function make_extensive(model)

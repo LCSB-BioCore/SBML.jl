@@ -86,12 +86,10 @@
     @test_nowarn ODEProblem(sbmlfile, [0., 1.])
 
     # Test checksupport
-    # @test_nowarn SBML.checksupport(MODEL1)
-    # r1 = deepcopy(REACTION1)
-    # r1.reversible = true
-    # mod = deepcopy(MODEL1)
-    # mod.reactions["r1"] = r1
-    # @test_throws AssertionError SBML.checksupport(mod)
+    @test_nowarn SBML.checksupport(MODEL1)
+    sbc = SBML.Species("sbc", "c1", true, nothing, nothing, (1., "substance"), nothing, true)   
+    mod = SBML.Model(Dict("k1" => 1.), Dict(), Dict("c1" => COMP1), Dict("sbc" => sbc), Dict("r1" => REACTION1), Dict(), Dict())
+    @test_logs (:warn, "Species sbc has `boundaryCondition` or is `constant`. This will lead to wrong results when simulating the `ReactionSystem`.") SBML.checksupport(mod)
 
     # Test make_extensive
     model = SBML.make_extensive(MODEL2)
