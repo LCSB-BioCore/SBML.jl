@@ -57,20 +57,29 @@ julia> Matrix(S)
  ⋮                         ⋮         ⋱  ⋮                          ⋮    
 ```
 
-## Functions
+# Function reference
 
-### Data structures
+## Data structures
 
 ```@autodocs
 Modules = [SBML]
 Pages = ["structs.jl"]
 ```
 
-### Base functions
+## Base functions
 
 ```@autodocs
 Modules = [SBML]
 Pages = ["version.jl", "readsbml.jl"]
+```
+
+## `libsbml` representation converters
+
+The converters are intended to be used as parameters of [`readSBML`](@ref).
+
+```@autodocs
+Modules = [SBML]
+Pages = ["converters.jl"]
 ```
 
 ## Data helpers
@@ -78,4 +87,11 @@ Pages = ["version.jl", "readsbml.jl"]
 ```@autodocs
 Modules = [SBML]
 Pages = ["utils.jl"]
+```
+
+## Internal math manipulation
+
+```@autodocs
+Modules = [SBML]
+Pages = ["math.jl"]
 ```
