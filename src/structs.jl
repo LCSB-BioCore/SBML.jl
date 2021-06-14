@@ -75,6 +75,14 @@ struct MathIdent <: Math
 end
 
 """
+A constant identified by name (usually something like `pi`, `e` or `true`) in
+mathematical expression
+"""
+struct MathConst <: Math
+    id::String
+end
+
+"""
 Function application ("call by name", no tricks allowed) in mathematical expression
 """
 struct MathApply <: Math
