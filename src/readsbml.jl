@@ -353,6 +353,9 @@ function extractModel(mdl::VPtr)::SBML.Model
             end
         end
 
+        # explicit reversible flag (defaults to true in SBML)
+        reversible = Bool(ccall(sbml(:Reaction_getReversible), Cint, (VPtr,), re))
+
         reid = get_string(re, :Reaction_getId)
         reactions[reid] = Reaction(
             stoi,
@@ -361,6 +364,7 @@ function extractModel(mdl::VPtr)::SBML.Model
             haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
             association,
             math,
+            reversible,
             get_notes(re),
             get_annotation(re),
         )
