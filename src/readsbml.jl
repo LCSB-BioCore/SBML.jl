@@ -263,6 +263,7 @@ function extractModel(mdl::VPtr)::SBML.Model
             formula,
             charge,
             ia,
+            ic,
             get_optional_bool(
                 sp,
                 :Species_isSetHasOnlySubstanceUnits,
