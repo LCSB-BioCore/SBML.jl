@@ -78,6 +78,20 @@ end
     function readSBML(fn::String, sbml_conversion = model->nothing)::SBML.Model
 
 Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
+
+The `sbml_conversion` is a function that does an in-place modification of the
+single parameter, which is the C pointer to the loaded SBML document (C type
+`SBMLDocument*`). Several functions for doing that are prepared, including
+[`convert_level_and_version`](@ref), [`libsbml_convert`](@ref), and
+[`convert_simplify_math`](@ref).
+
+# Example
+```
+m = readSBML("my_model.xml", doc -> begin
+    convert_level_and_version(3, 1)(doc)
+    convert_simplify_math(doc)
+end)
+```
 """
 function readSBML(fn::String, sbml_conversion = document -> nothing)::SBML.Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
