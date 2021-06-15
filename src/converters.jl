@@ -1,11 +1,11 @@
 
 """
-    convert_level_and_version(level, version)
+    set_level_and_version(level, version)
 
 A converter to pass into [`readSBML`](@ref) that enforces certain SBML level
 and version.
 """
-convert_level_and_version(level, version) =
+set_level_and_version(level, version) =
     doc -> begin
         ccall(
             sbml(:SBMLDocument_setLevelAndVersion),
@@ -46,12 +46,25 @@ libsbml_convert(conversion_options::Vector{Pair{String,Dict{String,String}}}) =
     end
 
 """
+    libsbml_convert(converter::String; kwargs...)
+
+Quickly construct a single run of a `libsbml` converter from keyword arguments.
+
+# Example
+```
+readSBML("example.xml", libsbml_convert("stripPackage", package="layout"))
+```
+"""
+libsbml_convert(converter::String; kwargs...) =
+    libsbml_convert([converter => Dict(string(k) => string(v) for (k, v) in kwargs)])
+
+"""
     convert_simplify_math
 
 Shortcut for [`libsbml_convert`](@ref) that expands functions, local
 parameters, and initial assignments in the SBML document.
 """
 convert_simplify_math = libsbml_convert(
-    ["promoteLocalParameters", "expandFunctionDefinitions", "setLevelAndVersion"] .=>
+    ["promoteLocalParameters", "expandFunctionDefinitions"] .=>
         Ref(Dict{String,String}()),
 )

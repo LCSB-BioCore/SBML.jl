@@ -88,7 +88,7 @@ single parameter, which is the C pointer to the loaded SBML document (C type
 # Example
 ```
 m = readSBML("my_model.xml", doc -> begin
-    convert_level_and_version(3, 1)(doc)
+    set_level_and_version(3, 1)(doc)
     convert_simplify_math(doc)
 end)
 ```
