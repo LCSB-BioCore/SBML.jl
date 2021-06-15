@@ -88,7 +88,7 @@ single parameter, which is the C pointer to the loaded SBML document (C type
 # Example
 ```
 m = readSBML("my_model.xml", doc -> begin
-    convert_level_and_version(3, 1)(doc)
+    set_level_and_version(3, 1)(doc)
     convert_simplify_math(doc)
 end)
 ```
@@ -240,7 +240,15 @@ function extractModel(mdl::VPtr)::SBML.Model
         if ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0
             ia = (
                 ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp),
-                get_string(sp, :Species_getSubstanceUnits),
+                get_optional_string(sp, :Species_getSubstanceUnits),
+            )
+        end
+
+        ic = nothing
+        if ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0
+            ic = (
+                ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp),
+                get_optional_string(sp, :Species_getSubstanceUnits),
             )
         end
 
@@ -255,6 +263,7 @@ function extractModel(mdl::VPtr)::SBML.Model
             formula,
             charge,
             ia,
+            ic,
             get_optional_bool(
                 sp,
                 :Species_isSetHasOnlySubstanceUnits,
