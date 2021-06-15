@@ -29,7 +29,7 @@ sbmlfiles = [
 @testset "Loading of models from various sources" begin
     for (sbmlfile, url, hash, expected_mets, expected_rxns) in sbmlfiles
         if !isfile(sbmlfile)
-            download(url, sbmlfile)
+            Downloads.download(url, sbmlfile)
         end
 
         cksum = bytes2hex(sha256(open(sbmlfile)))
