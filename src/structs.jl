@@ -83,6 +83,14 @@ struct MathConst <: Math
 end
 
 """
+A special value representing the current time of the simulation, with a special
+name.
+"""
+struct MathTime <: Math
+    id::String
+end
+
+"""
 Function application ("call by name", no tricks allowed) in mathematical expression
 """
 struct MathApply <: Math
