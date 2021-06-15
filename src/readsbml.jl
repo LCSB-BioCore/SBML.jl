@@ -75,11 +75,11 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
 end
 
 """
-    function readSBML(fn::String;conversion_options=Dict())::Model
+    function readSBML(fn::String, sbml_conversion = model->nothing)::SBML.Model
 
 Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
 """
-function readSBML(fn::String;conversion_options=Dict())::SBML.Model
+function readSBML(fn::String, sbml_conversion = document -> nothing)::SBML.Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
@@ -91,6 +91,8 @@ function readSBML(fn::String;conversion_options=Dict())::SBML.Model
         if n_errs > 0
             throw(AssertionError("Opening SBML document has reported errors"))
         end
+
+        sbml_conversion(doc)
 
         if 0 == ccall(sbml(:SBMLDocument_isSetModel), Cint, (VPtr,), doc)
             throw(AssertionError("SBML document contains no model"))
@@ -412,6 +414,9 @@ function extractModel(mdl::VPtr)::SBML.Model
             end
         end
 
+        # explicit reversible flag (defaults to true in SBML)
+        reversible = Bool(ccall(sbml(:Reaction_getReversible), Cint, (VPtr,), re))
+
         reid = get_string(re, :Reaction_getId)
         reactions[reid] = Reaction(
             stoi,
@@ -420,7 +425,7 @@ function extractModel(mdl::VPtr)::SBML.Model
             haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
             association,
             math,
-            rev,
+            reversible,
             get_notes(re),
             get_annotation(re),
         )

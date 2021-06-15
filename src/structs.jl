@@ -75,6 +75,14 @@ struct MathIdent <: Math
 end
 
 """
+A constant identified by name (usually something like `pi`, `e` or `true`) in
+mathematical expression
+"""
+struct MathConst <: Math
+    id::String
+end
+
+"""
 Function application ("call by name", no tricks allowed) in mathematical expression
 """
 mutable struct MathApply <: Math
@@ -120,7 +128,8 @@ mutable struct Reaction
     reversible::Bool
     notes::Maybe{String}
     annotation::Maybe{String}
-    Reaction(s, l, u, o, as, km, r, n = nothing, an = nothing) = new(s, l, u, o, as, km, r, n, an)
+    Reaction(s, l, u, o, as, km, r, n = nothing, an = nothing) =
+        new(s, l, u, o, as, km, r, n, an)
 end
 
 """
