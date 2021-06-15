@@ -78,6 +78,20 @@ end
     function readSBML(fn::String, sbml_conversion = model->nothing)::SBML.Model
 
 Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
+
+The `sbml_conversion` is a function that does an in-place modification of the
+single parameter, which is the C pointer to the loaded SBML document (C type
+`SBMLDocument*`). Several functions for doing that are prepared, including
+[`convert_level_and_version`](@ref), [`libsbml_convert`](@ref), and
+[`convert_simplify_math`](@ref).
+
+# Example
+```
+m = readSBML("my_model.xml", doc -> begin
+    set_level_and_version(3, 1)(doc)
+    convert_simplify_math(doc)
+end)
+```
 """
 function readSBML(fn::String, sbml_conversion = document -> nothing)::SBML.Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
@@ -272,17 +286,15 @@ function extractModel(mdl::VPtr)::SBML.Model
         if ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0
             ia = (
                 ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp),
-                ccall(sbml(:Species_isSetSubstanceUnits), Cint, (VPtr,), sp) == 1 ?
-                    get_string(sp, :Species_getSubstanceUnits) : "",
+                get_optional_string(sp, :Species_getSubstanceUnits),
             )
         end
 
         ic = nothing
         if ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0
             ic = (
-                ccall(sbml(:Species_getInitialConcentration), Cdouble, (VPtr,), sp),
-                ccall(sbml(:Species_isSetSubstanceUnits), Cint, (VPtr,), sp) == 1 ?
-                    get_string(sp, :Species_getSubstanceUnits) : "",
+                ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp),
+                get_optional_string(sp, :Species_getSubstanceUnits),
             )
         end
 

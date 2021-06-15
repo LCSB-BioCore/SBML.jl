@@ -24,7 +24,16 @@ pointer to `ASTNode_t`.
 """
 function parse_math(ast::VPtr)::Math
     if ast_is(ast, :ASTNode_isName)
-        return MathIdent(get_string(ast, :ASTNode_getName))
+        if ccall(sbml(:ASTNode_getType), Cint, (VPtr,), ast) == 262
+            # This is a special case checking for the value of "simulation
+            # time" as defined by SBML. The constant `262` is the value of the
+            # enum AST_NAME_TIME in `libsbml/src/sbml/math/ASTNodeType.h`,
+            # needs to be kept up to date with the library (otherwise this
+            # breaks).
+            return MathTime(get_string(ast, :ASTNode_getName))
+        else
+            return MathIdent(get_string(ast, :ASTNode_getName))
+        end
     elseif ast_is(ast, :ASTNode_isConstant)
         return MathConst(get_string(ast, :ASTNode_getName))
     elseif ast_is(ast, :ASTNode_isInteger)

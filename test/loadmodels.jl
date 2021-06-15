@@ -24,12 +24,20 @@ sbmlfiles = [
         2,
         6,
     ),
+    # a cool model with `time` from SBML testsuite
+    (
+        "sbml00852.xml",
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00852/00852-sbml-l3v2.xml",
+        "d013765aa358d265941420c2e3d81fcbc24b0aa4e9f39a8dc8852debd1addb60",
+        4,
+        3,
+    ),
 ]
 
 @testset "Loading of models from various sources" begin
     for (sbmlfile, url, hash, expected_mets, expected_rxns) in sbmlfiles
         if !isfile(sbmlfile)
-            download(url, sbmlfile)
+            Downloads.download(url, sbmlfile)
         end
 
         cksum = bytes2hex(sha256(open(sbmlfile)))
@@ -48,4 +56,15 @@ sbmlfiles = [
             @test length(rxns) == expected_rxns
         end
     end
+end
+
+@testset "Time variables in math" begin
+    # this test is here mainly for keeping a magical constant that we need for
+    # parsing time synced with libsbml source
+    contains_time(x::SBML.MathTime) = true
+    contains_time(x::SBML.MathApply) = any(contains_time.(x.args))
+    contains_time(_) = false
+
+    m = readSBML("sbml00852.xml")
+    @test all(contains_time.(r.kinetic_math for (_, r) in m.reactions))
 end

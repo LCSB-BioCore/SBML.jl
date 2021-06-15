@@ -83,6 +83,14 @@ struct MathConst <: Math
 end
 
 """
+A special value representing the current time of the simulation, with a special
+name.
+"""
+struct MathTime <: Math
+    id::String
+end
+
+"""
 Function application ("call by name", no tricks allowed) in mathematical expression
 """
 mutable struct MathApply <: Math
@@ -142,8 +150,8 @@ mutable struct Species
     boundary_condition::Maybe{Bool}
     formula::Maybe{String}
     charge::Maybe{Int}
-    initial_amount::Maybe{Tuple{Float64,String}}
-    initial_concentration::Maybe{Tuple{Float64,String}}
+    initial_amount::Maybe{Tuple{Float64,Maybe{String}}}
+    initial_concentration::Maybe{Tuple{Float64,Maybe{String}}}
     only_substance_units::Maybe{Bool}
     notes::Maybe{String}
     annotation::Maybe{String}

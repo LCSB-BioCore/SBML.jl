@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 using Catalyst, ModelingToolkit, OrdinaryDiffEq
 using Test, SHA, SparseArrays
+=======
+
+using Test, SHA, SparseArrays, Downloads
+>>>>>>> master
 using SBML
 using SBML: Model, Reaction, Species
 using Symbolics
