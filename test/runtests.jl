@@ -1,5 +1,5 @@
 
-using Test, SHA, SparseArrays
+using Test, SHA, SparseArrays, Downloads
 using SBML
 using SBML: Model, Reaction, Species
 import Pkg
