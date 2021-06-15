@@ -96,9 +96,8 @@ function to_extensive_math!(model::SBML.Model)
                 if isnothing(compartment.size)
                     @warn "Specie $(x.id) hasOnlySubstanceUnits but its compartment $(compartment.name) has no size. Cannot auto-correct the rate laws $(x.id) is involved in. Please check manually."
                 else
-                    x_new = SBML.MathApply("/", SBML.Math[
-                                SBML.MathVal(compartment.size),
-                                x])
+                    x_new = SBML.MathApply("/", SBML.Math[x,
+                                SBML.MathVal(compartment.size)])
                     specie.only_substance_units = true
                 end
             end
