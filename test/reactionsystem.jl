@@ -1,3 +1,5 @@
+using Catalyst, ModelingToolkit, DifferentialEquations
+
 @testset "Model to MTK conversions" begin
     
     sbmlfile = joinpath("data", "reactionsystem_01.xml")
@@ -27,7 +29,7 @@
     rs = ReactionSystem(sbmlfile)
     # println(Catalyst.get_eqs(rs))
     # println(ModelingToolkit.Reaction[ModelingToolkit.Reaction(c1*k1*2.0*s1*2.0*s2, [s1, s2], [s1s2], [1., 1.], [1.]; use_only_rate=true)])
-    @test isequal(Catalyst.get_eqs(rs), ModelingToolkit.Reaction[ModelingToolkit.Reaction(c1*k1*2.0*s1*2.0*s2, [s1, s2], [s1s2], [1., 1.], [1.]; use_only_rate=true)])
+    @test isequal(Catalyst.get_eqs(rs), ModelingToolkit.Reaction[ModelingToolkit.Reaction(0.25c1*k1*s1*s2, [s1, s2], [s1s2], [1., 1.], [1.]; use_only_rate=true)])
     @test isequal(Catalyst.get_iv(rs), t)
     @test isequal(Catalyst.get_states(rs), [s1, s1s2, s2])
     @test isequal(Catalyst.get_ps(rs), [k1,c1])
@@ -63,9 +65,9 @@
     @test_nowarn structural_simplify(odesys)
 
     odesys = ODESystem(sbmlfile)
-    trueeqs = Equation[Differential(t)(s1) ~ -c1 * k1 * 2.0s1 * 2.0s2,
-                       Differential(t)(s1s2) ~ c1 * k1 * 2.0s1 * 2.0s2,
-                       Differential(t)(s2) ~ -c1 * k1 * 2.0s1 * 2.0s2]
+    trueeqs = Equation[Differential(t)(s1) ~ -0.25c1 * k1 * s1 * s2,
+                       Differential(t)(s1s2) ~ 0.25c1 * k1 * s1 * s2,
+                       Differential(t)(s2) ~ -0.25c1 * k1 * s1 * s2]
     @test isequal(Catalyst.get_eqs(odesys), trueeqs)
     @test isequal(Catalyst.get_iv(odesys), t)
     @test isequal(Catalyst.get_states(odesys), [s1, s1s2, s2])
@@ -98,9 +100,9 @@
 
     kineticmath2_true = SBML.MathApply("*", SBML.Math[
         SBML.MathIdent("k1"),
-        SBML.MathApply("*", SBML.Math[
-            SBML.MathVal(2.0),
-            SBML.MathIdent("s2")])
+        SBML.MathApply("/", SBML.Math[
+            SBML.MathIdent("s2"),
+            SBML.MathVal(2.0)])
         ])
     @test isequal(repr(model.reactions["r2"].kinetic_math), repr(kineticmath2_true))
     @test model.species["s2"].only_substance_units

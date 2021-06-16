@@ -13,10 +13,7 @@ end
 
 """ ReactionSystem constructor """
 function ModelingToolkit.ReactionSystem(sbmlfile::String; kwargs...)
-    conversion_options = Dict("promoteLocalParameters" => nothing,
-                              "expandFunctionDefinitions" => nothing,
-                              "expandInitialAssignments" => nothing)
-    model = readSBML(sbmlfile;conversion_options=conversion_options)
+    model = readSBML(sbmlfile,SBML.convert_simplify_math)
     ReactionSystem(model; kwargs...)
 end
 
