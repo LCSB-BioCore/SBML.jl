@@ -2,7 +2,7 @@
 const VPtr = Ptr{Cvoid}
 
 """
-    function get_string(x::VPtr, fn_sym)::Maybe{String}
+    get_string(x::VPtr, fn_sym)::Maybe{String}
 
 C-call the SBML function `fn_sym` with a single parameter `x`, interpret the
 result as a string and return it, or throw exception in case the pointer is
@@ -18,9 +18,9 @@ function get_string(x::VPtr, fn_sym)::String
 end
 
 """
-    function get_optional_string(x::VPtr, fn_sym)::Maybe{String}
+    get_optional_string(x::VPtr, fn_sym)::Maybe{String}
 
-Like [`get_string`](@Ref), but returns `nothing` instead of throwing an
+Like [`get_string`](@ref), but returns `nothing` instead of throwing an
 exception.
 
 This is used to get notes and annotations and several other things (see
@@ -82,7 +82,7 @@ Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
 The `sbml_conversion` is a function that does an in-place modification of the
 single parameter, which is the C pointer to the loaded SBML document (C type
 `SBMLDocument*`). Several functions for doing that are prepared, including
-[`convert_level_and_version`](@ref), [`libsbml_convert`](@ref), and
+[`set_level_and_version`](@ref), [`libsbml_convert`](@ref), and
 [`convert_simplify_math`](@ref).
 
 # Example

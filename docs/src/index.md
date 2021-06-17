@@ -89,7 +89,14 @@ Modules = [SBML]
 Pages = ["utils.jl"]
 ```
 
-## Internal math manipulation
+## Math and `Symbolics.jl` compatibility
+
+```@autodocs
+Modules = [SBML]
+Pages = ["symbolics.jl"]
+```
+
+### Internal math helpers
 
 ```@autodocs
 Modules = [SBML]

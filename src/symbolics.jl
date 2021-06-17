@@ -1,5 +1,16 @@
 
-default_symbolics_mapping = Dict(
+"""
+    default_symbolics_mapping :: Dict{String,Any}
+
+Default mapping of SBML function names to Julia functions, represented as a
+dictionary from Strings (SBML names) to anything `eval`uable as Julia&Symbolics
+functions, such as symbols and expressions.
+
+The default mapping only contains the basic SBML functions that are
+unambiguously represented in Julia; it is supposed to be extended by the user
+if more functions need to be supported.
+"""
+default_symbolics_mapping = Dict{String,Any}(
     "+" => :+,
     "-" => :-,
     "*" => :*,
@@ -12,7 +23,6 @@ default_symbolics_mapping = Dict(
     "ceiling" => :ceil,
     "floor" => :floor,
     "piecewise" => :(Core.ifelse),
-    #TODO extend this in the future
 )
 
 allowed_sym(x, allowed_funs) =
