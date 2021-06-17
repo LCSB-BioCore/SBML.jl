@@ -37,8 +37,8 @@ allowed_sym(x, allowed_funs) =
         convert_time = (x::SBML.MathTime) -> Num(Variable(Symbol(x.id))).val,
     )
 
-Convert SBML.[`Math`](@ref) to `Num` type Symbolics package. The conversion of
-functions can be customized by supplying a custom mapping to symbols; if
+Convert SBML.[`Math`](@ref) to `Num` type from Symbolics package. The
+conversion of functions can be customized by supplying a custom mapping; if
 nothing is supplied, [`default_symbolics_mapping`](@ref) that translates basic
 functions to their Julia equivalents is assumed.
 
