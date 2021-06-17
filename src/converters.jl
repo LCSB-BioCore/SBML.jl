@@ -24,9 +24,7 @@ A converter that runs the SBML conversion routine, with specified conversion
 options. The argument is a vector of pairs to allow specifying the order of
 conversions.
 """
-libsbml_convert(
-    conversion_options::AbstractVector{Pair{String,AbstractDict{String,String}}},
-) =
+libsbml_convert(conversion_options::AbstractVector{Pair{String,Dict{String,String}}}) =
     doc -> begin
         for (converter, options) in conversion_options
             props = ccall(sbml(:ConversionProperties_create), VPtr, ())
