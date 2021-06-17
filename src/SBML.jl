@@ -16,6 +16,6 @@ include("symbolics.jl")
 sbml = (sym::Symbol) -> dlsym(SBML_jll.libsbml_handle, sym)
 
 export SBMLVersion, readSBML, getS, getLBs, getUBs, getOCs
-export convert_level_and_version, libsbml_convert, convert_simplify_math
+export set_level_and_version, libsbml_convert, convert_simplify_math
 
 end # module
