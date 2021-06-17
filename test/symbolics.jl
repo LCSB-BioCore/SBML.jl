@@ -1,10 +1,6 @@
 
 @testset "Math to Symbolics conversions" begin
-    A = Symbolics.Variable(Symbol("A"))
-    B = Symbolics.Variable(Symbol("B"))
-    C = Symbolics.Variable(Symbol("C"))
-    D = Symbolics.Variable(Symbol("D"))
-    E = Symbolics.Variable(Symbol("E"))
+    @variables A B C D E
 
     test = SBML.MathApply(
         "*",
