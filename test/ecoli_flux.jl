@@ -2,7 +2,7 @@
 sbmlfile = "Ec_core_flux1.xml"
 
 if !isfile(sbmlfile)
-    download(
+    Downloads.download(
         "http://systemsbiology.ucsd.edu/sites/systemsbiology.ucsd.edu/files/Attachments/Images/InSilicoOrganisms/Ecoli/Ecoli_SBML/Ec_core_flux1.xml",
         sbmlfile,
     )
