@@ -2,6 +2,7 @@
 using Test, SHA, SparseArrays, Downloads
 using SBML
 using SBML: Model, Reaction, Species
+using Symbolics
 import Pkg
 
 @testset "SBML test suite" begin
