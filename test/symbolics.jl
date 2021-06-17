@@ -1,6 +1,6 @@
 
 @testset "Math to Symbolics conversions" begin
-    @variables A B C D E
+    @variables A B C D Time
 
     test = SBML.MathApply(
         "*",
@@ -21,11 +21,11 @@
                     ),
                 ],
             ),
-            SBML.MathIdent("E"),
+            SBML.MathTime("Time"),
         ],
     )
 
-    @test isequal(convert(Num, test), (A * B - C * D) * E)
+    @test isequal(convert(Num, test), (A * B - C * D) * Time)
 
     test = SBML.MathApply(
         "piecewise",
