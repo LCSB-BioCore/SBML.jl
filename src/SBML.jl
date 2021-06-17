@@ -11,7 +11,7 @@ include("readsbml.jl")
 include("converters.jl")
 include("math.jl")
 include("utils.jl")
-include("sbml2symbolics.jl")
+include("symbolics.jl")
 
 sbml = (sym::Symbol) -> dlsym(SBML_jll.libsbml_handle, sym)
 
