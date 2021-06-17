@@ -24,7 +24,7 @@ A converter that runs the SBML conversion routine, with specified conversion
 options. The argument is a vector of pairs to allow specifying the order of
 conversions.
 """
-libsbml_convert(conversion_options::Vector{Pair{String,Dict{String,String}}}) =
+libsbml_convert(conversion_options::AbstractVector{Pair{String,Dict{String,String}}}) =
     doc -> begin
         for (converter, options) in conversion_options
             props = ccall(sbml(:ConversionProperties_create), VPtr, ())
@@ -55,8 +55,9 @@ Quickly construct a single run of a `libsbml` converter from keyword arguments.
 readSBML("example.xml", libsbml_convert("stripPackage", package="layout"))
 ```
 """
-libsbml_convert(converter::String; kwargs...) =
-    libsbml_convert([converter => Dict(string(k) => string(v) for (k, v) in kwargs)])
+libsbml_convert(converter::String; kwargs...) = libsbml_convert([
+    converter => Dict{String,String}(string(k) => string(v) for (k, v) in kwargs),
+])
 
 """
     convert_simplify_math
@@ -65,6 +66,5 @@ Shortcut for [`libsbml_convert`](@ref) that expands functions, local
 parameters, and initial assignments in the SBML document.
 """
 convert_simplify_math = libsbml_convert(
-    ["promoteLocalParameters", "expandFunctionDefinitions"] .=>
-        Ref(Dict{String,String}()),
+    ["promoteLocalParameters", "expandFunctionDefinitions", "expandInitialAssignments"] .=> Ref(Dict{String,String}()),
 )
