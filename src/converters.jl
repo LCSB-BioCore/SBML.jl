@@ -67,6 +67,6 @@ libsbml_convert(converter::String; kwargs...) = libsbml_convert([
 Shortcut for [`libsbml_convert`](@ref) that expands functions, local
 parameters, and initial assignments in the SBML document.
 """
-convert_simplify_math = libsbml_convert(
+const convert_simplify_math = libsbml_convert(
     ["promoteLocalParameters", "expandFunctionDefinitions", "expandInitialAssignments"] .=> Ref(Dict{String,String}()),
 )
