@@ -99,8 +99,8 @@ function readSBML(fn::String, sbml_conversion = document -> nothing)::SBML.Model
         n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
         for i = 0:n_errs-1
             err = ccall(sbml(:SBMLDocument_getError), VPtr, (VPtr, Cuint), doc, i)
-            msg = get_string(err, :XMLError_getMessage)
-            @warn "SBML reported error: $msg"
+            msg = strip(get_string(err, :XMLError_getMessage))
+            @error "SBML reported error: $msg"
         end
         if n_errs > 0
             throw(AssertionError("Opening SBML document has reported errors"))
