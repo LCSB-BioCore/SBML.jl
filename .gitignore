@@ -30,6 +30,3 @@ Manifest.toml
 
 # vscode
 /.vscode/
-
-# Input files downloaded when running the tests
-/test/*.xml

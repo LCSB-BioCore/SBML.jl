@@ -1,5 +1,5 @@
 
-sbmlfile = "Ec_core_flux1.xml"
+sbmlfile = joinpath(@__DIR__, "data", "Ec_core_flux1.xml")
 
 if !isfile(sbmlfile)
     Downloads.download(
