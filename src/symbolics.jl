@@ -10,7 +10,7 @@ The default mapping only contains the basic SBML functions that are
 unambiguously represented in Julia; it is supposed to be extended by the user
 if more functions need to be supported.
 """
-default_symbolics_mapping = Dict{String,Any}(
+const default_symbolics_mapping = Dict{String,Any}(
     "+" => :+,
     "-" => :-,
     "*" => :*,
