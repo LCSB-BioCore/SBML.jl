@@ -32,6 +32,14 @@ sbmlfiles = [
         4,
         3,
     ),
+    # a cool model with `initialConcentration` from SBML testsuite
+    (
+        joinpath(@__DIR__, "data", "sbml00374.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00374/00374-sbml-l3v2.xml",
+        "424683eea6bbb577aad855d95f2de5183a36e296b06ba18b338572cd7dba6183",
+        4,
+        2,
+    ),
 ]
 
 @testset "Loading of models from various sources" begin
@@ -77,4 +85,12 @@ end
     @test sum(ia for (sp, ia) in SBML.initial_amounts(m)) == 0.001
     @test sum(ic for (sp, ic) in SBML.initial_concentrations(m, convert_amounts = true)) ==
           0.001
+          
+    m = readSBML(joinpath(@__DIR__, "data", "sbml00374.xml"))
+
+    @test all(isnothing(ic) for (k, ic) in SBML.initial_amounts(m))
+    @test length(SBML.initial_concentrations(m)) == 4
+    @test sum(ic for (sp, ic) in SBML.initial_concentrations(m)) == 0.0020800000000000003
+    @test sum(ia for (sp, ia) in SBML.initial_amounts(m, convert_concentrations = true)) ==
+          0.25 * 0.0020800000000000003
 end
