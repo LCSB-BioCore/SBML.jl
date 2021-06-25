@@ -68,3 +68,13 @@ end
     m = readSBML(joinpath(@__DIR__, "data", "sbml00852.xml"))
     @test all(contains_time.(r.kinetic_math for (_, r) in m.reactions))
 end
+
+@testset "Initial amounts and concentrations" begin
+    m = readSBML(joinpath(@__DIR__, "data", "sbml00852.xml"))
+
+    @test all(isnothing(ic) for (k, ic) in SBML.initial_concentrations(m))
+    @test length(SBML.initial_amounts(m)) == 4
+    @test sum(ia for (sp, ia) in SBML.initial_amounts(m)) == 0.001
+    @test sum(ic for (sp, ic) in SBML.initial_concentrations(m, convert_amounts = true)) ==
+          0.001
+end
