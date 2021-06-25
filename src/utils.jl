@@ -25,33 +25,29 @@ function getS(
 end
 
 """
-    function getLBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
+    getLBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
 
 Extract a vector of lower bounds of reaction rates from the model. All bounds
 are accompanied with the unit of the corresponding value (this behavior is
 based on SBML specification).
 """
-function getLBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
-    return broadcast(x -> x.lb, values(m.reactions))
-end
+getLBs(m::SBML.Model)::Vector{Tuple{Float64,String}} =
+    broadcast(x -> x.lb, values(m.reactions))
 
 """
-    function getUBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
+    getUBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
 
-Likewise to `getLBs`, extract the upper bounds.
+Likewise to [`getLBs`](@ref), extract the upper bounds.
 """
-function getUBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
-    return broadcast(x -> x.ub, values(m.reactions))
-end
+getUBs(m::SBML.Model)::Vector{Tuple{Float64,String}} =
+    broadcast(x -> x.ub, values(m.reactions))
 
 """
-    function getOCs(m::SBML.Model)::Vector{Float64}
+    getOCs(m::SBML.Model)::Vector{Float64}
 
 Extract the vector of objective coefficients of each reaction.
 """
-function getOCs(m::SBML.Model)::Vector{Float64}
-    return broadcast(x -> x.oc, values(m.reactions))
-end
+getOCs(m::SBML.Model)::Vector{Float64} = broadcast(x -> x.oc, values(m.reactions))
 
 """
     initial_amounts(m::SBML.Model; convert_concentrations = false)
@@ -73,7 +69,7 @@ Dict(initial_amounts(model, convert_concentrations = true))
 Dict(k => v for (k,v) in initial_amounts(model) if !isnothing(v))
 ```
 """
-const initial_amounts(m::SBML.Model; convert_concentrations = false) = (
+initial_amounts(m::SBML.Model; convert_concentrations = false) = (
     k => if !isnothing(s.initial_amount)
         s.initial_amount[1]
     elseif convert_concentrations &&
@@ -92,7 +88,7 @@ const initial_amounts(m::SBML.Model; convert_concentrations = false) = (
 Return initial concentrations of the species in the model. Refer to work-alike
 [`initial_amounts`](@ref) for details.
 """
-const initial_concentrations(m::SBML.Model; convert_amounts = false) = (
+initial_concentrations(m::SBML.Model; convert_amounts = false) = (
     k => if !isnothing(s.initial_concentration)
         s.initial_concentration[1]
     elseif convert_amounts &&
