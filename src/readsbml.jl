@@ -247,7 +247,7 @@ function extractModel(mdl::VPtr)::SBML.Model
         ic = nothing
         if ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0
             ic = (
-                ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp),
+                ccall(sbml(:Species_getInitialConcentration), Cdouble, (VPtr,), sp),
                 get_optional_string(sp, :Species_getSubstanceUnits),
             )
         end
