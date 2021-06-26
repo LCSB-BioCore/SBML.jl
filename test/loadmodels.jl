@@ -32,7 +32,7 @@ sbmlfiles = [
         4,
         3,
     ),
-    # a cool model with `initialConcentration` from SBML testsuite
+    # another model from SBML suite, with initial concentrations
     (
         joinpath(@__DIR__, "data", "sbml00374.xml"),
         "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00374/00374-sbml-l3v2.xml",
@@ -82,15 +82,29 @@ end
 
     @test all(isnothing(ic) for (k, ic) in SBML.initial_concentrations(m))
     @test length(SBML.initial_amounts(m)) == 4
-    @test sum(ia for (sp, ia) in SBML.initial_amounts(m)) == 0.001
-    @test sum(ic for (sp, ic) in SBML.initial_concentrations(m, convert_amounts = true)) ==
-          0.001
-          
+    @test isapprox(sum(ia for (sp, ia) in SBML.initial_amounts(m)), 0.001)
+    @test isapprox(
+        sum(ic for (sp, ic) in SBML.initial_concentrations(m, convert_amounts = true)),
+        0.001,
+    )
+
     m = readSBML(joinpath(@__DIR__, "data", "sbml00374.xml"))
 
     @test all(isnothing(ic) for (k, ic) in SBML.initial_amounts(m))
     @test length(SBML.initial_concentrations(m)) == 4
-    @test sum(ic for (sp, ic) in SBML.initial_concentrations(m)) == 0.0020800000000000003
-    @test sum(ia for (sp, ia) in SBML.initial_amounts(m, convert_concentrations = true)) ==
-          0.25 * 0.0020800000000000003
+    @test isapprox(sum(ic for (sp, ic) in SBML.initial_concentrations(m)), 0.00208)
+    @test isapprox(
+        sum(ia for (sp, ia) in SBML.initial_amounts(m, convert_concentrations = true)),
+        0.25 * 0.00208,
+    )
+end
+
+@testset "Extensive kinetic math" begin
+    m = readSBML(joinpath(@__DIR__, "data", "sbml00852.xml"))
+
+    subterm =
+        SBML.extensive_kinetic_math(m, m.reactions["reaction1"].kinetic_math).args[1].args[2]
+    @test subterm.fn == "/"
+    @test subterm.args[1] == SBML.MathIdent("S1")
+    @test isapprox(subterm.args[2].val, 1.0)
 end
