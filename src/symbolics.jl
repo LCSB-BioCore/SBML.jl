@@ -11,21 +11,56 @@ unambiguously represented in Julia; it is supposed to be extended by the user
 if more functions need to be supported.
 """
 const default_symbolics_mapping = Dict{String,Any}(
+    "*" => :*,
     "+" => :+,
     "-" => :-,
-    "*" => :*,
     "/" => :/,
-    "power" => :^,
-    "lt" => :<,
-    "leq" => :<=,
+    "abs" => :abs,
+    "arccos" => :acos,
+    "arccosh" => :acosh,
+    "arccot" => :acot,
+    "arccoth" => :acoth,
+    "arccsc" => :acsc,
+    "arccsch" => :acsch,
+    "arcsec" => :asec,
+    "arcsech" => :asech,
+    "arcsin" => :asin,
+    "arcsinh" => :asinh,
+    "arctan" => :atan,
+    "arctanh" => :atanh,
+    "ceiling" => :ceil,
+    "cos" => :cos,
+    "cosh" => :cosh,
+    "cot" => :cot,
+    "coth" => :coth,
+    "csc" => :csc,
+    "csch" => :csch,
+    "eq" => :isequal,
+    "exp" => :exp,
+    "factorial" => :factorial,
+    "floor" => :floor,
     "geq" => :>=,
     "gt" => :>,
-    "ceiling" => :ceil,
-    "floor" => :floor,
-    "piecewise" => :(Core.ifelse),
+    "leq" => :<=,
     "ln" => :log,
-    "exp" => :exp,
+    "log" => :sbmlLog,
+    "lt" => :<,
+    "piecewise" => :(Core.ifelse),
+    "power" => :^,
+    "root" => :sbmlRoot,
+    "sech" => :sech,
+    "sec" => :sec,
+    "sinh" => :sinh,
+    "sin" => :sin,
+    "tanh" => :tanh,
+    "tan" => :tan,
 )
+
+sbmlLog(x) = log(x, 10)
+sbmlLog(base, x) = log(base, x)
+
+sbmlRoot(x) = sqrt(x)
+sbmlRoot(power, x) = x^(1 / power)
 
 allowed_sym(x, allowed_funs) =
     haskey(allowed_funs, x) ? allowed_funs[x] :
