@@ -23,6 +23,8 @@ const default_symbolics_mapping = Dict{String,Any}(
     "ceiling" => :ceil,
     "floor" => :floor,
     "piecewise" => :(Core.ifelse),
+    "ln" => :log,
+    "exp" => :exp,
 )
 
 allowed_sym(x, allowed_funs) =
