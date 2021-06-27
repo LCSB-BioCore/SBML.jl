@@ -40,6 +40,14 @@ sbmlfiles = [
         4,
         2,
     ),
+    # this contains some special math
+    (
+        joinpath(@__DIR__, "data", "sbml01565.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/01565/01565-sbml-l3v1.xml",
+        "14a80fbce316eea2adb566f67b4668ad151db8954e487309852ece7f730c8c99",
+        104,
+        52,
+    ),
 ]
 
 @testset "Loading of models from various sources" begin
@@ -107,4 +115,13 @@ end
     @test subterm.fn == "/"
     @test subterm.args[1] == SBML.MathIdent("S1")
     @test isapprox(subterm.args[2].val, 1.0)
+end
+
+@testset "logBase and root math functions" begin
+    m = readSBML(joinpath(@__DIR__, "data", "sbml01565.xml"))
+
+    @test convert(Num, m.reactions["J23"].kinetic_math) == 0.0
+
+    @variables S29 S29b
+    @test isequal(convert(Num, m.reactions["J29"].kinetic_math), 2.0 * S29 * S29b)
 end

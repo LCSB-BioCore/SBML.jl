@@ -57,7 +57,7 @@ const default_symbolics_mapping = Dict{String,Any}(
 )
 
 sbmlLog(x) = log(x, 10)
-sbmlLog(base, x) = log(x, base)
+sbmlLog(base, x) = log(base, x)
 
 sbmlRoot(x) = sqrt(x)
 sbmlRoot(power, x) = x^(1 / power)
