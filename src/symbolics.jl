@@ -67,11 +67,21 @@ allowed_sym(x, allowed_funs) =
     throw(DomainError(x, "Unknown SBML function"))
 
 """
+    const default_symbolics_constants::Dict{String, Any}
+
+A dictionary of default constants filled in place of SBML Math constants in the
+symbolics conversion.
+"""
+const default_symbolics_constants =
+    Dict{String,Any}("true" => true, "false" => false, "pi" => pi, "e" => exp(1))
+
+"""
     Base.convert(
         ::Type{Num},
         x::SBML.Math;
         mapping = default_symbolics_mapping,
         convert_time = (x::SBML.MathTime) -> Num(Variable(Symbol(x.id))).val,
+        convert_const = (x::SBML.MathConst) -> Num(default_symbolics_constants[x.id]),
     )
 
 Convert SBML.[`Math`](@ref) to `Num` type from Symbolics package. The
@@ -91,11 +101,13 @@ function Base.convert(
     x::SBML.Math;
     mapping = default_symbolics_mapping,
     convert_time = (x::SBML.MathTime) -> Num(Variable(Symbol(x.id))).val,
+    convert_const = (x::SBML.MathConst) -> Num(default_symbolics_constants[x.id]),
 )
     conv(x::SBML.MathApply) = eval(allowed_sym(x.fn, mapping))(conv.(x.args)...)
     conv(x::SBML.MathTime) = convert_time(x)
+    conv(x::SBML.MathConst) = convert_const(x)
     conv(x::SBML.MathIdent) = Num(Variable(Symbol(x.id))).val
-    conv(x::SBML.MathVal) = x.val
+    conv(x::SBML.MathVal) = Num(x.val)
     conv(x::SBML.MathLambda) = throw(DomainError(x, "can't translate lambdas to symbolics"))
     conv(x)
 end
