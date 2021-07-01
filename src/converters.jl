@@ -14,7 +14,7 @@ set_level_and_version(level, version) =
             doc,
             level,
             version,
-        )
+        ) == 0 && throw(ErrorException("Setting of level and version did not succeed"))
     end
 
 """
@@ -43,7 +43,8 @@ libsbml_convert(
                     opt,
                 )
             end
-            ccall(sbml(:SBMLDocument_convert), Cint, (VPtr, VPtr), doc, props)
+            ccall(sbml(:SBMLDocument_convert), Cint, (VPtr, VPtr), doc, props) == 0 &&
+                throw(ErrorException("Conversion returned errors"))
         end
     end
 

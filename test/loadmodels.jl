@@ -48,6 +48,14 @@ sbmlfiles = [
         104,
         52,
     ),
+    # this contains l3v1-incompatible contents
+    (
+        joinpath(@__DIR__, "data", "sbml01289.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/01289/01289-sbml-l3v2.xml",
+        "35ffa072052970b92fa358ee0f5750394ad74958e889cb85c98ed238642de4d0",
+        0,
+        0,
+    ),
 ]
 
 @testset "Loading of models from various sources" begin
@@ -124,4 +132,14 @@ end
 
     @variables S29 S29b
     @test isequal(convert(Num, m.reactions["J29"].kinetic_math), 2.0 * S29 * S29b)
+end
+
+@testset "converters fail gracefully" begin
+    @test_throws ErrorException readSBML(
+        joinpath(@__DIR__, "data", "sbml01289.xml"),
+        doc -> begin
+            set_level_and_version(3, 1)(doc)
+            convert_simplify_math(doc)
+        end,
+    )
 end
