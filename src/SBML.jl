@@ -1,6 +1,6 @@
 module SBML
 
-using SBML_jll, Libdl, Pkg
+using SBML_jll, Libdl
 using SparseArrays
 using Symbolics
 
