@@ -44,3 +44,5 @@ There are several helper functions, for example you can get a nice list of react
 ```julia
 mets, rxns, S = getS(m)
 ```
+
+If you are looking to use dynamic SBML models with the Julia DifferentialEquations ecosystem, please refer to [SBMLToolkit.jl](https://github.com/SciML/SBMLToolkit.jl).
