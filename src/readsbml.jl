@@ -1,6 +1,3 @@
-
-const VPtr = Ptr{Cvoid}
-
 """
     get_string(x::VPtr, fn_sym)::Maybe{String}
 
@@ -96,15 +93,8 @@ end)
 function readSBML(fn::String, sbml_conversion = document -> nothing)::SBML.Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
-        n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
-        for i = 0:n_errs-1
-            err = ccall(sbml(:SBMLDocument_getError), VPtr, (VPtr, Cuint), doc, i)
-            msg = strip(get_string(err, :XMLError_getMessage))
-            @error "SBML reported error: $msg"
-        end
-        if n_errs > 0
-            throw(AssertionError("Opening SBML document has reported errors"))
-        end
+        get_error_messages(doc,
+                           AssertionError("Opening SBML document has reported errors"))
 
         sbml_conversion(doc)
 

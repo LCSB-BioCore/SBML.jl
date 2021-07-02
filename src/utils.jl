@@ -1,3 +1,5 @@
+const VPtr = Ptr{Cvoid}
+
 """
     function getS(m::SBML.Model; zeros=spzeros)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
 
@@ -130,3 +132,34 @@ function extensive_kinetic_math(m::SBML.Model, formula::SBML.Math)
 
     conv(formula)
 end
+
+"""
+    get_error_messages(doc::Ptr{Cvoid}, error::Exception)
+
+Show the error messages reported by SBML in the `doc` document and throw the
+`error` if they are more than 1.
+"""
+function get_error_messages(doc::VPtr, error::Exception)
+    n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
+    for i = 1:n_errs
+        err = ccall(sbml(:SBMLDocument_getError), VPtr, (VPtr, Cuint), doc, i-1)
+        msg = string(strip(get_string(err, :XMLError_getMessage)))
+        @error "SBML reported error: $(msg)"
+    end
+    if n_errs > 0
+        throw(error)
+    end
+    nothing
+end
+
+"""
+    check_errors(success::Integer, doc::Ptr{Cvoid}, error::Exception)
+
+If success is a 0-valued `Integer` (a logical `false`), then call
+[`get_error_messages`](@ref) to show the error messages reported by SBML in the
+`doc` document and throw the `error` if they are more than 1.  `success` is
+typically the value returned by an SBML C function operating on `doc` which
+returns a boolean flag to signal a successful operation.
+"""
+check_errors(success::Integer, doc::VPtr, error::Exception) =
+    Bool(success) || get_error_messages(doc, error)
