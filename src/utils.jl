@@ -1,5 +1,3 @@
-const VPtr = Ptr{Cvoid}
-
 """
     function getS(m::SBML.Model; zeros=spzeros)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
 
@@ -142,7 +140,7 @@ Show the error messages reported by SBML in the `doc` document and throw the
 function get_error_messages(doc::VPtr, error::Exception)
     n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
     for i = 1:n_errs
-        err = ccall(sbml(:SBMLDocument_getError), VPtr, (VPtr, Cuint), doc, i-1)
+        err = ccall(sbml(:SBMLDocument_getError), VPtr, (VPtr, Cuint), doc, i - 1)
         msg = string(strip(get_string(err, :XMLError_getMessage)))
         @error "SBML reported error: $(msg)"
     end

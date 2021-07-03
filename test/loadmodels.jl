@@ -134,7 +134,7 @@ end
     @test isequal(convert(Num, m.reactions["J29"].kinetic_math), 2.0 * S29 * S29b)
 end
 
-@testset "converters fail gracefully" begin
+@testset "converters work and fail gracefully" begin
     @test_logs (:error, r"^SBML reported error:") (:error, r"^SBML reported error:") @test_throws ErrorException readSBML(
         joinpath(@__DIR__, "data", "sbml01289.xml"),
         doc -> begin
@@ -142,4 +142,13 @@ end
             convert_simplify_math(doc)
         end,
     )
+
+    test_math =
+        readSBML(
+            joinpath(@__DIR__, "data", "sbml01565.xml"),
+            libsbml_convert("expandInitialAssignments"),
+        ).reactions["J31"].kinetic_math
+
+    @test test_math.args[2].fn == "sin"
+    @test test_math.args[2].args[1].val == 2.1
 end

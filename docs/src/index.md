@@ -59,6 +59,13 @@ julia> Matrix(S)
 
 # Function reference
 
+## Helper types
+
+```@autodocs
+Modules = [SBML]
+Pages = ["types.jl"]
+```
+
 ## Data structures
 
 ```@autodocs

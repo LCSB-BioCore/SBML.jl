@@ -1,13 +1,5 @@
 
 """
-    Maybe{X}
-
-Type shortcut for "`X` or nothing" or "nullable `X`" in javaspeak. Name
-got inspired by our functional friends.
-"""
-const Maybe{X} = Union{Nothing,X}
-
-"""
 Part of a measurement unit definition that corresponds to the SBML definition
 of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
 
