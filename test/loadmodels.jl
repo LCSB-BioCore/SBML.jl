@@ -135,7 +135,7 @@ end
 end
 
 @testset "converters fail gracefully" begin
-    @test_throws ErrorException readSBML(
+    @test_logs (:error, r"^SBML reported error:") (:error, r"^SBML reported error:") @test_throws ErrorException readSBML(
         joinpath(@__DIR__, "data", "sbml01289.xml"),
         doc -> begin
             set_level_and_version(3, 1)(doc)
