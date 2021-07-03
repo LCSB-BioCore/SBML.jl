@@ -6,11 +6,18 @@ A converter to pass into [`readSBML`](@ref) that enforces certain SBML level
 and version.
 """
 set_level_and_version(level, version) =
-    doc -> check_errors(ccall(sbml(:SBMLDocument_setLevelAndVersion), Cint,
-                              (VPtr, Cint, Cint),
-                              doc, level, version),
-                        doc,
-                        ErrorException("Setting of level and version did not succeed"))
+    doc -> check_errors(
+        ccall(
+            sbml(:SBMLDocument_setLevelAndVersion),
+            Cint,
+            (VPtr, Cint, Cint),
+            doc,
+            level,
+            version,
+        ),
+        doc,
+        ErrorException("Setting of level and version did not succeed"),
+    )
 
 """
     libsbml_convert(conversion_options::Vector{Pair{String, Dict{String, String}}})
@@ -38,8 +45,11 @@ libsbml_convert(
                     opt,
                 )
             end
-            check_errors(ccall(sbml(:SBMLDocument_convert), Cint, (VPtr, VPtr), doc, props),
-                         doc, ErrorException("Conversion returned errors"))
+            check_errors(
+                ccall(sbml(:SBMLDocument_convert), Cint, (VPtr, VPtr), doc, props),
+                doc,
+                ErrorException("Conversion returned errors"),
+            )
         end
     end
 

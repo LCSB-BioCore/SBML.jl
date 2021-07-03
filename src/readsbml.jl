@@ -93,8 +93,7 @@ end)
 function readSBML(fn::String, sbml_conversion = document -> nothing)::SBML.Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
-        get_error_messages(doc,
-                           AssertionError("Opening SBML document has reported errors"))
+        get_error_messages(doc, AssertionError("Opening SBML document has reported errors"))
 
         sbml_conversion(doc)
 
