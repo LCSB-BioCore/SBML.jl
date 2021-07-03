@@ -5,7 +5,17 @@
 | ![CI](https://github.com/LCSB-BioCore/SBML.jl/workflows/CI/badge.svg?branch=master) | [![doc](https://img.shields.io/badge/docs-stable-blue)](https://lcsb-biocore.github.io/SBML.jl/stable) |
 
 
-This is a simple wrap of some of the libSBML functionality, mainly the model loading for purposes of COBRA analysis methods.
+This is a simple wrap of some of the libSBML functionality, mainly the model loading for purposes of COBRA analysis methods and exploration of ODE system and reaction dynamics.
+
+You might like to try the packages that use SBML.jl; these now include:
+
+- [COBREXA.jl](https://github.com/LCSB-BioCore/COBREXA.jl), the exascale-ready
+  constraint-based analysis and reconstruction toolkit for finding and modeling
+  steady metabolic fluxes with the models
+- [SBMLToolkit.jl](https://github.com/SciML/SBMLToolkit.jl), for working with
+  the reaction dynamics of the models as ODE systems, well connected to the
+  [SciML](https://github.com/SciML)
+  [ModelingToolkit](https://github.com/SciML/ModelingToolkit.jl) ecosystem.
 
 Other functionality will be added as needed. Feel free to submit a PR that increases the loading "coverage".
 
