@@ -1,5 +1,3 @@
-const VPtr = Ptr{Cvoid}
-
 """
     function getS(m::SBML.Model; zeros=spzeros)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
 
