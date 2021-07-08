@@ -200,3 +200,57 @@ check_errors(
     error::Exception,
     report_severities = ["Fatal", "Error"],
 ) = Bool(success) || get_error_messages(doc, error, report_severities)
+
+# NOTE: this mapping is valid for Level 3/Version 2, it *may* not be valid for
+# other versions
+const KIND_TO_UNIT = Dict(
+    0  => 1.0 * u"A", # UNIT_KIND_AMPERE
+    1  => ustrip(u"mol^-1", Unitful.Na), # UNIT_KIND_AVOGADRO
+    2  => 1.0 * u"Bq", # UNIT_KIND_BECQUEREL
+    3  => 1.0 * u"cd", # UNIT_KIND_CANDELA
+    4  => 1.0 * u"°C", # UNIT_KIND_CELSIUS
+    5  => 1.0 * u"C", # UNIT_KIND_COULOMB
+    6  => 1, # UNIT_KIND_DIMENSIONLESS
+    7  => 1.0 * u"F", # UNIT_KIND_FARAD
+    8  => 1.0 * u"g", # UNIT_KIND_GRAM
+    9  => 1.0 * u"Gy", # UNIT_KIND_GRAY
+    10 => 1.0 * u"H", # UNIT_KIND_HENRY
+    11 => 1.0 * u"Hz", # UNIT_KIND_HERTZ
+    12 => 1, # UNIT_KIND_ITEM
+    13 => 1.0 * u"J", # UNIT_KIND_JOULE
+    14 => 1.0 * u"kat", # UNIT_KIND_KATAL
+    15 => 1.0 * u"K", # UNIT_KIND_KELVIN
+    16 => 1.0 * u"kg", # UNIT_KIND_KILOGRAM
+    17 => 1.0 * u"L", # UNIT_KIND_LITER
+    18 => 1.0 * u"L", # UNIT_KIND_LITRE
+    19 => 1.0 * u"lm", # UNIT_KIND_LUMEN
+    20 => 1.0 * u"lx", # UNIT_KIND_LUX
+    21 => 1.0 * u"m", # UNIT_KIND_METER
+    22 => 1.0 * u"m", # UNIT_KIND_METRE
+    23 => 1.0 * u"mol", # UNIT_KIND_MOLE
+    24 => 1.0 * u"N", # UNIT_KIND_NEWTON
+    25 => 1.0 * u"Ω", # UNIT_KIND_OHM
+    26 => 1.0 * u"Pa", # UNIT_KIND_PASCAL
+    27 => 1.0 * u"rad", # UNIT_KIND_RADIAN
+    28 => 1.0 * u"s", # UNIT_KIND_SECOND
+    29 => 1.0 * u"S", # UNIT_KIND_SIEMENS
+    30 => 1.0 * u"Sv", # UNIT_KIND_SIEVERT
+    31 => 1.0 * u"sr", # UNIT_KIND_STERADIAN
+    32 => 1.0 * u"T", # UNIT_KIND_TESLA
+    33 => 1.0 * u"V", # UNIT_KIND_VOLT
+    34 => 1.0 * u"W", # UNIT_KIND_WATT
+    35 => 1.0 * u"W", # UNIT_KIND_WEBER
+    36 => 1, # UNIT_KIND_INVALID (let's treat is as a dimensionless quantity)
+)
+
+# Get a `Unitful` quantity out of a `Unit_t`.
+get_unit(u::VPtr) =
+    KIND_TO_UNIT[ccall(sbml(:Unit_getKind), Cint, (VPtr,), u)] ^
+    ccall(sbml(:Unit_getExponent), Cint, (VPtr,), u) *
+    exp10(ccall(sbml(:Unit_getScale), Cint, (VPtr,), u)) *
+    ccall(sbml(:Unit_getMultiplier), Cdouble, (VPtr,), u)
+
+# Get `Unitful` quantity out of a `UnitDefinition_t`.
+get_units(ud::VPtr) =
+    prod(get_unit(ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1))
+         for j = 1:ccall(sbml(:UnitDefinition_getNumUnits), Cuint, (VPtr,), ud))
