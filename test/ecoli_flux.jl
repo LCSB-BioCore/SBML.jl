@@ -51,10 +51,10 @@ end
     @test length(getLBs(mdl)) == length(rxns)
     @test length(getUBs(mdl)) == length(rxns)
 
-    getunit = (val, unit)::Tuple -> unit
+    getunit((val, unit)) = unit
     @test all([broadcast(getunit, lbs) broadcast(getunit, ubs)] .== "mmol_per_gDW_per_hr")
 
-    getval = (val, unit)::Tuple -> val
+    getval((val, unit)) = val
     lvals = broadcast(getval, lbs)
     uvals = broadcast(getval, ubs)
     @test isapprox(lvals[27], uvals[27])
