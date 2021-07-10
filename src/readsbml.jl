@@ -298,8 +298,8 @@ function extractModel(mdl::VPtr)::SBML.Model
             for j = 1:ccall(sbml(:KineticLaw_getNumParameters), Cuint, (VPtr,), kl)
                 p = ccall(sbml(:KineticLaw_getParameter), VPtr, (VPtr, Cuint), kl, j - 1)
                 id = get_string(p, :Parameter_getId)
-                pval = () -> ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
-                punit = () -> get_string(p, :Parameter_getUnits)
+                pval() = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
+                punit() = get_string(p, :Parameter_getUnits)
                 if id == "LOWER_BOUND"
                     lb = (pval(), punit())
                 elseif id == "UPPER_BOUND"
