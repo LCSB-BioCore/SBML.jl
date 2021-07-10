@@ -30,8 +30,8 @@
     test = SBML.MathApply(
         "piecewise",
         SBML.Math[
-            SBML.MathApply("lt", SBML.Math[SBML.MathVal(1), SBML.MathVal(0)]),
             SBML.MathVal(123),
+            SBML.MathApply("lt", SBML.Math[SBML.MathVal(1), SBML.MathVal(0)]),
             SBML.MathVal(456),
         ],
     )

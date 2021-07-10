@@ -45,7 +45,7 @@ const default_symbolics_mapping = Dict{String,Any}(
     "ln" => :log,
     "log" => :sbmlLog,
     "lt" => :<,
-    "piecewise" => :(Core.ifelse),
+    "piecewise" => :(sbmlPiecewise),
     "power" => :^,
     "root" => :sbmlRoot,
     "sech" => :sech,
@@ -55,6 +55,17 @@ const default_symbolics_mapping = Dict{String,Any}(
     "tanh" => :tanh,
     "tan" => :tan,
 )
+
+function sbmlPiecewise(args...)
+    if length(args) == 1
+        args[1]
+    elseif length(args) >= 3
+        Core.ifelse(args[2], args[1], sbmlPiecewise(args[3:end]...))
+    else
+        throw(AssertionError("malformed piecewise SBML function"))
+    end
+end
+
 
 sbmlLog(x) = log(x, 10)
 sbmlLog(base, x) = log(base, x)
