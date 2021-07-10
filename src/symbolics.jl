@@ -60,7 +60,7 @@ function sbmlPiecewise(args...)
     if length(args) == 1
         args[1]
     elseif length(args) >= 3
-        Core.ifelse(args[2], args[1], sbmlPiecewise(args[3:end]...))
+        IfElse.ifelse(args[2], args[1], sbmlPiecewise(args[3:end]...))
     else
         throw(AssertionError("malformed piecewise SBML function"))
     end
