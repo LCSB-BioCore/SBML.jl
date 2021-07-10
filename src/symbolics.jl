@@ -45,7 +45,7 @@ const default_symbolics_mapping = Dict{String,Any}(
     "ln" => :log,
     "log" => :sbmlLog,
     "lt" => :<,
-    "piecewise" => :(Core.ifelse),
+    "piecewise" => :(sbmlPiecewise),
     "power" => :^,
     "root" => :sbmlRoot,
     "sech" => :sech,
@@ -55,6 +55,17 @@ const default_symbolics_mapping = Dict{String,Any}(
     "tanh" => :tanh,
     "tan" => :tan,
 )
+
+function sbmlPiecewise(args...)
+    if length(args) == 1
+        args[1]
+    elseif length(args) >= 3
+        IfElse.ifelse(args[2], args[1], sbmlPiecewise(args[3:end]...))
+    else
+        throw(AssertionError("malformed piecewise SBML function"))
+    end
+end
+
 
 sbmlLog(x) = log(x, 10)
 sbmlLog(base, x) = log(base, x)
@@ -103,7 +114,7 @@ function Base.convert(
     convert_time = (x::SBML.MathTime) -> Num(Variable(Symbol(x.id))).val,
     convert_const = (x::SBML.MathConst) -> Num(default_symbolics_constants[x.id]),
 )
-    conv(x::SBML.MathApply) = eval(allowed_sym(x.fn, mapping))(conv.(x.args)...)
+    conv(x::SBML.MathApply) = Num(eval(allowed_sym(x.fn, mapping))(conv.(x.args)...))
     conv(x::SBML.MathTime) = convert_time(x)
     conv(x::SBML.MathConst) = convert_const(x)
     conv(x::SBML.MathIdent) = Num(Variable(Symbol(x.id))).val

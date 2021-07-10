@@ -4,14 +4,15 @@ authors = ["Mirek Kratochvil <miroslav.kratochvil@uni.lu>", "LCSB R3 team <lcsb-
 version = "0.5.5"
 
 [deps]
+IfElse = "615f187c-cbe4-4ef1-ba3b-2fcf58d6d173"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 SBML_jll = "bb12108a-f4ef-5f88-8ef3-0b33ff7017f1"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
-julia = "1.5"
 Symbolics = "0.1.21, 1"
+julia = "1.5"
 
 [extras]
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"

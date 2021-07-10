@@ -3,6 +3,7 @@ module SBML
 using SBML_jll, Libdl
 using SparseArrays
 using Symbolics
+using IfElse
 
 include("types.jl")
 include("structs.jl")
