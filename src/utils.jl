@@ -103,11 +103,24 @@ initial_concentrations(m::SBML.Model; convert_amounts = false) = (
 
 
 """
-    extensive_kinetic_math(m::SBML.Model, formula::SBML.Math)
+    function extensive_kinetic_math(
+        m::SBML.Model,
+        formula::SBML.Math;
+        handle_empty_compartment_size = (id::String) -> throw(
+            DomainError(
+                "Non-substance-only-unit reference to species `\$id' in an unsized compartment `\$(m.species[id].compartment)'",
+            ),
+        ),
+    )
 
 Convert a SBML math `formula` to "extensive" kinetic laws, where the references
 to species that are marked as not having only substance units are converted
 from amounts to concentrations.
+
+If the data is missing, you can supply a function that adds them. A common way
+to handle errors is to assume that unsized compartments have volume 1.0 (of
+whatever units), you can specify that behavior by supplying
+`handle_empty_compartment_size = _ -> 1.0`.
 
 Handling of units in the conversion process is ignored in this version.
 """
