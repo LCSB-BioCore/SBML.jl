@@ -334,13 +334,13 @@ function extractModel(mdl::VPtr)::SBML.Model
 
         # extract stoichiometry
         stoi = Dict{String,Float64}()
-        add_stoi =
-            (sr, factor) -> begin
-                s = get_string(sr, :SpeciesReference_getSpecies)
-                stoi[s] =
-                    get(stoi, s, 0) +
-                    ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr) * factor
-            end
+        add_stoi(sr, factor) = begin
+            s = get_string(sr, :SpeciesReference_getSpecies)
+            stoi[s] =
+                get(stoi, s, 0) +
+                ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr) *
+                factor
+        end
 
         # reactants and products
         for j = 1:ccall(sbml(:Reaction_getNumReactants), Cuint, (VPtr,), re)
