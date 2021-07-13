@@ -139,14 +139,25 @@ Show the error messages reported by SBML in the `doc` document and throw the
 """
 function get_error_messages(doc::VPtr, error::Exception)
     n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
+    do_throw = false
     for i = 1:n_errs
         err = ccall(sbml(:SBMLDocument_getError), VPtr, (VPtr, Cuint), doc, i - 1)
         msg = string(strip(get_string(err, :XMLError_getMessage)))
-        @error "SBML reported error: $(msg)"
+        sev = string(strip(get_string(err, :XMLError_getSeverityAsString)))
+        # keywords from `libsbml/src/sbml/xml/XMLError.cpp` xmlSeverityStringTable:
+        if sev == "Fatal"
+            @error "SBML reported fatal error: $(msg)"
+            do_throw = true
+        elseif sev == "Error"
+            @error "SBML reported error: $(msg)"
+            do_throw = true
+        elseif sev == "Warning"
+            @warn "SBML reported warning: $(msg)"
+        else # sev=="Informational"
+            @info "SBML reported: $(msg)"
+        end
     end
-    if n_errs > 0
-        throw(error)
-    end
+    do_throw && throw(error)
     nothing
 end
 
