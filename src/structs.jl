@@ -160,7 +160,7 @@ objects.
 """
 struct Model
     parameters::Dict{String,Float64}
-    units::Dict{String,Quantity}
+    units::Dict{String,Number}
     compartments::Dict{String,Compartment}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
