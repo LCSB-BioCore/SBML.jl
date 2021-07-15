@@ -132,12 +132,15 @@ function extensive_kinetic_math(m::SBML.Model, formula::SBML.Math)
 end
 
 """
-    get_error_messages(doc::Ptr{Cvoid}, error::Exception)
+    get_error_messages(doc::VPtr, error::Exception, report_severities)
 
 Show the error messages reported by SBML in the `doc` document and throw the
 `error` if they are more than 1.
+
+`report_severities` switches the reporting of certain error types defined by
+libsbml; you can choose from `["Fatal", "Error", "Warning", "Informational"]`.
 """
-function get_error_messages(doc::VPtr, error::Exception)
+function get_error_messages(doc::VPtr, error::Exception, report_severities)
     n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
     do_throw = false
     for i = 1:n_errs
@@ -146,15 +149,15 @@ function get_error_messages(doc::VPtr, error::Exception)
         sev = string(strip(get_string(err, :XMLError_getSeverityAsString)))
         # keywords from `libsbml/src/sbml/xml/XMLError.cpp` xmlSeverityStringTable:
         if sev == "Fatal"
-            @error "SBML reported fatal error: $(msg)"
+            sev in report_severities && @error "SBML reported fatal error: $(msg)"
             do_throw = true
         elseif sev == "Error"
-            @error "SBML reported error: $(msg)"
+            sev in report_severities && @error "SBML reported error: $(msg)"
             do_throw = true
         elseif sev == "Warning"
-            @warn "SBML reported warning: $(msg)"
-        else # sev=="Informational"
-            @info "SBML reported: $(msg)"
+            sev in report_severities && @warn "SBML reported warning: $(msg)"
+        elseif sev == "Informational"
+            sev in report_severities && @info "SBML reported: $(msg)"
         end
     end
     do_throw && throw(error)
@@ -162,7 +165,12 @@ function get_error_messages(doc::VPtr, error::Exception)
 end
 
 """
-    check_errors(success::Integer, doc::Ptr{Cvoid}, error::Exception)
+    check_errors(
+        success::Integer,
+        doc::VPtr,
+        error::Exception,
+        report_severities = ["Fatal", "Error"],
+    )
 
 If success is a 0-valued `Integer` (a logical `false`), then call
 [`get_error_messages`](@ref) to show the error messages reported by SBML in the
@@ -170,5 +178,9 @@ If success is a 0-valued `Integer` (a logical `false`), then call
 typically the value returned by an SBML C function operating on `doc` which
 returns a boolean flag to signal a successful operation.
 """
-check_errors(success::Integer, doc::VPtr, error::Exception) =
-    Bool(success) || get_error_messages(doc, error)
+check_errors(
+    success::Integer,
+    doc::VPtr,
+    error::Exception,
+    report_severities = ["Fatal", "Error"],
+) = Bool(success) || get_error_messages(doc, error, report_severities)
