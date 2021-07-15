@@ -177,30 +177,12 @@ function extractModel(mdl::VPtr)::SBML.Model
     end
 
     # parse out the unit definitions
-    units = Dict{String,Vector{SBML.UnitPart}}()
+    units = Dict{String,Number}()
     for i = 1:ccall(sbml(:Model_getNumUnitDefinitions), Cuint, (VPtr,), mdl)
         ud = ccall(sbml(:Model_getUnitDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
         id = get_string(ud, :UnitDefinition_getId)
-        units[id] = [
-            begin
-                u = ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1)
-                SBML.UnitPart(
-                    unsafe_string(
-                        ccall(
-                            sbml(:UnitKind_toString),
-                            Cstring,
-                            (Cint,),
-                            ccall(sbml(:Unit_getKind), Cint, (VPtr,), u),
-                        ),
-                    ),
-                    ccall(sbml(:Unit_getExponent), Cint, (VPtr,), u),
-                    ccall(sbml(:Unit_getScale), Cint, (VPtr,), u),
-                    ccall(sbml(:Unit_getMultiplier), Cdouble, (VPtr,), u),
-                )
-            end for j = 1:ccall(sbml(:UnitDefinition_getNumUnits), Cuint, (VPtr,), ud)
-        ]
+        units[id] = get_units(ud)
     end
-
     # parse out compartment names
     compartments = Dict{String,Compartment}()
     for i = 1:ccall(sbml(:Model_getNumCompartments), Cuint, (VPtr,), mdl)

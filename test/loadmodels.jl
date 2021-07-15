@@ -93,6 +93,17 @@ end
     @test all(contains_time.(r.kinetic_math for (_, r) in m.reactions))
 end
 
+@testset "Units" begin
+    m = readSBML(joinpath(@__DIR__, "data", "sbml00852.xml"))
+    @test m.units["volume"] == 1 * u"L"
+    @test m.units["time"] == 1 * u"s"
+    @test m.units["substance"] == 1 * u"mol"
+
+    m = readSBML(joinpath(@__DIR__, "data", "units.xml"))
+    @test m.units["non_existent"] == 0.00314
+    @test m.units["no_dimensions"] == 20.0
+end
+
 @testset "Initial amounts and concentrations" begin
     m = readSBML(joinpath(@__DIR__, "data", "sbml00852.xml"))
 

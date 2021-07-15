@@ -4,6 +4,7 @@ using SBML_jll, Libdl
 using SparseArrays
 using Symbolics
 using IfElse
+using Unitful
 
 include("types.jl")
 include("structs.jl")
