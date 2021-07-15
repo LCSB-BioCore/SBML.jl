@@ -72,7 +72,11 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
 end
 
 """
-    function readSBML(fn::String, sbml_conversion = model->nothing)::SBML.Model
+    readSBML(
+        fn::String,
+        sbml_conversion = document -> nothing;
+        report_severities = ["Fatal", "Error"],
+    )::SBML.Model
 
 Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
 
@@ -82,6 +86,9 @@ single parameter, which is the C pointer to the loaded SBML document (C type
 [`set_level_and_version`](@ref), [`libsbml_convert`](@ref), and
 [`convert_simplify_math`](@ref).
 
+`report_severities` switches on and off reporting of certain errors; see the
+documentation of [`get_error_messages`](@ref) for details.
+
 # Example
 ```
 m = readSBML("my_model.xml", doc -> begin
@@ -90,10 +97,18 @@ m = readSBML("my_model.xml", doc -> begin
 end)
 ```
 """
-function readSBML(fn::String, sbml_conversion = document -> nothing)::SBML.Model
+function readSBML(
+    fn::String,
+    sbml_conversion = document -> nothing;
+    report_severities = ["Fatal", "Error"],
+)::SBML.Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
-        get_error_messages(doc, AssertionError("Opening SBML document has reported errors"))
+        get_error_messages(
+            doc,
+            AssertionError("Opening SBML document has reported errors"),
+            report_severities,
+        )
 
         sbml_conversion(doc)
 
