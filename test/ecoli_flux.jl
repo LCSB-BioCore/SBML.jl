@@ -26,11 +26,11 @@ end
 
     @test length(mdl.compartments) == 2
 
-    mets, rxns, S = getS(mdl)
+    mets, rxns, S = stoichiometry_matrix(mdl)
 
     @test typeof(S) <: AbstractMatrix{Float64}
-    @test typeof(getS(mdl; zeros = spzeros)[3]) <: SparseMatrixCSC{Float64}
-    @test typeof(getS(mdl; zeros = zeros)[3]) == Matrix{Float64}
+    @test typeof(stoichiometry_matrix(mdl; zeros = spzeros)[3]) <: SparseMatrixCSC{Float64}
+    @test typeof(stoichiometry_matrix(mdl; zeros = zeros)[3]) == Matrix{Float64}
 
     @test length(mets) == 77
     @test length(rxns) == 77
@@ -41,17 +41,16 @@ end
     @test mets[10:12] == ["M_akg_e", "M_fum_c", "M_pyr_c"]
     @test rxns[10:12] == ["R_H2Ot", "R_PGL", "R_EX_glc_e_"]
 
-    lbs = getLBs(mdl)
-    ubs = getUBs(mdl)
-    ocs = getOCs(mdl)
+    lbs, ubs = flux_bounds(mdl)
+    ocs = flux_objective(mdl)
 
     @test length(ocs) == length(mets)
     @test ocs[40] == 1.0
     deleteat!(ocs, 40)
     @test all(ocs .== 0.0)
 
-    @test length(getLBs(mdl)) == length(rxns)
-    @test length(getUBs(mdl)) == length(rxns)
+    @test length(flux_bounds(mdl)[1]) == length(rxns)
+    @test length(flux_bounds(mdl)[2]) == length(rxns)
 
     getunit((val, unit)) = unit
     @test all([broadcast(getunit, lbs) broadcast(getunit, ubs)] .== "mmol_per_gDW_per_hr")

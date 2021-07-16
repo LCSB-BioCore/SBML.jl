@@ -1,5 +1,5 @@
 """
-    function getS(m::SBML.Model; zeros=spzeros)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
+    function stoichiometry_matrix(m::SBML.Model; zeros=spzeros)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
 
 Extract the vector of species (aka metabolite) identifiers, vector of reaction
 identifiers, and the (dense) stoichiometry matrix from an existing `SBML.Model`.
@@ -9,7 +9,7 @@ The matrix is sparse by default (initially constructed by
 `SparseArrays.spzeros`). You can fill in a custom empty matrix constructed to
 argument `zeros`; e.g. running with `zeros=zeros` will produce a dense matrix.
 """
-function getS(
+function stoichiometry_matrix(
     m::SBML.Model;
     zeros = spzeros,
 )::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
@@ -25,29 +25,22 @@ function getS(
 end
 
 """
-    getLBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
+    flux_bounds(m::SBML.Model)::NTuple{2, Vector{Tuple{Float64,String}}}
 
-Extract a vector of lower bounds of reaction rates from the model. All bounds
-are accompanied with the unit of the corresponding value (this behavior is
-based on SBML specification).
+Extract the vectors of lower and upper bounds of reaction rates from the model. All bounds
+are accompanied with the unit of the corresponding value (this behavior is based on SBML
+specification).
 """
-getLBs(m::SBML.Model)::Vector{Tuple{Float64,String}} =
-    broadcast(x -> x.lb, values(m.reactions))
-
-"""
-    getUBs(m::SBML.Model)::Vector{Tuple{Float64,String}}
-
-Likewise to [`getLBs`](@ref), extract the upper bounds.
-"""
-getUBs(m::SBML.Model)::Vector{Tuple{Float64,String}} =
-    broadcast(x -> x.ub, values(m.reactions))
+flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}} =
+    (broadcast(x -> x.lb, values(m.reactions)),
+     broadcast(x -> x.ub, values(m.reactions)))
 
 """
-    getOCs(m::SBML.Model)::Vector{Float64}
+    flux_objective(m::SBML.Model)::Vector{Float64}
 
 Extract the vector of objective coefficients of each reaction.
 """
-getOCs(m::SBML.Model)::Vector{Float64} = broadcast(x -> x.oc, values(m.reactions))
+flux_objective(m::SBML.Model)::Vector{Float64} = broadcast(x -> x.oc, values(m.reactions))
 
 """
     initial_amounts(m::SBML.Model; convert_concentrations = false)
