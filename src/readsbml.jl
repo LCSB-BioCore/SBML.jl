@@ -74,8 +74,8 @@ end
 function _readSBML(
     symbol::Symbol,
     fn::String,
-    sbml_conversion = document -> nothing,
-    report_severities = ["Fatal", "Error"],
+    sbml_conversion,
+    report_severities,
 )::SBML.Model
     doc = ccall(sbml(symbol), VPtr, (Cstring,), fn)
     try
