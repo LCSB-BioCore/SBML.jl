@@ -56,6 +56,14 @@ sbmlfiles = [
         0,
         0,
     ),
+    # this contains a relational operator
+    (
+        joinpath(@__DIR__, "data", "sbml00191.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00191/00191-sbml-l3v2.xml",
+        "c474e94888767d70f9e9e03b32778f18069641563953de60dabac7daa7f481ce",
+        4,
+        2,
+    ),
 ]
 
 @testset "Loading of models from various sources" begin
@@ -162,4 +170,11 @@ end
 
     @test test_math.args[2].fn == "sin"
     @test test_math.args[2].args[1].val == 2.1
+end
+
+@testset "relational operators are decoded correctly" begin
+    test_math =
+        readSBML(joinpath(@__DIR__, "data", "sbml00191.xml")).reactions["reaction2"].kinetic_math
+
+    @test test_math.args[2].fn == "geq"
 end
