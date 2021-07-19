@@ -16,6 +16,25 @@ parse_math_children(ast::VPtr)::Vector{Math} = [
     i = 1:ccall(sbml(:ASTNode_getNumChildren), Cuint, (VPtr,), ast)
 ]
 
+
+
+# Mapping of AST node type value subset to relational operations. Depends on
+# `ASTNodeType.h` (also see below the case with AST_NAME_TIME)
+const relational_opers = Dict{Int32,String}(
+    308 => "eq",
+    309 => "geq",
+    310 => "gt",
+    311 => "leq",
+    312 => "lt",
+    313 => "neq",
+)
+
+function relational_oper(t::Int)
+    haskey(relational_opers, t) ||
+        throw(DomainError(t, "Unknown ASTNodeType value for relational operator"))
+    relational_opers[t]
+end
+
 """
     parse_math(ast::VPtr)::Math
 
@@ -42,9 +61,14 @@ function parse_math(ast::VPtr)::Math
         return MathVal(ccall(sbml(:ASTNode_getReal), Cdouble, (VPtr,), ast))
     elseif ast_is(ast, :ASTNode_isFunction)
         return MathApply(get_string(ast, :ASTNode_getName), parse_math_children(ast))
-    elseif ast_is(ast, :ASTNode_isOperator) || ast_is(ast, :ASTNode_isRelational)
+    elseif ast_is(ast, :ASTNode_isOperator)
         return MathApply(
             string(Char(ccall(sbml(:ASTNode_getCharacter), Cchar, (VPtr,), ast))),
+            parse_math_children(ast),
+        )
+    elseif ast_is(ast, :ASTNode_isRelational)
+        return MathApply(
+            relational_oper(Int(ccall(sbml(:ASTNode_getType), Cint, (VPtr,), ast))),
             parse_math_children(ast),
         )
     elseif ast_is(ast, :ASTNode_isLambda)
