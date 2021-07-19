@@ -56,9 +56,25 @@ sbmlfiles = [
         0,
         0,
     ),
+    # this contains a relational operator
+    (
+        joinpath(@__DIR__, "data", "sbml00191.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00191/00191-sbml-l3v2.xml",
+        "c474e94888767d70f9e9e03b32778f18069641563953de60dabac7daa7f481ce",
+        4,
+        2,
+    ),
+    # expandInitialAssignments converter gives some warning
+    (
+        joinpath(@__DIR__, "data", "01234-sbml-l3v2.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/52d94baf97a005b6e1fdbdb6116f5c7b4a8a100c/cases/semantic/01234/01234-sbml-l3v2.xml",
+        "9610ef29f2d767af627042a15bde505b068ab75bbf00b8983823800ea8ef67c8",
+        0,
+        0,
+    ),
 ]
 
-@testset "Loading of models from various sources" begin
+@testset "Loading of models from various sources - $(reader)" for reader in (readSBML,  readSBMLFromString)
     for (sbmlfile, url, hash, expected_mets, expected_rxns) in sbmlfiles
         if !isfile(sbmlfile)
             Downloads.download(url, sbmlfile)
@@ -70,7 +86,11 @@ sbmlfiles = [
         end
 
         @testset "Loading of $sbmlfile" begin
-            mdl = readSBML(sbmlfile)
+            mdl = if reader === readSBML
+                readSBML(sbmlfile)
+            else
+                readSBMLFromString(readchomp(sbmlfile))
+            end
 
             @test typeof(mdl) == Model
 
@@ -80,6 +100,10 @@ sbmlfiles = [
             @test length(rxns) == expected_rxns
         end
     end
+end
+
+@testset "readSBMLFromString" begin
+    @test_logs (:error, r"^SBML reported error") @test_throws AssertionError readSBMLFromString("")
 end
 
 @testset "Time variables in math" begin
@@ -162,4 +186,15 @@ end
 
     @test test_math.args[2].fn == "sin"
     @test test_math.args[2].args[1].val == 2.1
+
+    @test_logs (:warn,) (:warn,) (:warn,) (:warn,) readSBML(joinpath(@__DIR__, "data", "01234-sbml-l3v2.xml"),
+             doc -> libsbml_convert("expandInitialAssignments", ["Fatal", "Error", "Warning"])(doc)
+             )
+end
+
+@testset "relational operators are decoded correctly" begin
+    test_math =
+        readSBML(joinpath(@__DIR__, "data", "sbml00191.xml")).reactions["reaction2"].kinetic_math
+
+    @test test_math.args[2].fn == "geq"
 end

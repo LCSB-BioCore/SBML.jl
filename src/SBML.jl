@@ -18,7 +18,7 @@ include("utils.jl")
 
 sbml(sym::Symbol) = dlsym(SBML_jll.libsbml_handle, sym)
 
-export readSBML, stoichiometry_matrix, flux_bounds, flux_objective
+export readSBML, readSBMLFromString, stoichiometry_matrix, flux_bounds, flux_objective
 export set_level_and_version, libsbml_convert, convert_simplify_math
 
 end # module
