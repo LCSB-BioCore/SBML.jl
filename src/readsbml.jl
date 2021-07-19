@@ -149,7 +149,8 @@ readSBMLFromString(
     str::AbstractString,
     sbml_conversion = document -> nothing;
     report_severities = ["Fatal", "Error"],
-)::SBML.Model = _readSBML(:readSBMLFromString, String(str), sbml_conversion, report_severities)
+)::SBML.Model =
+    _readSBML(:readSBMLFromString, String(str), sbml_conversion, report_severities)
 
 get_notes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString)
 get_annotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)

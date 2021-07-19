@@ -74,7 +74,10 @@ sbmlfiles = [
     ),
 ]
 
-@testset "Loading of models from various sources - $(reader)" for reader in (readSBML,  readSBMLFromString)
+@testset "Loading of models from various sources - $(reader)" for reader in (
+    readSBML,
+    readSBMLFromString,
+)
     for (sbmlfile, url, hash, expected_mets, expected_rxns) in sbmlfiles
         if !isfile(sbmlfile)
             Downloads.download(url, sbmlfile)
@@ -103,7 +106,9 @@ sbmlfiles = [
 end
 
 @testset "readSBMLFromString" begin
-    @test_logs (:error, r"^SBML reported error") @test_throws AssertionError readSBMLFromString("")
+    @test_logs (:error, r"^SBML reported error") @test_throws AssertionError readSBMLFromString(
+        "",
+    )
 end
 
 @testset "Time variables in math" begin
@@ -187,9 +192,11 @@ end
     @test test_math.args[2].fn == "sin"
     @test test_math.args[2].args[1].val == 2.1
 
-    @test_logs (:warn,) (:warn,) (:warn,) (:warn,) readSBML(joinpath(@__DIR__, "data", "01234-sbml-l3v2.xml"),
-             doc -> libsbml_convert("expandInitialAssignments", ["Fatal", "Error", "Warning"])(doc)
-             )
+    @test_logs (:warn,) (:warn,) (:warn,) (:warn,) readSBML(
+        joinpath(@__DIR__, "data", "01234-sbml-l3v2.xml"),
+        doc ->
+            libsbml_convert("expandInitialAssignments", ["Fatal", "Error", "Warning"])(doc),
+    )
 end
 
 @testset "relational operators are decoded correctly" begin

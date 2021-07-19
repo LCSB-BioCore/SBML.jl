@@ -32,8 +32,7 @@ are accompanied with the unit of the corresponding value (this behavior is based
 specification).
 """
 flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}} =
-    (broadcast(x -> x.lb, values(m.reactions)),
-     broadcast(x -> x.ub, values(m.reactions)))
+    (broadcast(x -> x.lb, values(m.reactions)), broadcast(x -> x.ub, values(m.reactions)))
 
 """
     flux_objective(m::SBML.Model)::Vector{Float64}
@@ -244,13 +243,14 @@ get_unit(u::VPtr) =
             sbml(:UnitKind_toString),
             Cstring,
             (Cint,),
-            ccall(sbml(:Unit_getKind), Cint, (VPtr,), u)
-        ))] ^
-    ccall(sbml(:Unit_getExponent), Cint, (VPtr,), u) *
+            ccall(sbml(:Unit_getKind), Cint, (VPtr,), u),
+        ),
+    )]^ccall(sbml(:Unit_getExponent), Cint, (VPtr,), u) *
     exp10(ccall(sbml(:Unit_getScale), Cint, (VPtr,), u)) *
     ccall(sbml(:Unit_getMultiplier), Cdouble, (VPtr,), u)
 
 # Get `Unitful` quantity out of a `UnitDefinition_t`.
-get_units(ud::VPtr) =
-    prod(get_unit(ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1))
-         for j = 1:ccall(sbml(:UnitDefinition_getNumUnits), Cuint, (VPtr,), ud))
+get_units(ud::VPtr) = prod(
+    get_unit(ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1)) for
+    j = 1:ccall(sbml(:UnitDefinition_getNumUnits), Cuint, (VPtr,), ud)
+)

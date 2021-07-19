@@ -73,10 +73,10 @@ readSBML("example.xml", libsbml_convert("stripPackage", package="layout"))
 ```
 """
 libsbml_convert(converter::String, report_severities = ["Fatal", "Error"]; kwargs...) =
-    libsbml_convert([
-        converter => Dict{String,String}(string(k) => string(v) for (k, v) in kwargs),
-    ],
-                    report_severities)
+    libsbml_convert(
+        [converter => Dict{String,String}(string(k) => string(v) for (k, v) in kwargs)],
+        report_severities,
+    )
 
 """
     convert_simplify_math
