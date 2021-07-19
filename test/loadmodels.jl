@@ -74,7 +74,7 @@ sbmlfiles = [
     ),
 ]
 
-@testset "Loading of models from various sources" begin
+@testset "Loading of models from various sources - $(reader)" for reader in (readSBML,  readSBMLFromString)
     for (sbmlfile, url, hash, expected_mets, expected_rxns) in sbmlfiles
         if !isfile(sbmlfile)
             Downloads.download(url, sbmlfile)
@@ -86,7 +86,11 @@ sbmlfiles = [
         end
 
         @testset "Loading of $sbmlfile" begin
-            mdl = readSBML(sbmlfile)
+            mdl = if reader === readSBML
+                readSBML(sbmlfile)
+            else
+                readSBMLFromString(readchomp(sbmlfile))
+            end
 
             @test typeof(mdl) == Model
 
@@ -96,6 +100,10 @@ sbmlfiles = [
             @test length(rxns) == expected_rxns
         end
     end
+end
+
+@testset "readSBMLFromString" begin
+    @test_logs (:error, r"^SBML reported error") @test_throws AssertionError readSBMLFromString("")
 end
 
 @testset "Time variables in math" begin
