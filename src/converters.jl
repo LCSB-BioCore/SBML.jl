@@ -46,7 +46,9 @@ libsbml_convert(
                 )
             end
             check_errors(
-                ccall(sbml(:SBMLDocument_convert), Cint, (VPtr, VPtr), doc, props),
+                # `SBMLDocument_convert` returns `LIBSBML_OPERATION_SUCCESS` (== 0) for a
+                # successful operation, something else when there is a failure.
+                iszero(ccall(sbml(:SBMLDocument_convert), Cint, (VPtr, VPtr), doc, props)),
                 doc,
                 ErrorException("Conversion returned errors"),
             )
