@@ -142,16 +142,8 @@ readSBML(
 
 Read the SBML from the string `str` and return the contained `SBML.Model`.
 
-The `sbml_conversion` is a function that does an in-place modification of the
-single parameter, which is the C pointer to the loaded SBML document (C type
-`SBMLDocument*`). Several functions for doing that are prepared, including
-[`set_level_and_version`](@ref), [`libsbml_convert`](@ref), and
-[`convert_simplify_math`](@ref).
-
-`report_severities` switches on and off reporting of certain errors; see the
-documentation of [`get_error_messages`](@ref) for details.
-
-To read from a file instead of a string, use [`readSBML`](@ref).
+For the other arguments see the docstring of [`readSBML`](@ref), which can be
+used to read from a file instead of a string.
 """
 readSBMLFromString(
     str::AbstractString,
