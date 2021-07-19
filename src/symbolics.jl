@@ -45,6 +45,7 @@ const default_symbolics_mapping = Dict{String,Any}(
     "ln" => :log,
     "log" => :sbmlLog,
     "lt" => :<,
+    "neq" => :(sbmlNeq),
     "piecewise" => :(sbmlPiecewise),
     "power" => :^,
     "root" => :sbmlRoot,
@@ -66,6 +67,7 @@ function sbmlPiecewise(args...)
     end
 end
 
+sbmlNeq(a, b) = !isequal(a, b)
 
 sbmlLog(x) = log(x, 10)
 sbmlLog(base, x) = log(base, x)
