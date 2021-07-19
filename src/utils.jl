@@ -148,12 +148,15 @@ function extensive_kinetic_math(
 end
 
 """
-    get_error_messages(doc::Ptr{Cvoid}, error::Exception)
+    get_error_messages(doc::VPtr, error::Exception, report_severities)
 
 Show the error messages reported by SBML in the `doc` document and throw the
 `error` if they are more than 1.
+
+`report_severities` switches the reporting of certain error types defined by
+libsbml; you can choose from `["Fatal", "Error", "Warning", "Informational"]`.
 """
-function get_error_messages(doc::VPtr, error::Exception)
+function get_error_messages(doc::VPtr, error::Exception, report_severities)
     n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
     do_throw = false
     for i = 1:n_errs
@@ -162,15 +165,15 @@ function get_error_messages(doc::VPtr, error::Exception)
         sev = string(strip(get_string(err, :XMLError_getSeverityAsString)))
         # keywords from `libsbml/src/sbml/xml/XMLError.cpp` xmlSeverityStringTable:
         if sev == "Fatal"
-            @error "SBML reported fatal error: $(msg)"
+            sev in report_severities && @error "SBML reported fatal error: $(msg)"
             do_throw = true
         elseif sev == "Error"
-            @error "SBML reported error: $(msg)"
+            sev in report_severities && @error "SBML reported error: $(msg)"
             do_throw = true
         elseif sev == "Warning"
-            @warn "SBML reported warning: $(msg)"
-        else # sev=="Informational"
-            @info "SBML reported: $(msg)"
+            sev in report_severities && @warn "SBML reported warning: $(msg)"
+        elseif sev == "Informational"
+            sev in report_severities && @info "SBML reported: $(msg)"
         end
     end
     do_throw && throw(error)
@@ -178,7 +181,12 @@ function get_error_messages(doc::VPtr, error::Exception)
 end
 
 """
-    check_errors(success::Integer, doc::Ptr{Cvoid}, error::Exception)
+    check_errors(
+        success::Integer,
+        doc::VPtr,
+        error::Exception,
+        report_severities = ["Fatal", "Error"],
+    )
 
 If success is a 0-valued `Integer` (a logical `false`), then call
 [`get_error_messages`](@ref) to show the error messages reported by SBML in the
@@ -186,5 +194,70 @@ If success is a 0-valued `Integer` (a logical `false`), then call
 typically the value returned by an SBML C function operating on `doc` which
 returns a boolean flag to signal a successful operation.
 """
-check_errors(success::Integer, doc::VPtr, error::Exception) =
-    Bool(success) || get_error_messages(doc, error)
+check_errors(
+    success::Integer,
+    doc::VPtr,
+    error::Exception,
+    report_severities = ["Fatal", "Error"],
+) = Bool(success) || get_error_messages(doc, error, report_severities)
+
+# NOTE: this mapping is valid for Level 3/Version 2, it *may* not be valid for
+# other versions.  See
+# https://github.com/sbmlteam/libsbml/blob/d4bc12abc4e72e451a0a0f2be4b0b6101ac94160/src/sbml/UnitKind.c#L46-L85
+const UNIT_KIND_STRINGS_TO_UNIT = Dict(
+    "ampere" => 1.0 * u"A", # UNIT_KIND_AMPERE
+    "avogadro" => ustrip(u"mol^-1", Unitful.Na), # UNIT_KIND_AVOGADRO
+    "becquerel" => 1.0 * u"Bq", # UNIT_KIND_BECQUEREL
+    "candela" => 1.0 * u"cd", # UNIT_KIND_CANDELA
+    "Celsius" => 1.0 * u"°C", # UNIT_KIND_CELSIUS
+    "coulomb" => 1.0 * u"C", # UNIT_KIND_COULOMB
+    "dimensionless" => 1, # UNIT_KIND_DIMENSIONLESS
+    "farad" => 1.0 * u"F", # UNIT_KIND_FARAD
+    "gram" => 1.0 * u"g", # UNIT_KIND_GRAM
+    "gray" => 1.0 * u"Gy", # UNIT_KIND_GRAY
+    "henry" => 1.0 * u"H", # UNIT_KIND_HENRY
+    "hertz" => 1.0 * u"Hz", # UNIT_KIND_HERTZ
+    "item" => 1, # UNIT_KIND_ITEM
+    "joule" => 1.0 * u"J", # UNIT_KIND_JOULE
+    "katal" => 1.0 * u"kat", # UNIT_KIND_KATAL
+    "kelvin" => 1.0 * u"K", # UNIT_KIND_KELVIN
+    "kilogram" => 1.0 * u"kg", # UNIT_KIND_KILOGRAM
+    "liter" => 1.0 * u"L", # UNIT_KIND_LITER
+    "litre" => 1.0 * u"L", # UNIT_KIND_LITRE
+    "lumen" => 1.0 * u"lm", # UNIT_KIND_LUMEN
+    "lux" => 1.0 * u"lx", # UNIT_KIND_LUX
+    "meter" => 1.0 * u"m", # UNIT_KIND_METER
+    "metre" => 1.0 * u"m", # UNIT_KIND_METRE
+    "mole" => 1.0 * u"mol", # UNIT_KIND_MOLE
+    "newton" => 1.0 * u"N", # UNIT_KIND_NEWTON
+    "ohm" => 1.0 * u"Ω", # UNIT_KIND_OHM
+    "pascal" => 1.0 * u"Pa", # UNIT_KIND_PASCAL
+    "radian" => 1.0 * u"rad", # UNIT_KIND_RADIAN
+    "second" => 1.0 * u"s", # UNIT_KIND_SECOND
+    "siemens" => 1.0 * u"S", # UNIT_KIND_SIEMENS
+    "sievert" => 1.0 * u"Sv", # UNIT_KIND_SIEVERT
+    "steradian" => 1.0 * u"sr", # UNIT_KIND_STERADIAN
+    "tesla" => 1.0 * u"T", # UNIT_KIND_TESLA
+    "volt" => 1.0 * u"V", # UNIT_KIND_VOLT
+    "watt" => 1.0 * u"W", # UNIT_KIND_WATT
+    "weber" => 1.0 * u"W", # UNIT_KIND_WEBER
+    "(Invalid UnitKind)" => 1, # UNIT_KIND_INVALID (let's treat is as a dimensionless quantity)
+)
+
+# Get a `Unitful` quantity out of a `Unit_t`.
+get_unit(u::VPtr) =
+    UNIT_KIND_STRINGS_TO_UNIT[unsafe_string(
+        ccall(
+            sbml(:UnitKind_toString),
+            Cstring,
+            (Cint,),
+            ccall(sbml(:Unit_getKind), Cint, (VPtr,), u)
+        ))] ^
+    ccall(sbml(:Unit_getExponent), Cint, (VPtr,), u) *
+    exp10(ccall(sbml(:Unit_getScale), Cint, (VPtr,), u)) *
+    ccall(sbml(:Unit_getMultiplier), Cdouble, (VPtr,), u)
+
+# Get `Unitful` quantity out of a `UnitDefinition_t`.
+get_units(ud::VPtr) =
+    prod(get_unit(ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1))
+         for j = 1:ccall(sbml(:UnitDefinition_getNumUnits), Cuint, (VPtr,), ud))

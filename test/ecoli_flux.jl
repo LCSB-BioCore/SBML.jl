@@ -22,6 +22,8 @@ end
         sbmlfile * ".does.not.really.exist",
     )
 
+    @test mdl.units["mmol_per_gDW_per_hr"] == 2.7777e-7 * u"mol * g^-1 * s^-1"
+
     @test length(mdl.compartments) == 2
 
     mets, rxns, S = getS(mdl)

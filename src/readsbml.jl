@@ -72,7 +72,11 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
 end
 
 """
-    function readSBML(fn::String, sbml_conversion = model->nothing)::SBML.Model
+    readSBML(
+        fn::String,
+        sbml_conversion = document -> nothing;
+        report_severities = ["Fatal", "Error"],
+    )::SBML.Model
 
 Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
 
@@ -82,6 +86,9 @@ single parameter, which is the C pointer to the loaded SBML document (C type
 [`set_level_and_version`](@ref), [`libsbml_convert`](@ref), and
 [`convert_simplify_math`](@ref).
 
+`report_severities` switches on and off reporting of certain errors; see the
+documentation of [`get_error_messages`](@ref) for details.
+
 # Example
 ```
 m = readSBML("my_model.xml", doc -> begin
@@ -90,10 +97,18 @@ m = readSBML("my_model.xml", doc -> begin
 end)
 ```
 """
-function readSBML(fn::String, sbml_conversion = document -> nothing)::SBML.Model
+function readSBML(
+    fn::String,
+    sbml_conversion = document -> nothing;
+    report_severities = ["Fatal", "Error"],
+)::SBML.Model
     doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
     try
-        get_error_messages(doc, AssertionError("Opening SBML document has reported errors"))
+        get_error_messages(
+            doc,
+            AssertionError("Opening SBML document has reported errors"),
+            report_severities,
+        )
 
         sbml_conversion(doc)
 
@@ -162,30 +177,12 @@ function extractModel(mdl::VPtr)::SBML.Model
     end
 
     # parse out the unit definitions
-    units = Dict{String,Vector{SBML.UnitPart}}()
+    units = Dict{String,Number}()
     for i = 1:ccall(sbml(:Model_getNumUnitDefinitions), Cuint, (VPtr,), mdl)
         ud = ccall(sbml(:Model_getUnitDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
         id = get_string(ud, :UnitDefinition_getId)
-        units[id] = [
-            begin
-                u = ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1)
-                SBML.UnitPart(
-                    unsafe_string(
-                        ccall(
-                            sbml(:UnitKind_toString),
-                            Cstring,
-                            (Cint,),
-                            ccall(sbml(:Unit_getKind), Cint, (VPtr,), u),
-                        ),
-                    ),
-                    ccall(sbml(:Unit_getExponent), Cint, (VPtr,), u),
-                    ccall(sbml(:Unit_getScale), Cint, (VPtr,), u),
-                    ccall(sbml(:Unit_getMultiplier), Cdouble, (VPtr,), u),
-                )
-            end for j = 1:ccall(sbml(:UnitDefinition_getNumUnits), Cuint, (VPtr,), ud)
-        ]
+        units[id] = get_units(ud)
     end
-
     # parse out compartment names
     compartments = Dict{String,Compartment}()
     for i = 1:ccall(sbml(:Model_getNumCompartments), Cuint, (VPtr,), mdl)

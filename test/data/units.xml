@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sbml xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1" sboTerm="SBO:0000624" fbc:required="false">
+  <model fbc:strict="true" id="e_coli_core">
+    <listOfUnitDefinitions>
+      <unitDefinition id="non_existent">
+        <listOfUnits>
+          <unit kind="blahblah" scale="-3" multiplier="3.14" exponent="1"/>
+        </listOfUnits>
+      </unitDefinition>
+      <unitDefinition id="no_dimensions">
+        <listOfUnits>
+          <unit kind="dimensionless" scale="3" multiplier="0.001" exponent="1"/>
+          <unit kind="item" scale="1" multiplier="2" exponent="1"/>
+        </listOfUnits>
+      </unitDefinition>
+    </listOfUnitDefinitions>
+  </model>
+</sbml>

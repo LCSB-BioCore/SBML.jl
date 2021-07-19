@@ -1,27 +1,5 @@
 
 """
-Part of a measurement unit definition that corresponds to the SBML definition
-of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
-
-    SBML.UnitPart("second",  # base SI unit, this says we are measuring time
-             -2,        # exponent, says "per square"
-             6,         # log-10 scale of the unit, says "mega"
-             1/3600)    # second-to-hour multiplier
-
-Compound units (such as "volt-amperes" and "dozens of yards per ounce") are
-built from multiple `UnitPart`s; see the definition of field `units` in
-[`SBML.Model`](@ref).
-"""
-struct UnitPart
-    kind::String
-    exponent::Int
-    scale::Int
-    multiplier::Float64
-    UnitPart(k, e, s, m) = new(k, e, s, m)
-end
-
-
-"""
 Abstract type for all kinds of gene product associations
 """
 abstract type GeneProductAssociation end
@@ -182,7 +160,7 @@ objects.
 """
 struct Model
     parameters::Dict{String,Float64}
-    units::Dict{String,Vector{UnitPart}}
+    units::Dict{String,Number}
     compartments::Dict{String,Compartment}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
