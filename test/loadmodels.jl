@@ -94,7 +94,7 @@ sbmlfiles = [
 
             @test typeof(mdl) == Model
 
-            mets, rxns, _ = getS(mdl)
+            mets, rxns, _ = stoichiometry_matrix(mdl)
 
             @test length(mets) == expected_mets
             @test length(rxns) == expected_rxns
