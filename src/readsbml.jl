@@ -77,6 +77,7 @@ function _readSBML(
     sbml_conversion,
     report_severities,
 )::SBML.Model
+    !isfile(fn) && error("$fn is not a file")
     doc = ccall(sbml(symbol), VPtr, (Cstring,), fn)
     try
         get_error_messages(
