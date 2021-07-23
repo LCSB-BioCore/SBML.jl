@@ -405,3 +405,8 @@ end
     @test m.species["S1"].constant == false
     @test m.parameters["S1conv"].constant == true
 end
+
+@testset "writeSBML" begin
+    model = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
+    @test writeSBML(model) == read(joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"), String)
+end
