@@ -71,6 +71,8 @@ function parse_math(ast::VPtr)::Math
             relational_oper(Int(ccall(sbml(:ASTNode_getType), Cint, (VPtr,), ast))),
             parse_math_children(ast),
         )
+    elseif ast_is(ast, :ASTNode_isLogical)
+        return MathApply(get_string(ast, :ASTNode_getName), parse_math_children(ast))
     elseif ast_is(ast, :ASTNode_isLambda)
         children = parse_math_children(ast)
         if !isempty(children)

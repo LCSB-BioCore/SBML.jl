@@ -16,6 +16,7 @@ const default_symbolics_mapping = Dict{String,Any}(
     "-" => :-,
     "/" => :/,
     "abs" => :abs,
+    "and" => :&,
     "arccos" => :acos,
     "arccosh" => :acosh,
     "arccot" => :acot,
@@ -46,6 +47,8 @@ const default_symbolics_mapping = Dict{String,Any}(
     "log" => :sbmlLog,
     "lt" => :<,
     "neq" => :(sbmlNeq),
+    "not" => :not,
+    "or" => :|,
     "piecewise" => :(sbmlPiecewise),
     "power" => :^,
     "root" => :sbmlRoot,
@@ -55,6 +58,7 @@ const default_symbolics_mapping = Dict{String,Any}(
     "sin" => :sin,
     "tanh" => :tanh,
     "tan" => :tan,
+    "xor" => :xor,
 )
 
 function sbmlPiecewise(args...)
