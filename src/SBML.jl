@@ -1,5 +1,9 @@
+"""
+$(DocStringExtensions.README)
+"""
 module SBML
 
+using DocStringExtensions
 using SBML_jll, Libdl
 using SparseArrays
 using Symbolics

@@ -77,7 +77,12 @@ struct MathLambda <: Math
 end
 
 """
+$(TYPEDEF)
+
 SBML Compartment with sizing information.
+
+# Fields
+$(FIELDS)
 """
 struct Compartment
     name::Maybe{String}
@@ -91,10 +96,15 @@ struct Compartment
 end
 
 """
+$(TYPEDEF)
+
 Reaction with stoichiometry that assigns reactants and products their relative
 consumption/production rates (accessible in field `stoichiometry`), lower/upper
 bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
 (`oc`). Also may contains `notes` and `annotation`.
+
+# Fields
+$(FIELDS)
 """
 struct Reaction
     stoichiometry::Dict{String,Float64}
@@ -111,8 +121,13 @@ struct Reaction
 end
 
 """
+$(TYPEDEF)
+
 Species metadata -- contains a human-readable `name`, a `compartment`
 identifier, `formula`, `charge`, and additional `notes` and `annotation`.
+
+# Fields
+$(FIELDS)
 """
 struct Species
     name::Maybe{String}
@@ -130,7 +145,12 @@ struct Species
 end
 
 """
+$(TYPEDEF)
+
 Gene product metadata.
+
+# Fields
+$(FIELDS)
 """
 struct GeneProduct
     name::Maybe{String}
@@ -152,11 +172,16 @@ struct FunctionDefinition
 end
 
 """
+$(TYPEDEF)
+
 Structure that collects the model-related data. Contains `parameters`, `units`,
 `compartments`, `species` and `reactions` and `gene_products`, and additional
 `notes` and `annotation` (also present internally in some of the data fields).
 The contained dictionaries are indexed by identifiers of the corresponding
 objects.
+
+# Fields
+$(FIELDS)
 """
 struct Model
     parameters::Dict{String,Float64}
