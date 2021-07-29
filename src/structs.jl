@@ -82,7 +82,7 @@ $(TYPEDEF)
 SBML Compartment with sizing information.
 
 # Fields
-$(FIELDS)
+$(TYPEDFIELDS)
 """
 struct Compartment
     name::Maybe{String}
@@ -104,7 +104,7 @@ bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
 (`oc`). Also may contains `notes` and `annotation`.
 
 # Fields
-$(FIELDS)
+$(TYPEDFIELDS)
 """
 struct Reaction
     stoichiometry::Dict{String,Float64}
@@ -127,7 +127,7 @@ Species metadata -- contains a human-readable `name`, a `compartment`
 identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 
 # Fields
-$(FIELDS)
+$(TYPEDFIELDS)
 """
 struct Species
     name::Maybe{String}
@@ -150,7 +150,7 @@ $(TYPEDEF)
 Gene product metadata.
 
 # Fields
-$(FIELDS)
+$(TYPEDFIELDS)
 """
 struct GeneProduct
     name::Maybe{String}
@@ -181,7 +181,7 @@ The contained dictionaries are indexed by identifiers of the corresponding
 objects.
 
 # Fields
-$(FIELDS)
+$(TYPEDFIELDS)
 """
 struct Model
     parameters::Dict{String,Float64}
