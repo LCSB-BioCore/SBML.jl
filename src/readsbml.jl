@@ -365,17 +365,35 @@ function extractModel(mdl::VPtr)::SBML.Model
                 get(stoi, s, 0) +
                 ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr) *
                 factor
+        end        
+        # extract stoichiometry
+        substoi = Dict{String,Float64}()
+        add_sstoi(sr, factor) = begin
+            s = get_string(sr, :SpeciesReference_getSpecies)
+            substoi[s] =
+                ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr) *
+                factor
+        end        
+        # extract stoichiometry
+        prodstoi = Dict{String,Float64}()
+        add_pstoi(sr, factor) = begin
+            s = get_string(sr, :SpeciesReference_getSpecies)
+            prodstoi[s] =
+                ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr) *
+                factor
         end
 
         # reactants and products
         for j = 1:ccall(sbml(:Reaction_getNumReactants), Cuint, (VPtr,), re)
             sr = ccall(sbml(:Reaction_getReactant), VPtr, (VPtr, Cuint), re, j - 1)
             add_stoi(sr, -1)
+            add_sstoi(sr, 1)
         end
 
         for j = 1:ccall(sbml(:Reaction_getNumProducts), Cuint, (VPtr,), re)
             sr = ccall(sbml(:Reaction_getProduct), VPtr, (VPtr, Cuint), re, j - 1)
             add_stoi(sr, 1)
+            add_pstoi(sr, 1)
         end
 
         # gene product associations
@@ -399,6 +417,8 @@ function extractModel(mdl::VPtr)::SBML.Model
 
         reid = get_string(re, :Reaction_getId)
         reactions[reid] = Reaction(
+            substoi,
+            prodstoi,
             stoi,
             lb,
             ub,

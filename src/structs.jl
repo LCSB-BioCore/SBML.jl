@@ -107,6 +107,8 @@ bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
 $(TYPEDFIELDS)
 """
 struct Reaction
+    substoich::Dict{String,Float64}
+    prodstoich::Dict{String,Float64}
     stoichiometry::Dict{String,Float64}
     lb::Tuple{Float64,String}
     ub::Tuple{Float64,String}
@@ -116,8 +118,8 @@ struct Reaction
     reversible::Bool
     notes::Maybe{String}
     annotation::Maybe{String}
-    Reaction(s, l, u, o, as, km, r, n = nothing, an = nothing) =
-        new(s, l, u, o, as, km, r, n, an)
+    Reaction(ss, ps, s, l, u, o, as, km, r, n = nothing, an = nothing) =
+        new(ss, ps, s, l, u, o, as, km, r, n, an)
 end
 
 """
