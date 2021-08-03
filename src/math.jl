@@ -58,7 +58,10 @@ function parse_math(ast::VPtr)::Math
     elseif ast_is(ast, :ASTNode_isInteger)
         return MathVal(ccall(sbml(:ASTNode_getInteger), Cint, (VPtr,), ast))
     elseif ast_is(ast, :ASTNode_isRational)
-        return MathVal(ccall(sbml(:ASTNode_getNumerator), Cint, (VPtr,), ast)//ccall(sbml(:ASTNode_getDenominator), Cint, (VPtr,), ast))
+        return MathVal(
+            ccall(sbml(:ASTNode_getNumerator), Cint, (VPtr,), ast) //
+            ccall(sbml(:ASTNode_getDenominator), Cint, (VPtr,), ast),
+        )
     elseif ast_is(ast, :ASTNode_isReal)
         return MathVal(ccall(sbml(:ASTNode_getReal), Cdouble, (VPtr,), ast))
     elseif ast_is(ast, :ASTNode_isFunction)
