@@ -14,5 +14,14 @@
         </listOfUnits>
       </unitDefinition>
     </listOfUnitDefinitions>
+    <listOfReactions>
+      <reaction id="rationalTest" reversible="false" fast="false">
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <cn type="rational">1<sep />5000</cn>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
   </model>
 </sbml>
