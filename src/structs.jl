@@ -99,15 +99,16 @@ end
 $(TYPEDEF)
 
 Reaction with stoichiometry that assigns reactants and products their relative
-consumption/production rates (accessible in field `stoichiometry`), lower/upper
-bounds (in tuples `lb` and `ub`, with unit names), and objective coefficient
-(`oc`). Also may contains `notes` and `annotation`.
+consumption/production rates, lower/upper bounds (in tuples `lb` and `ub`, with
+unit names), and objective coefficient (`oc`). Also may contains `notes` and
+`annotation`.
 
 # Fields
 $(TYPEDFIELDS)
 """
 struct Reaction
-    stoichiometry::Dict{String,Float64}
+    reactants::Dict{String,Float64}
+    products::Dict{String,Float64}
     lb::Tuple{Float64,String}
     ub::Tuple{Float64,String}
     oc::Float64
@@ -116,8 +117,8 @@ struct Reaction
     reversible::Bool
     notes::Maybe{String}
     annotation::Maybe{String}
-    Reaction(s, l, u, o, as, km, r, n = nothing, an = nothing) =
-        new(s, l, u, o, as, km, r, n, an)
+    Reaction(rs, ps, l, u, o, as, km, r, n = nothing, an = nothing) =
+        new(rs, ps, l, u, o, as, km, r, n, an)
 end
 
 """

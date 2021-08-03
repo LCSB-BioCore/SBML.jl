@@ -18,8 +18,10 @@ function stoichiometry_matrix(
     rowsd = Dict(k => i for (i, k) in enumerate(rows))
     S = zeros(Float64, length(rows), length(cols))
     for col = 1:length(cols)
-        stoi = m.reactions[cols[col]].stoichiometry
-        S[getindex.(Ref(rowsd), keys(stoi)), col] .= values(stoi)
+        s = m.reactions[cols[col]].reactants
+        S[getindex.(Ref(rowsd), keys(s)), col] .-= values(s)
+        s = m.reactions[cols[col]].products
+        S[getindex.(Ref(rowsd), keys(s)), col] .+= values(s)
     end
     return rows, cols, S
 end

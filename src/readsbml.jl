@@ -358,24 +358,23 @@ function extractModel(mdl::VPtr)::SBML.Model
         end
 
         # extract stoichiometry
-        stoi = Dict{String,Float64}()
-        add_stoi(sr, factor) = begin
+        reactants = Dict{String,Float64}()
+        products = Dict{String,Float64}()
+
+        add_stoi(sr, coll) = begin
             s = get_string(sr, :SpeciesReference_getSpecies)
-            stoi[s] =
-                get(stoi, s, 0) +
-                ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr) *
-                factor
+            coll[s] =
+                ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr)
         end
 
-        # reactants and products
         for j = 1:ccall(sbml(:Reaction_getNumReactants), Cuint, (VPtr,), re)
             sr = ccall(sbml(:Reaction_getReactant), VPtr, (VPtr, Cuint), re, j - 1)
-            add_stoi(sr, -1)
+            add_stoi(sr, reactants)
         end
 
         for j = 1:ccall(sbml(:Reaction_getNumProducts), Cuint, (VPtr,), re)
             sr = ccall(sbml(:Reaction_getProduct), VPtr, (VPtr, Cuint), re, j - 1)
-            add_stoi(sr, 1)
+            add_stoi(sr, products)
         end
 
         # gene product associations
@@ -399,7 +398,8 @@ function extractModel(mdl::VPtr)::SBML.Model
 
         reid = get_string(re, :Reaction_getId)
         reactions[reid] = Reaction(
-            stoi,
+            reactants,
+            products,
             lb,
             ub,
             haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
