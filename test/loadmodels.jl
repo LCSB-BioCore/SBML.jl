@@ -128,7 +128,7 @@ end
     @test m.units["time"] == 1 * u"s"
     @test m.units["substance"] == 1 * u"mol"
 
-    m = readSBML(joinpath(@__DIR__, "data", "units.xml"))
+    m = readSBML(joinpath(@__DIR__, "data", "custom.xml"))
     @test m.units["non_existent"] == 0.00314
     @test m.units["no_dimensions"] == 20.0
 end
@@ -172,6 +172,11 @@ end
 
     @variables S29 S29b
     @test isequal(convert(Num, m.reactions["J29"].kinetic_math), 2.0 * S29 * S29b)
+end
+
+@testset "rationals in math" begin
+    m = readSBML(joinpath(@__DIR__, "data", "custom.xml"))
+    @test m.reactions["rationalTest"].kinetic_math.val == 1 // 5000
 end
 
 @testset "converters work and fail gracefully" begin
