@@ -408,5 +408,15 @@ end
 
 @testset "writeSBML" begin
     model = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
-    @test writeSBML(model) == read(joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"), String)
+    expected = read(joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"), String)
+    # Remove carriage returns, if any
+    expected = replace(expected, '\r' => "")
+    @test writeSBML(model) == expected
+    mktemp() do filename, _
+        writeSBML(model, filename)
+        content = read(filename, String)
+        # Remove carriage returns, if any
+        content = replace(content, '\r' => "")
+        @test content == expected
+    end
 end
