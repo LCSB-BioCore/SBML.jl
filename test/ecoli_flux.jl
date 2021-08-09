@@ -22,7 +22,7 @@ end
         sbmlfile * ".does.not.really.exist",
     )
 
-    @test mdl.units["mmol_per_gDW_per_hr"] == 2.7777e-7 * u"mol * g^-1 * s^-1"
+    @test mdl.units["mmol_per_gDW_per_hr"] ≈ 3.6001008028224795 * u"mol * g^-1 * s^-1"
 
     @test length(mdl.compartments) == 2
 

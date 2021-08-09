@@ -239,17 +239,22 @@ const UNIT_KIND_STRINGS_TO_UNIT = Dict(
 )
 
 # Get a `Unitful` quantity out of a `Unit_t`.
-get_unit(u::VPtr) =
-    UNIT_KIND_STRINGS_TO_UNIT[unsafe_string(
+function get_unit(u::VPtr)
+    multiplier = ccall(sbml(:Unit_getMultiplier), Cdouble, (VPtr,), u)
+    unit = UNIT_KIND_STRINGS_TO_UNIT[unsafe_string(
         ccall(
             sbml(:UnitKind_toString),
             Cstring,
             (Cint,),
             ccall(sbml(:Unit_getKind), Cint, (VPtr,), u),
         ),
-    )]^ccall(sbml(:Unit_getExponent), Cint, (VPtr,), u) *
-    exp10(ccall(sbml(:Unit_getScale), Cint, (VPtr,), u)) *
-    ccall(sbml(:Unit_getMultiplier), Cdouble, (VPtr,), u)
+    )]
+    scale = ccall(sbml(:Unit_getScale), Cint, (VPtr,), u)
+    exponent = ccall(sbml(:Unit_getExponent), Cint, (VPtr,), u)
+    # See page 44 of
+    # http://sbml.org/Special/specifications/sbml-level-3/version-2/core/release-2/sbml-level-3-version-2-release-2-core.pdf
+    return (multiplier * unit * exp10(scale)) ^ exponent
+end
 
 # Get `Unitful` quantity out of a `UnitDefinition_t`.
 get_units(ud::VPtr) = prod(
