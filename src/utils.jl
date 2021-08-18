@@ -272,7 +272,7 @@ function get_unit(u::VPtr)
     exponent = ccall(sbml(:Unit_getExponent), Cint, (VPtr,), u)
     # See page 44 of
     # http://sbml.org/Special/specifications/sbml-level-3/version-2/core/release-2/sbml-level-3-version-2-release-2-core.pdf
-    return (multiplier * unit * exp10(scale)) ^ exponent
+    return (multiplier * unit * exp10(scale))^exponent
 end
 
 # Get `Unitful` quantity out of a `UnitDefinition_t`.
