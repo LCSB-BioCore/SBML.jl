@@ -28,9 +28,7 @@ end
 
     mets, rxns, S = stoichiometry_matrix(mdl)
 
-    @test typeof(S) <: AbstractMatrix{Float64}
-    @test typeof(stoichiometry_matrix(mdl; zeros = spzeros)[3]) <: SparseMatrixCSC{Float64}
-    @test typeof(stoichiometry_matrix(mdl; zeros = zeros)[3]) == Matrix{Float64}
+    @test typeof(S) <: SparseMatrixCSC{Float64}
 
     @test length(mets) == 77
     @test length(rxns) == 77

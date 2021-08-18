@@ -1,29 +1,48 @@
 """
-    function stoichiometry_matrix(m::SBML.Model; zeros=spzeros)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
+    function stoichiometry_matrix(m::SBML.Model)
 
 Extract the vector of species (aka metabolite) identifiers, vector of reaction
-identifiers, and the (dense) stoichiometry matrix from an existing `SBML.Model`.
-Returns a tuple with these values.
-
-The matrix is sparse by default (initially constructed by
-`SparseArrays.spzeros`). You can fill in a custom empty matrix constructed to
-argument `zeros`; e.g. running with `zeros=zeros` will produce a dense matrix.
+identifiers, and a sparse stoichiometry matrix (of type `SparseMatrixCSC` from
+`SparseArrays` package) from an existing `SBML.Model`. Returns a 3-tuple with
+these values.
 """
-function stoichiometry_matrix(
-    m::SBML.Model;
-    zeros = spzeros,
-)::Tuple{Vector{String},Vector{String},AbstractMatrix{Float64}}
-    rows = [k for k in keys(m.species)]
-    cols = [k for k in keys(m.reactions)]
-    rowsd = Dict(k => i for (i, k) in enumerate(rows))
-    S = zeros(Float64, length(rows), length(cols))
-    for col = 1:length(cols)
-        s = m.reactions[cols[col]].reactants
-        S[getindex.(Ref(rowsd), keys(s)), col] .-= values(s)
-        s = m.reactions[cols[col]].products
-        S[getindex.(Ref(rowsd), keys(s)), col] .+= values(s)
+function stoichiometry_matrix(m::SBML.Model)
+    rows = collect(keys(m.species))
+    cols = collect(keys(m.reactions))
+    row_idx = Dict(k => i for (i, k) in enumerate(rows))
+    col_idx = Dict(k => i for (i, k) in enumerate(cols))
+
+    nnz = 0
+    for (_, r) in m.reactions
+        for _ in r.reactants
+            nnz += 1
+        end
+        for _ in r.products
+            nnz += 1
+        end
     end
-    return rows, cols, S
+
+    SI = Int[]
+    RI = Int[]
+    SV = Float64[]
+    sizehint!(SI, nnz)
+    sizehint!(RI, nnz)
+    sizehint!(SV, nnz)
+
+    for (rid, r) in m.reactions
+        ridx = col_idx[rid]
+        for (sid, stoi) in r.reactants
+            push!(SI, row_idx[sid])
+            push!(RI, ridx)
+            push!(SV, -stoi)
+        end
+        for (sid, stoi) in r.products
+            push!(SI, row_idx[sid])
+            push!(RI, ridx)
+            push!(SV, stoi)
+        end
+    end
+    return rows, cols, SparseArrays.sparse(SI, RI, SV, length(rows), length(cols))
 end
 
 """
