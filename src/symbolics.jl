@@ -97,7 +97,10 @@ const default_symbolics_constants =
         ::Type{Num},
         x::SBML.Math;
         mapping = default_symbolics_mapping,
-        convert_time = (x::SBML.MathTime) -> Num(Variable(Symbol(x.id))).val,
+        convert_time = function (x::SBML.MathTime)
+            sym = Symbol(x.id)
+            Symbolics.unwrap(first(@variables \$sym))
+        end,
         convert_const = (x::SBML.MathConst) -> Num(default_symbolics_constants[x.id]),
     )
 
@@ -117,13 +120,19 @@ function Base.convert(
     ::Type{Num},
     x::SBML.Math;
     mapping = default_symbolics_mapping,
-    convert_time = (x::SBML.MathTime) -> Num(Variable(Symbol(x.id))).val,
+    convert_time = function (x::SBML.MathTime)
+        sym = Symbol(x.id)
+        Symbolics.unwrap(first(@variables $sym))
+    end,
     convert_const = (x::SBML.MathConst) -> Num(default_symbolics_constants[x.id]),
 )
     conv(x::SBML.MathApply) = Num(eval(allowed_sym(x.fn, mapping))(conv.(x.args)...))
     conv(x::SBML.MathTime) = convert_time(x)
     conv(x::SBML.MathConst) = convert_const(x)
-    conv(x::SBML.MathIdent) = Num(Variable(Symbol(x.id))).val
+    function conv(x::SBML.MathIdent)
+        sym = Symbol(x.id)
+        Symbolics.unwrap(first(@variables $sym))
+    end
     conv(x::SBML.MathVal) = Num(x.val)
     conv(x::SBML.MathLambda) = throw(DomainError(x, "can't translate lambdas to symbolics"))
     conv(x)

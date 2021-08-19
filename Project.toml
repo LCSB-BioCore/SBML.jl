@@ -15,9 +15,9 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 [compat]
 DocStringExtensions = "0.8"
 IfElse = "0.1"
-Symbolics = "0.1.21, 1"
+Symbolics = "3"
 Unitful = "1"
-julia = "1.5"
+julia = "1.6"
 
 [extras]
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
