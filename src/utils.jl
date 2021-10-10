@@ -280,3 +280,7 @@ get_units(ud::VPtr) = prod(
     get_unit(ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1)) for
     j = 1:ccall(sbml(:UnitDefinition_getNumUnits), Cuint, (VPtr,), ud)
 )
+
+function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
+    print(io, "SBML Model with ", length(m.reactions), " reactions, ", length(m.species), " species, and ", length(m.parameters), " parameters.")
+end
