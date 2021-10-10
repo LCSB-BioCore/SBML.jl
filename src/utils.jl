@@ -282,5 +282,5 @@ get_units(ud::VPtr) = prod(
 )
 
 function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
-    print(io, "SBML Model with ", length(m.reactions), " reactions, ", length(m.species), " species, and ", length(m.parameters), " parameters.")
+    print(io, repr(typeof(m)), " with ", length(m.reactions), " reactions, ", length(m.species), " species, and ", length(m.parameters), " parameters.")
 end

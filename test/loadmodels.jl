@@ -216,6 +216,6 @@ end
     io = IOBuffer()
     show(io, MIME("text/plain"), m)
     s = String(take!(io))
-    @test s == "SBML Model with 1 reactions, 0 species, and 0 parameters."
+    @test s == "SBML.Model with 1 reactions, 0 species, and 0 parameters."
     @test eval(Meta.parse(repr(m))) isa SBML.Model
 end
