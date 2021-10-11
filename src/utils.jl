@@ -93,7 +93,11 @@ get_compartment_size(m::SBML.Model, compartment; default = nothing) =
     mayfirst(maylift(x -> x.size, get(m.compartments, compartment, nothing)), default)
 
 """
-    initial_amounts(m::SBML.Model; convert_concentrations = false)
+    initial_amounts(
+        m::SBML.Model;
+        convert_concentrations = false,
+        compartment_size = comp -> get_compartment_size(m, comp),
+    )
 
 Return initial amounts for each species as a generator of pairs
 `species_name => initial_amount`; the amount is set to `nothing` if not
@@ -106,10 +110,17 @@ In the current version, units of the measurements are completely ignored.
 # Example
 ```
 # get the initial amounts as dictionary
-Dict(initial_amounts(model, convert_concentrations = true))
+Dict(SBML.initial_amounts(model, convert_concentrations = true))
+
+# suppose the compartment size is 10.0 if unspecified
+collect(SBML.initial_amounts(
+    model,
+    convert_concentrations = true,
+    compartment_size = comp -> SBML.get_compartment_size(model, comp, 10.0),
+))
 
 # remove the empty entries
-Dict(k => v for (k,v) in initial_amounts(model) if !isnothing(v))
+Dict(k => v for (k,v) in SBML.initial_amounts(model) if !isnothing(v))
 ```
 """
 initial_amounts(
@@ -130,7 +141,11 @@ initial_amounts(
 )
 
 """
-    initial_concentrations(m::SBML.Model; convert_amounts = false)
+    initial_concentrations(
+        m::SBML.Model;
+        convert_amounts = false,
+        compartment_size = comp -> get_compartment_size(m, comp),
+    )
 
 Return initial concentrations of the species in the model. Refer to work-alike
 [`initial_amounts`](@ref) for details.
