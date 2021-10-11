@@ -63,6 +63,36 @@ Extract the vector of objective coefficients of each reaction.
 flux_objective(m::SBML.Model)::Vector{Float64} = broadcast(x -> x.oc, values(m.reactions))
 
 """
+    mayfirst(args::Maybe{T}...)::Maybe{T} where T
+
+Helper to get the first non-`nothing` value from the arguments.
+"""
+function mayfirst(args...)
+    for i in args
+        if !isnothing(i)
+            return i
+        end
+    end
+    nothing
+end
+
+"""
+    maylift(f, args::Maybe...)
+
+Helper to lift a function to work on [`Maybe`](@ref), returning `nothing`
+whenever there's a `nothing` in args.
+"""
+maylift(f, args::Maybe...) = any(isnothing, args) ? nothing : f(args...)
+
+"""
+    get_compartment_size(m::SBML.Model, compartment; default = nothing)
+
+A helper for easily getting out a defaulted compartment size.
+"""
+get_compartment_size(m::SBML.Model, compartment; default = nothing) =
+    mayfirst(maylift(x -> x.size, get(m.compartments, compartment, nothing)), default)
+
+"""
     initial_amounts(m::SBML.Model; convert_concentrations = false)
 
 Return initial amounts for each species as a generator of pairs
@@ -82,17 +112,21 @@ Dict(initial_amounts(model, convert_concentrations = true))
 Dict(k => v for (k,v) in initial_amounts(model) if !isnothing(v))
 ```
 """
-initial_amounts(m::SBML.Model; convert_concentrations = false) = (
-    k => if !isnothing(s.initial_amount)
-        s.initial_amount[1]
-    elseif convert_concentrations &&
-           !isnothing(s.initial_concentration) &&
-           haskey(m.compartments, s.compartment) &&
-           !isnothing(m.compartments[s.compartment].size)
-        s.initial_concentration[1] * m.compartments[s.compartment].size
-    else
-        nothing
-    end for (k, s) in m.species
+initial_amounts(
+    m::SBML.Model;
+    convert_concentrations = false,
+    compartment_size = comp -> get_compartment_size(m, comp),
+) = (
+    k => mayfirst(
+        maylift(first, s.initial_amount),
+        if convert_concentrations
+            maylift(
+                (ic, s) -> first(ic) * s,
+                s.initial_concentration,
+                compartment_size(s.compartment),
+            )
+        end,
+    ) for (k, s) in m.species
 )
 
 """
@@ -101,17 +135,21 @@ initial_amounts(m::SBML.Model; convert_concentrations = false) = (
 Return initial concentrations of the species in the model. Refer to work-alike
 [`initial_amounts`](@ref) for details.
 """
-initial_concentrations(m::SBML.Model; convert_amounts = false) = (
-    k => if !isnothing(s.initial_concentration)
-        s.initial_concentration[1]
-    elseif convert_amounts &&
-           !isnothing(s.initial_amount) &&
-           haskey(m.compartments, s.compartment) &&
-           !isnothing(m.compartments[s.compartment].size)
-        s.initial_amount[1] / m.compartments[s.compartment].size
-    else
-        nothing
-    end for (k, s) in m.species
+initial_concentrations(
+    m::SBML.Model;
+    convert_amounts = false,
+    compartment_size = comp -> get_compartment_size(m, comp),
+) = (
+    k => mayfirst(
+        maylift(first, s.initial_concentration),
+        if convert_amounts
+            maylift(
+                (ia, s) -> first(ia) / s,
+                s.initial_amount,
+                compartment_size(s.compartment),
+            )
+        end,
+    ) for (k, s) in m.species
 )
 
 
