@@ -195,15 +195,6 @@ function extractModel(mdl::VPtr)::SBML.Model
     # get the FBC plugin pointer (FbcModelPlugin_t)
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
-    # get the parameters
-    parameters = Dict{String,Float64}()
-    for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
-        p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
-        id = get_string(p, :Parameter_getId)
-        v = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
-        parameters[id] = v
-    end
-
     # parse out the unit definitions
     units = Dict{String,Number}()
     for i = 1:ccall(sbml(:Model_getNumUnitDefinitions), Cuint, (VPtr,), mdl)
@@ -211,6 +202,28 @@ function extractModel(mdl::VPtr)::SBML.Model
         id = get_string(ud, :UnitDefinition_getId)
         units[id] = get_units(ud)
     end
+
+    # get the parameters
+    parameters = Dict{String,Union{Float64,Quantity}}()
+    for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
+        p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
+        id = get_string(p, :Parameter_getId)
+        v = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
+        u = ccall(sbml(:Parameter_getUnits), Ptr{Cchar}, (VPtr,), p)
+        if u != C_NULL
+            # Parameter has units
+            u_string = unsafe_string(u)
+            if haskey(units, u_string)
+                # Multiply by units
+                v *= units[u_string]
+            else
+                # Units not found
+                error("Unit $(u_string) not found in list of units")
+            end
+        end
+        parameters[id] = v
+    end
+
     # parse out compartment names
     compartments = Dict{String,Compartment}()
     for i = 1:ccall(sbml(:Model_getNumCompartments), Cuint, (VPtr,), mdl)
