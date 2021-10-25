@@ -210,20 +210,18 @@ function extractModel(mdl::VPtr)::SBML.Model
         id = get_string(p, :Parameter_getId)
         v = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
         u = ccall(sbml(:Parameter_getUnits), Ptr{Cchar}, (VPtr,), p)
-        parameters[id] = v * if u == C_NULL
-            # Parameter has no units
-            1.0
-        else
+        if u != C_NULL
             # Parameter has units
             u_string = unsafe_string(u)
             if haskey(units, u_string)
                 # Multiply by units
-                units[u_string]
+                v *= units[u_string]
             else
                 # Units not found
                 error("Unit $(u_string) not found in list of units")
             end
         end
+        parameters[id] = v
     end
 
     # parse out compartment names
