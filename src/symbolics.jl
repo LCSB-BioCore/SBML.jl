@@ -51,6 +51,7 @@ const default_symbolics_mapping = Dict{String,Any}(
     "or" => :|,
     "piecewise" => :(sbmlPiecewise),
     "power" => :^,
+    "rateOf" => :sbmlrateOf,
     "root" => :sbmlRoot,
     "sech" => :sech,
     "sec" => :sec,
@@ -70,6 +71,8 @@ function sbmlPiecewise(args...)
         throw(AssertionError("malformed piecewise SBML function"))
     end
 end
+
+sbmlRateOf(x) = Symbolics.derivative(x, MathTime("t"))
 
 sbmlNeq(a, b) = !isequal(a, b)
 
