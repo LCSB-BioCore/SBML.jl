@@ -211,8 +211,9 @@ end
     @test test_math.args[2].fn == "geq"
 end
 
-@testset "custom show" begin 
+@testset "custom show" begin
     m = readSBML(joinpath(@__DIR__, "data", "custom.xml"))
-    @test repr(MIME("text/plain"), m) == "Model with 1 reactions, 0 species, and 0 parameters."
+    @test repr(MIME("text/plain"), m) ==
+          "Model with 1 reactions, 0 species, and 0 parameters."
     @test eval(Meta.parse(repr(m))) isa SBML.Model
 end
