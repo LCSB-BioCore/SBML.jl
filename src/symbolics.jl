@@ -72,7 +72,7 @@ function sbmlPiecewise(args...)
     end
 end
 
-sbmlRateOf(x) = Symbolics.derivative(x, MathTime("t"))
+sbmlRateOf(x) = Symbolics.Differential(convert(Num, MathTime("t")))(x)
 
 sbmlNeq(a, b) = !isequal(a, b)
 
