@@ -19,10 +19,10 @@ julia> mdl.compartments
 ```
 
 There are several functions to help you with using the data in the usual
-COBRA-style workflows, such as [`getS`](@ref):
+COBRA-style workflows, such as [`stoichiometry_matrix`](@ref):
 
 ```julia
-julia> metabolites, reactions, S = getS(mdl)
+julia> metabolites, reactions, S = stoichiometry_matrix(mdl)
 julia> metabolites
 77-element Array{String,1}:
  "M_succoa_c"
