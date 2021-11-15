@@ -52,5 +52,5 @@ m.compartments
 There are several helper functions, for example you can get a nice list of reactions, metabolites and the stoichiometric matrix as follows:
 
 ```julia
-mets, rxns, S = getS(m)
+mets, rxns, S = stoichiometry_matrix(m)
 ```
