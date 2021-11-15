@@ -109,8 +109,8 @@ $(TYPEDFIELDS)
 struct Reaction
     reactants::Dict{String,Float64}
     products::Dict{String,Float64}
-    lb::Tuple{Union{Float64,Quantity},String}
-    ub::Tuple{Union{Float64,Quantity},String}
+    lb::Tuple{Float64,String}
+    ub::Tuple{Float64,String}
     oc::Float64
     gene_product_association::Maybe{GeneProductAssociation}
     kinetic_math::Maybe{Math}
@@ -185,7 +185,7 @@ objects.
 $(TYPEDFIELDS)
 """
 struct Model
-    parameters::Dict{String,Union{Float64,Quantity}}
+    parameters::Dict{String,Float64}
     units::Dict{String,Number}
     compartments::Dict{String,Compartment}
     species::Dict{String,Species}
