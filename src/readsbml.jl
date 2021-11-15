@@ -456,11 +456,23 @@ function extract_model(mdl::VPtr)::SBML.Model
             )
     end
 
+    initial_assignments = Dict{String,Math}()
+    num_ias = ccall(sbml(:Model_getNumInitialAssignments), Cuint, (VPtr,), mdl)
+    for n in 0:(num_ias - 1)
+        ia = ccall(sbml(:Model_getInitialAssignment), VPtr, (VPtr, Cuint), mdl, n)
+        sym = ccall(sbml(:InitialAssignment_getSymbol), Cstring, (VPtr,), ia)
+        math_ptr = ccall(sbml(:InitialAssignment_getMath), VPtr, (VPtr,), ia)
+        if math_ptr != C_NULL
+            initial_assignments[unsafe_string(sym)] = parse_math(math_ptr)
+        end
+    end
+
     return Model(
         parameters,
         units,
         compartments,
         species,
+        initial_assignments,
         reactions,
         objective,
         gene_products,

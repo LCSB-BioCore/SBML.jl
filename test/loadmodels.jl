@@ -81,6 +81,14 @@ sbmlfiles = [
         0,
         Float64[],
     ),
+    (
+        joinpath(@__DIR__, "data", "00489-sbml-l3v2.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00489/00489-sbml-l3v2.xml",
+        "dab2bce4e5036fa47ad8137055ca5f6dec6dfcb183542ce38573ca2e5a615813",
+        3,
+        2,
+        fill(Inf, 2),
+    ),
 ]
 
 @testset "Loading of models from various sources - $(reader)" for reader in (

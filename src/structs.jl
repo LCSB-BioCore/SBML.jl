@@ -210,12 +210,13 @@ struct Model
     units::Dict{String,Vector{UnitPart}}
     compartments::Dict{String,Compartment}
     species::Dict{String,Species}
+    initial_assignments::Dict{String,Math}
     reactions::Dict{String,Reaction}
     objective::Dict{String,Float64}
     gene_products::Dict{String,GeneProduct}
     function_definitions::Dict{String,FunctionDefinition}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Model(p, u, c, s, r, o, g, f, n = nothing, a = nothing) =
-        new(p, u, c, s, r, o, g, f, n, a)
+    Model(p, u, c, s, ia, r, o, g, f, n = nothing, a = nothing) =
+        new(p, u, c, s, ia, r, o, g, f, n, a)
 end
