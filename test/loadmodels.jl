@@ -101,6 +101,13 @@ sbmlfiles = [
 
             @test length(mets) == expected_mets
             @test length(rxns) == expected_rxns
+
+            lbs, ubs = flux_bounds(mdl)
+            @test length(lbs) == expected_rxns
+            @test length(ubs) == expected_rxns
+
+            ocs = flux_objective(mdl)
+            @test length(ocs) == expected_rxns
         end
     end
 end
