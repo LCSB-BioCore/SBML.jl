@@ -290,7 +290,7 @@ function extractModel(mdl::VPtr)::SBML.Model
 
     # parse out the flux objectives (these are complementary to the objectives
     # that appear in the reactions, see comments lower)
-    objectives_fbc = Dict{String,Float64}()
+    objective = Dict{String,Float64}()
     if mdl_fbc != C_NULL
         for i = 1:ccall(sbml(:FbcModelPlugin_getNumObjectives), Cuint, (VPtr,), mdl_fbc)
             o = ccall(
@@ -302,7 +302,7 @@ function extractModel(mdl::VPtr)::SBML.Model
             )
             for j = 1:ccall(sbml(:Objective_getNumFluxObjectives), Cuint, (VPtr,), o)
                 fo = ccall(sbml(:Objective_getFluxObjective), VPtr, (VPtr, Cuint), o, j - 1)
-                objectives_fbc[get_string(fo, :FluxObjective_getReaction)] =
+                objective[get_string(fo, :FluxObjective_getReaction)] =
                     ccall(sbml(:FluxObjective_getCoefficient), Cdouble, (VPtr,), fo)
             end
         end
@@ -312,9 +312,9 @@ function extractModel(mdl::VPtr)::SBML.Model
     reactions = Dict{String,Reaction}()
     for i = 1:ccall(sbml(:Model_getNumReactions), Cuint, (VPtr,), mdl)
         re = ccall(sbml(:Model_getReaction), VPtr, (VPtr, Cuint), mdl, i - 1)
-        lb = (-Inf, "") # (bound value, unit id)
-        ub = (Inf, "")
-        oc = 0.0
+        kinetic_parameters = Dict{String,Tuple{Float64,String}}()
+        lower_bound = nothing
+        upper_bound = nothing
         math = nothing
 
         # kinetic laws store a second version of the bounds and objectives
@@ -322,16 +322,10 @@ function extractModel(mdl::VPtr)::SBML.Model
         if kl != C_NULL
             for j = 1:ccall(sbml(:KineticLaw_getNumParameters), Cuint, (VPtr,), kl)
                 p = ccall(sbml(:KineticLaw_getParameter), VPtr, (VPtr, Cuint), kl, j - 1)
-                id = get_string(p, :Parameter_getId)
-                pval() = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
-                punit() = get_string(p, :Parameter_getUnits)
-                if id == "LOWER_BOUND"
-                    lb = (pval(), punit())
-                elseif id == "UPPER_BOUND"
-                    ub = (pval(), punit())
-                elseif id == "OBJECTIVE_COEFFICIENT"
-                    oc = pval()
-                end
+                kinetic_parameters[get_string(p, :Parameter_getId)] = (
+                    ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
+                    mayfirst(get_optional_string(p, :Parameter_getUnits), ""),
+                )
             end
 
             if ccall(sbml(:KineticLaw_isSetMath), Cint, (VPtr,), kl) != 0
@@ -339,22 +333,10 @@ function extractModel(mdl::VPtr)::SBML.Model
             end
         end
 
-        # TRICKY: SBML spec is completely silent about what should happen if
-        # someone specifies both the above and below formats of the flux bounds
-        # for one reaction. Notably, these do not really specify much
-        # interaction with units. In this case, we'll just set a special
-        # "[fbc]" unit that has no specification in `units`, and hope the users
-        # can make something out of it.
         re_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), re, "fbc")
         if re_fbc != C_NULL
-            fbcb = get_optional_string(re_fbc, :FbcReactionPlugin_getLowerFluxBound)
-            if !isnothing(fbcb) && haskey(parameters, fbcb)
-                lb = (parameters[fbcb], "[fbc]")
-            end
-            fbcb = get_optional_string(re_fbc, :FbcReactionPlugin_getUpperFluxBound)
-            if !isnothing(fbcb) && haskey(parameters, fbcb)
-                ub = (parameters[fbcb], "[fbc]")
-            end
+            lower_bound = get_optional_string(re_fbc, :FbcReactionPlugin_getLowerFluxBound)
+            upper_bound = get_optional_string(re_fbc, :FbcReactionPlugin_getUpperFluxBound)
         end
 
         # extract stoichiometry
@@ -400,9 +382,9 @@ function extractModel(mdl::VPtr)::SBML.Model
         reactions[reid] = Reaction(
             reactants,
             products,
-            lb,
-            ub,
-            haskey(objectives_fbc, reid) ? objectives_fbc[reid] : oc,
+            kinetic_parameters,
+            lower_bound,
+            upper_bound,
             association,
             math,
             reversible,
@@ -459,6 +441,7 @@ function extractModel(mdl::VPtr)::SBML.Model
         compartments,
         species,
         reactions,
+        objective,
         gene_products,
         function_definitions,
         get_notes(mdl),

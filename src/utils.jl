@@ -48,19 +48,53 @@ end
 """
     flux_bounds(m::SBML.Model)::NTuple{2, Vector{Tuple{Float64,String}}}
 
-Extract the vectors of lower and upper bounds of reaction rates from the model. All bounds
-are accompanied with the unit of the corresponding value (this behavior is based on SBML
-specification).
+Extract the vectors of lower and upper bounds of reaction rates from the model,
+in the same order as `keys(m.reactions)`.  All bounds are accompanied with the
+unit of the corresponding value (the behavior is based on SBML specification).
+Missing bounds are represented by negative/positive infinite values with
+empty-string unit.
 """
-flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}} =
-    (broadcast(x -> x.lb, values(m.reactions)), broadcast(x -> x.ub, values(m.reactions)))
+function flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}}
+    # Now this is tricky. There are multiple ways in SBML to specify a
+    # lower/upper bound. There are the "global" model bounds that we completely
+    # ignore now because no one uses them. In reaction, you can specify the
+    # bounds using "LOWER_BOUND" and "UPPER_BOUND" parameters, but also there
+    # may be a FBC plugged-in objective name that refers to the parameters.
+    # We extract these, using the units from the parameters. For unbounded
+    # reactions this gives -Inf or Inf as a default.
+
+    function get_bound(rxn, fld, param, default)
+        p = mayfirst(getfield(rxn, fld), param)
+        get(rxn.kinetic_parameters, p, default)
+    end
+
+    (
+        get_bound.(values(m.reactions), :lower_bound, "LOWER_BOUND", Ref((-Inf, ""))),
+        get_bound.(values(m.reactions), :upper_bound, "UPPER_BOUND", Ref((Inf, ""))),
+    )
+end
 
 """
     flux_objective(m::SBML.Model)::Vector{Float64}
 
-Extract the vector of objective coefficients of each reaction.
+Extract the vector of objective coefficients of each reaction, in the same
+order as `keys(m.reactions)`.
 """
-flux_objective(m::SBML.Model)::Vector{Float64} = broadcast(x -> x.oc, values(m.reactions))
+function flux_objective(m::SBML.Model)::Vector{Float64}
+    # As with bounds, this sometimes needs to be gathered from 2 places (maybe
+    # even more). FBC-specified OC gets a priority.
+    function get_oc(rid::String)
+        mayfirst(
+            get(m.objective, rid, nothing),
+            maylift(
+                first,
+                get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing),
+            ),
+            0.0,
+        )
+    end
+    get_oc.(keys(m.reactions))
+end
 
 """
     mayfirst(args::Maybe{T}...)::Maybe{T} where T
