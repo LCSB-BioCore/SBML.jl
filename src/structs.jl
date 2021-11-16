@@ -206,7 +206,7 @@ objects.
 $(TYPEDFIELDS)
 """
 struct Model
-    parameters::Dict{String,Float64}
+    parameters::Dict{String,Tuple{Float64,String}}
     units::Dict{String,Vector{UnitPart}}
     compartments::Dict{String,Compartment}
     species::Dict{String,Species}

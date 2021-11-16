@@ -184,6 +184,11 @@ function get_association(x::VPtr)::GeneProductAssociation
     end
 end
 
+extract_parameter(p::VPtr)::Pair{String,Tuple{Float64,String}} =
+    get_string(p, :Parameter_getId) => (
+        ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
+        mayfirst(get_optional_string(p, :Parameter_getUnits), ""),
+    )
 
 """"
     function extract_model(mdl::VPtr)::SBML.Model
@@ -196,11 +201,10 @@ function extract_model(mdl::VPtr)::SBML.Model
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
     # get the parameters
-    parameters = Dict{String,Float64}()
+    parameters = Dict{String,Tuple{Float64,String}}()
     for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
         p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
-        id = get_string(p, :Parameter_getId)
-        v = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p)
+        id, v = extract_parameter(p)
         parameters[id] = v
     end
 
@@ -340,10 +344,9 @@ function extract_model(mdl::VPtr)::SBML.Model
         if kl != C_NULL
             for j = 1:ccall(sbml(:KineticLaw_getNumParameters), Cuint, (VPtr,), kl)
                 p = ccall(sbml(:KineticLaw_getParameter), VPtr, (VPtr, Cuint), kl, j - 1)
-                kinetic_parameters[get_string(p, :Parameter_getId)] = (
-                    ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
-                    mayfirst(get_optional_string(p, :Parameter_getUnits), ""),
-                )
+                id, v = extract_parameter(p)
+                parameters[id] = v
+                kinetic_parameters[id] = v
             end
 
             if ccall(sbml(:KineticLaw_isSetMath), Cint, (VPtr,), kl) != 0
