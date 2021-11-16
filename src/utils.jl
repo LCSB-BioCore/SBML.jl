@@ -65,7 +65,7 @@ function flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}}
 
     function get_bound(rxn, fld, param, default)
         p = mayfirst(getfield(rxn, fld), param)
-        get(rxn.kinetic_parameters, p, default)
+        get(rxn.kinetic_parameters, p, get(m.parameters, p, default))
     end
 
     (
