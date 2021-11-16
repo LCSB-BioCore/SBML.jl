@@ -22,7 +22,16 @@ end
         sbmlfile * ".does.not.really.exist",
     )
 
-    @test mdl.units["mmol_per_gDW_per_hr"] ≈ 3.6001008028224795 * u"mol * g^-1 * s^-1"
+    @test SBML.unitful(mdl.units["mmol_per_gDW_per_hr"]) ≈
+          3.6001008028224795 * u"mol * g^-1 * s^-1"
+
+    @test SBML.unitful(mdl, (2.0, "mmol_per_gDW_per_hr")) ≈
+          7.200201605644959 * u"mol * g^-1 * s^-1"
+
+    @test SBML.unitful(mdl, (3.0, "whatevs"), 1 * u"g") ≈ 3.0 * u"g"
+
+    @test SBML.unitful(mdl, (3.0, "the_flux_units"), "mmol_per_gDW_per_hr") ≈
+          10.800302408467438 * u"mol * g^-1 * s^-1"
 
     @test length(mdl.compartments) == 2
 

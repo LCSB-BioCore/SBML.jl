@@ -2,8 +2,7 @@
 using Test, SHA, SparseArrays, Downloads
 using SBML
 using SBML: Model, Reaction, Species
-using Symbolics
-using Unitful
+using Symbolics, Unitful
 
 @testset "SBML test suite" begin
     include("version.jl")

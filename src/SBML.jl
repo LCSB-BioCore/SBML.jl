@@ -19,6 +19,7 @@ include("converters.jl")
 include("math.jl")
 include("readsbml.jl")
 include("symbolics.jl")
+include("unitful.jl")
 include("utils.jl")
 
 sbml(sym::Symbol)::VPtr = dlsym(SBML_jll.libsbml_handle, sym)
