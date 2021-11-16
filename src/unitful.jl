@@ -1,5 +1,4 @@
 
-
 # NOTE: this mapping is valid for Level 3/Version 2, it *may* not be valid for
 # other versions.  See
 # https://github.com/sbmlteam/libsbml/blob/d4bc12abc4e72e451a0a0f2be4b0b6101ac94160/src/sbml/UnitKind.c#L46-L85

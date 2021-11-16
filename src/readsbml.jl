@@ -93,7 +93,7 @@ function _readSBML(
 
         model = ccall(sbml(:SBMLDocument_getModel), VPtr, (VPtr,), doc)
 
-        return extractModel(model)
+        return extract_model(model)
     finally
         ccall(sbml(:SBMLDocument_free), Nothing, (VPtr,), doc)
     end
@@ -156,12 +156,12 @@ get_notes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString
 get_annotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)
 
 """
-    function getAssociation(x::VPtr)::GeneProductAssociation
+    function get_association(x::VPtr)::GeneProductAssociation
 
 Convert a pointer to SBML `FbcAssociation_t` to the `GeneProductAssociation`
 tree structure.
 """
-function getAssociation(x::VPtr)::GeneProductAssociation
+function get_association(x::VPtr)::GeneProductAssociation
     # libsbml C API is currently missing functions to check this in a normal
     # way, so we use a bit of a hack.
     typecode = ccall(sbml(:SBase_getTypeCode), Cint, (VPtr,), x)
@@ -169,13 +169,13 @@ function getAssociation(x::VPtr)::GeneProductAssociation
         return GPARef(get_string(x, :GeneProductRef_getGeneProduct))
     elseif typecode == 809 # SBML_FBC_AND
         return GPAAnd([
-            getAssociation(
+            get_association(
                 ccall(sbml(:FbcAnd_getAssociation), VPtr, (VPtr, Cuint), x, i - 1),
             ) for i = 1:ccall(sbml(:FbcAnd_getNumAssociations), Cuint, (VPtr,), x)
         ])
     elseif typecode == 810 # SBML_FBC_OR
         return GPAOr([
-            getAssociation(
+            get_association(
                 ccall(sbml(:FbcOr_getAssociation), VPtr, (VPtr, Cuint), x, i - 1),
             ) for i = 1:ccall(sbml(:FbcOr_getNumAssociations), Cuint, (VPtr,), x)
         ])
@@ -186,12 +186,12 @@ end
 
 
 """"
-    function extractModel(mdl::VPtr)::SBML.Model
+    function extract_model(mdl::VPtr)::SBML.Model
 
 Take the `SBMLModel_t` pointer and extract all information required to make a
 valid [`SBML.Model`](@ref) structure.
 """
-function extractModel(mdl::VPtr)::SBML.Model
+function extract_model(mdl::VPtr)::SBML.Model
     # get the FBC plugin pointer (FbcModelPlugin_t)
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
@@ -389,7 +389,7 @@ function extractModel(mdl::VPtr)::SBML.Model
             if gpa != C_NULL
                 a = ccall(sbml(:GeneProductAssociation_getAssociation), VPtr, (VPtr,), gpa)
                 a != C_NULL
-                association = getAssociation(a)
+                association = get_association(a)
             end
         end
 

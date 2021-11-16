@@ -17,7 +17,6 @@ struct UnitPart
     exponent::Int
     scale::Int
     multiplier::Float64
-    UnitPart(k, e, s, m) = new(k, e, s, m)
 end
 
 
