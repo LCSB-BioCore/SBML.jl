@@ -7,6 +7,7 @@ sbmlfiles = [
         "b4db506aeed0e434c1f5f1fdd35feda0dfe5d82badcfda0e9d1342335ab31116",
         72,
         95,
+        fill(1000.0, 3),
     ),
     # a relatively new non-curated model from biomodels
     (
@@ -15,6 +16,7 @@ sbmlfiles = [
         "2b1e615558b6190c649d71052ac9e0dc1635e3ad281e541bc7d4fdf2892a5967",
         2517,
         3956,
+        fill(1000.0, 3),
     ),
     # a curated model from biomodels
     (
@@ -23,6 +25,7 @@ sbmlfiles = [
         "958b131d4df2f215dae68255433542f228601db0326d26a54efd08ddcf823489",
         2,
         6,
+        fill(Inf, 3),
     ),
     # a cool model with `time` from SBML testsuite
     (
@@ -31,6 +34,7 @@ sbmlfiles = [
         "d013765aa358d265941420c2e3d81fcbc24b0aa4e9f39a8dc8852debd1addb60",
         4,
         3,
+        fill(Inf, 3),
     ),
     # another model from SBML suite, with initial concentrations
     (
@@ -39,6 +43,7 @@ sbmlfiles = [
         "424683eea6bbb577aad855d95f2de5183a36e296b06ba18b338572cd7dba6183",
         4,
         2,
+        fill(Inf, 2),
     ),
     # this contains some special math
     (
@@ -47,6 +52,7 @@ sbmlfiles = [
         "14a80fbce316eea2adb566f67b4668ad151db8954e487309852ece7f730c8c99",
         104,
         52,
+        fill(Inf, 3),
     ),
     # this contains l3v1-incompatible contents
     (
@@ -55,6 +61,7 @@ sbmlfiles = [
         "35ffa072052970b92fa358ee0f5750394ad74958e889cb85c98ed238642de4d0",
         0,
         0,
+        Float64[],
     ),
     # this contains a relational operator
     (
@@ -63,6 +70,7 @@ sbmlfiles = [
         "c474e94888767d70f9e9e03b32778f18069641563953de60dabac7daa7f481ce",
         4,
         2,
+        fill(Inf, 2),
     ),
     # expandInitialAssignments converter gives some warning
     (
@@ -71,6 +79,7 @@ sbmlfiles = [
         "9610ef29f2d767af627042a15bde505b068ab75bbf00b8983823800ea8ef67c8",
         0,
         0,
+        Float64[],
     ),
 ]
 
@@ -78,7 +87,7 @@ sbmlfiles = [
     readSBML,
     readSBMLFromString,
 )
-    for (sbmlfile, url, hash, expected_mets, expected_rxns) in sbmlfiles
+    for (sbmlfile, url, hash, expected_mets, expected_rxns, expected_3_ubs) in sbmlfiles
         if !isfile(sbmlfile)
             Downloads.download(url, sbmlfile)
         end
@@ -105,6 +114,7 @@ sbmlfiles = [
             lbs, ubs = flux_bounds(mdl)
             @test length(lbs) == expected_rxns
             @test length(ubs) == expected_rxns
+            @test first.(ubs)[1:min(3, length(ubs))] == expected_3_ubs
 
             ocs = flux_objective(mdl)
             @test length(ocs) == expected_rxns
@@ -131,13 +141,13 @@ end
 
 @testset "Units" begin
     m = readSBML(joinpath(@__DIR__, "data", "sbml00852.xml"))
-    @test m.units["volume"] == 1 * u"L"
-    @test m.units["time"] == 1 * u"s"
-    @test m.units["substance"] == 1 * u"mol"
+    @test SBML.unitful(m.units["volume"]) == 1 * u"L"
+    @test SBML.unitful(m.units["time"]) == 1 * u"s"
+    @test SBML.unitful(m.units["substance"]) == 1 * u"mol"
 
     m = readSBML(joinpath(@__DIR__, "data", "custom.xml"))
-    @test m.units["non_existent"] == 0.00314
-    @test m.units["no_dimensions"] == 20.0
+    @test SBML.unitful(m.units["non_existent"]) == 0.00314
+    @test SBML.unitful(m.units["no_dimensions"]) == 20.0
 end
 
 @testset "Initial amounts and concentrations" begin

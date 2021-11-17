@@ -1,5 +1,26 @@
 
 """
+Part of a measurement unit definition that corresponds to the SBML definition
+of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
+
+    SBML.UnitPart("second",  # base SI unit, this says we are measuring time
+             -2,        # exponent, says "per square"
+             6,         # log-10 scale of the unit, says "mega"
+             1/3600)    # second-to-hour multiplier
+
+Compound units (such as "volt-amperes" and "dozens of yards per ounce") are
+built from multiple `UnitPart`s; see the definition of field `units` in
+[`SBML.Model`](@ref).
+"""
+struct UnitPart
+    kind::String
+    exponent::Int
+    scale::Int
+    multiplier::Float64
+end
+
+
+"""
 Abstract type for all kinds of gene product associations
 """
 abstract type GeneProductAssociation end
@@ -109,16 +130,16 @@ $(TYPEDFIELDS)
 struct Reaction
     reactants::Dict{String,Float64}
     products::Dict{String,Float64}
-    lb::Tuple{Float64,String}
-    ub::Tuple{Float64,String}
-    oc::Float64
+    kinetic_parameters::Dict{String,Tuple{Float64,String}}
+    lower_bound::Maybe{String}
+    upper_bound::Maybe{String}
     gene_product_association::Maybe{GeneProductAssociation}
     kinetic_math::Maybe{Math}
     reversible::Bool
     notes::Maybe{String}
     annotation::Maybe{String}
-    Reaction(rs, ps, l, u, o, as, km, r, n = nothing, an = nothing) =
-        new(rs, ps, l, u, o, as, km, r, n, an)
+    Reaction(rs, prs, pas, l, u, as, km, r, n = nothing, an = nothing) =
+        new(rs, prs, pas, l, u, as, km, r, n, an)
 end
 
 """
@@ -185,14 +206,16 @@ objects.
 $(TYPEDFIELDS)
 """
 struct Model
-    parameters::Dict{String,Float64}
-    units::Dict{String,Number}
+    parameters::Dict{String,Tuple{Float64,String}}
+    units::Dict{String,Vector{UnitPart}}
     compartments::Dict{String,Compartment}
     species::Dict{String,Species}
     reactions::Dict{String,Reaction}
+    objective::Dict{String,Float64}
     gene_products::Dict{String,GeneProduct}
     function_definitions::Dict{String,FunctionDefinition}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Model(p, u, c, s, r, g, f, n = nothing, a = nothing) = new(p, u, c, s, r, g, f, n, a)
+    Model(p, u, c, s, r, o, g, f, n = nothing, a = nothing) =
+        new(p, u, c, s, r, o, g, f, n, a)
 end
