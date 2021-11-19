@@ -314,3 +314,6 @@ function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
         " parameters.",
     )
 end
+
+# Define equality `==` method for `MathApply`.
+Base.:(==)(a::MathApply, b::MathApply) = a.fn == b.fn && a.args == b.args

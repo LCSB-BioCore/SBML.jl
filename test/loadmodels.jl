@@ -180,6 +180,19 @@ end
     )
 end
 
+@testset "Initial assignments" begin
+    m = readSBML(joinpath(@__DIR__, "data", "00489-sbml-l3v2.xml"))
+    @test m.initial_assignments == Dict(
+        "S1" => SBML.MathApply("*", [SBML.MathVal{Int32}(2), SBML.MathIdent("p1")]),
+    )
+
+    m = readSBML(joinpath(@__DIR__, "data", "sbml01289.xml"))
+    @test m.initial_assignments == Dict(
+        "p2" => SBML.MathApply("gt5", [SBML.MathVal{Int32}(8)]),
+        "p1" => SBML.MathApply("gt5", [SBML.MathVal{Int32}(3)]),
+    )
+end
+
 @testset "Extensive kinetic math" begin
     m = readSBML(joinpath(@__DIR__, "data", "sbml00852.xml"))
 
