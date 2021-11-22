@@ -81,6 +81,14 @@ sbmlfiles = [
         0,
         Float64[],
     ),
+    (
+        joinpath(@__DIR__, "data", "00489-sbml-l3v2.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00489/00489-sbml-l3v2.xml",
+        "dab2bce4e5036fa47ad8137055ca5f6dec6dfcb183542ce38573ca2e5a615813",
+        3,
+        2,
+        fill(Inf, 2),
+    ),
 ]
 
 @testset "Loading of models from various sources - $(reader)" for reader in (
@@ -169,6 +177,19 @@ end
     @test isapprox(
         sum(ia for (sp, ia) in SBML.initial_amounts(m, convert_concentrations = true)),
         0.25 * 0.00208,
+    )
+end
+
+@testset "Initial assignments" begin
+    m = readSBML(joinpath(@__DIR__, "data", "00489-sbml-l3v2.xml"))
+    @test m.initial_assignments == Dict(
+        "S1" => SBML.MathApply("*", [SBML.MathVal{Int32}(2), SBML.MathIdent("p1")]),
+    )
+
+    m = readSBML(joinpath(@__DIR__, "data", "sbml01289.xml"))
+    @test m.initial_assignments == Dict(
+        "p2" => SBML.MathApply("gt5", [SBML.MathVal{Int32}(8)]),
+        "p1" => SBML.MathApply("gt5", [SBML.MathVal{Int32}(3)]),
     )
 end
 
