@@ -8,5 +8,6 @@ using Symbolics, Unitful
     include("version.jl")
     include("ecoli_flux.jl")
     include("loadmodels.jl")
+    include("loaddynamicmodels.jl")
     include("symbolics.jl")
 end
