@@ -266,6 +266,6 @@ end
 end
 
 @testset "events" begin
-    m = readSBML(joinpath(@__DIR__, "data", "sbml00026.xml"))
+    m = readSBML(joinpath(@__DIR__, "data", "00026-sbml-l3v2.xml"))
     @test length(m.events) == 1
 end
