@@ -234,6 +234,7 @@ struct Model
     compartments::Dict{String,Compartment}
     species::Dict{String,Species}
     initial_assignments::Dict{String,Math}
+    rules::Dict{String,Math}
     reactions::Dict{String,Reaction}
     objective::Dict{String,Float64}
     gene_products::Dict{String,GeneProduct}
@@ -241,6 +242,6 @@ struct Model
     events::Dict{String,Event}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Model(p, u, c, s, ia, r, o, g, f, e, n = nothing, a = nothing) =
-        new(p, u, c, s, ia, r, o, g, f, e, n, a)
+    Model(p, u, c, s, ia, rl, r, o, g, f, e, n = nothing, a = nothing) =
+        new(p, u, c, s, ia, rl, r, o, g, f, e, n, a)
 end

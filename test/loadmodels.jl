@@ -202,6 +202,18 @@ end
     )
 end
 
+@testset "Rules" begin
+    m = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
+    @test m.rules == Dict(
+        "s" => SBML.MathApply("/", [
+            SBML.MathApply("-", [
+                SBML.MathIdent("ModelValue_6"),
+                SBML.MathIdent("P")
+            ]),
+            SBML.MathIdent("N")
+        ]))
+end
+
 @testset "Extensive kinetic math" begin
     m = readSBML(joinpath(@__DIR__, "data", "sbml00852.xml"))
 

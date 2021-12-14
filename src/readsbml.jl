@@ -478,7 +478,7 @@ function extract_model(mdl::VPtr)::SBML.Model
         if trig_math_ptr != C_NULL
             trig_math = parse_math(trig_math_ptr)
         end
-    
+
         event_assignments = EventAssignment[]
         num_event_assignments = ccall(sbml(:Event_getNumEventAssignments), Cuint, (VPtr,), ev)
         for j = 0:(num_event_assignments-1)
@@ -495,6 +495,17 @@ function extract_model(mdl::VPtr)::SBML.Model
         events[evname] = SBML.Event(evname, trig_math, event_assignments)
     end
 
+    # Rules
+    rules = Dict{String,Math}()
+    num_rules = ccall(sbml(:Model_getNumRules), Cuint, (VPtr,), mdl)
+    for n in 0:(num_rules - 1)
+        rule = ccall(sbml(:Model_getRule), VPtr, (VPtr, Cuint), mdl, n)
+        var = ccall(sbml(:Rule_getVariable), Cstring, (VPtr,), rule)
+        math_ptr = ccall(sbml(:Rule_getMath), VPtr, (VPtr,), rule)
+        if math_ptr != C_NULL
+            rules[unsafe_string(var)] = parse_math(math_ptr)
+        end
+    end
 
     return Model(
         parameters,
@@ -502,6 +513,7 @@ function extract_model(mdl::VPtr)::SBML.Model
         compartments,
         species,
         initial_assignments,
+        rules,
         reactions,
         objective,
         gene_products,
