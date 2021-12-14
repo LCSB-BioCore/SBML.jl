@@ -467,6 +467,35 @@ function extract_model(mdl::VPtr)::SBML.Model
         end
     end
 
+    # events
+    events = Dict{String,Event}()
+    num_events = ccall(sbml(:Model_getNumEvents), Cuint, (VPtr,), mdl)
+    for n = 0:(num_events-1)
+        ev = ccall(sbml(:Model_getEvent), VPtr, (VPtr, Cuint), mdl, n)
+        sym = ccall(sbml(:Event_getId), Cstring, (VPtr,), ev)
+        trig = ccall(sbml(:Event_getTrigger), VPtr, (VPtr,), ev)
+        trig_math_ptr = ccall(sbml(:Trigger_getMath), VPtr, (VPtr,), trig)
+        if trig_math_ptr != C_NULL
+            trig_math = parse_math(trig_math_ptr)
+        end
+    
+        event_assignments = EventAssignment[]
+        num_event_assignments = ccall(sbml(:Event_getNumEventAssignments), Cuint, (VPtr,), ev)
+        for j = 0:(num_event_assignments-1)
+            eva = ccall(sbml(:Event_getEventAssignment), VPtr, (VPtr, Cuint), ev, j)
+            eva_var = ccall(sbml(:EventAssignment_getVariable), Cstring, (VPtr,), eva)
+            eva_math_ptr = ccall(sbml(:EventAssignment_getMath), VPtr, (VPtr,), eva)
+            if eva_math_ptr != C_NULL
+                eva_trig_math = parse_math(eva_math_ptr)
+            end
+            event_assignment = EventAssignment(unsafe_string(eva_var), eva_trig_math)
+            push!(event_assignments, event_assignment)
+        end
+        evname = unsafe_string(sym)
+        events[evname] = SBML.Event(evname, trig_math, event_assignments)
+    end
+
+
     return Model(
         parameters,
         units,
@@ -477,6 +506,7 @@ function extract_model(mdl::VPtr)::SBML.Model
         objective,
         gene_products,
         function_definitions,
+        events,
         get_notes(mdl),
         get_annotation(mdl),
     )

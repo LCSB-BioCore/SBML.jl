@@ -196,6 +196,29 @@ end
 """
 $(TYPEDEF)
 
+# Fields
+$(TYPEDFIELDS)
+"""
+struct EventAssignment
+    variable::String
+    math::Maybe{Math}
+end
+
+"""
+$(TYPEDEF)
+
+# Fields
+$(TYPEDFIELDS)
+"""
+struct Event
+    name::String
+    trigger::Maybe{Math}
+    event_assignments::Maybe{Vector{EventAssignment}}
+end
+
+"""
+$(TYPEDEF)
+
 Structure that collects the model-related data. Contains `parameters`, `units`,
 `compartments`, `species` and `reactions` and `gene_products`, and additional
 `notes` and `annotation` (also present internally in some of the data fields).
@@ -215,8 +238,9 @@ struct Model
     objective::Dict{String,Float64}
     gene_products::Dict{String,GeneProduct}
     function_definitions::Dict{String,FunctionDefinition}
+    events::Dict{String,Event}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Model(p, u, c, s, ia, r, o, g, f, n = nothing, a = nothing) =
-        new(p, u, c, s, ia, r, o, g, f, n, a)
+    Model(p, u, c, s, ia, r, o, g, f, e, n = nothing, a = nothing) =
+        new(p, u, c, s, ia, r, o, g, f, e, n, a)
 end

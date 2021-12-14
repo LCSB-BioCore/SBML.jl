@@ -89,6 +89,15 @@ sbmlfiles = [
         2,
         fill(Inf, 2),
     ),
+    # has listOfEvents
+    (
+        joinpath(@__DIR__, "data", "00026-sbml-l3v2.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00026/00026-sbml-l3v2.xml",
+        "991381015d9408164bf00206848ba5796d0c86dc055be91968cd7f0f68daa903",
+        2,
+        1,
+        fill(Inf, 1),
+    ),
 ]
 
 @testset "Loading of models from various sources - $(reader)" for reader in (
@@ -254,4 +263,9 @@ end
     @test repr(MIME("text/plain"), m) ==
           "Model with 1 reactions, 0 species, and 0 parameters."
     @test eval(Meta.parse(repr(m))) isa SBML.Model
+end
+
+@testset "events" begin
+    m = readSBML(joinpath(@__DIR__, "data", "00026-sbml-l3v2.xml"))
+    @test length(m.events) == 1
 end
