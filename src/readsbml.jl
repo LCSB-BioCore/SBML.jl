@@ -479,7 +479,7 @@ function extract_model(mdl::VPtr)::SBML.Model
             trig_math = parse_math(trig_math_ptr)
         end
     
-        event_assignments = []
+        event_assignments = EventAssignment[]
         num_event_assignments = ccall(sbml(:Event_getNumEventAssignments), Cuint, (VPtr,), ev)
         for j = 0:(num_event_assignments-1)
             eva = ccall(sbml(:Event_getEventAssignment), VPtr, (VPtr, Cuint), ev, j)

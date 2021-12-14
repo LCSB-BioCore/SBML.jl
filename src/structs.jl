@@ -199,10 +199,9 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-struct Event
-    name
-    trigger
-    event_assignments
+struct EventAssignment
+    variable::String
+    math::Maybe{Math}
 end
 
 """
@@ -211,9 +210,10 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-struct EventAssignment
-    variable
-    math
+struct Event
+    name::String
+    trigger::Maybe{Math}
+    event_assignments::Maybe{Vector{EventAssignment}}
 end
 
 """
