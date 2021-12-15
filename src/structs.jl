@@ -145,6 +145,51 @@ end
 """
 $(TYPEDEF)
 
+Abstract type representing SBML rules.
+"""
+abstract type Rule end
+
+"""
+$(TYPEDEF)
+
+SBML algebraic rule.
+
+# Fields
+$(TYPEDFIELDS)
+"""
+struct AlgebraicRule <: Rule
+    math::Math
+end
+
+"""
+$(TYPEDEF)
+
+SBML assignment rule.
+
+# Fields
+$(TYPEDFIELDS)
+"""
+struct AssignmentRule <: Rule
+    id::String
+    math::Math
+end
+
+"""
+$(TYPEDEF)
+
+SBML rate rule.
+
+# Fields
+$(TYPEDFIELDS)
+"""
+struct RateRule <: Rule
+    id::String
+    math::Math
+end
+
+"""
+$(TYPEDEF)
+
 Species metadata -- contains a human-readable `name`, a `compartment`
 identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 
@@ -234,7 +279,7 @@ struct Model
     compartments::Dict{String,Compartment}
     species::Dict{String,Species}
     initial_assignments::Dict{String,Math}
-    rules::Dict{String,Math}
+    rules::Vector{Rule}
     reactions::Dict{String,Reaction}
     objective::Dict{String,Float64}
     gene_products::Dict{String,GeneProduct}

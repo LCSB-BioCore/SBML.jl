@@ -315,5 +315,8 @@ function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
     )
 end
 
-# Define equality `==` method for `MathApply`.
+# Define equality `==` methods for some of our custom types.
 Base.:(==)(a::MathApply, b::MathApply) = a.fn == b.fn && a.args == b.args
+Base.:(==)(a::AlgebraicRule, b::AlgebraicRule) = a.math == b.math
+Base.:(==)(a::T, b::T) where {T<:Union{AssignmentRule,RateRule}} =
+    a.id == b.id && a.math == b.math

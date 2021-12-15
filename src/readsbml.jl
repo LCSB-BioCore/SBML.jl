@@ -496,14 +496,29 @@ function extract_model(mdl::VPtr)::SBML.Model
     end
 
     # Rules
-    rules = Dict{String,Math}()
+    rules = Rule[]
     num_rules = ccall(sbml(:Model_getNumRules), Cuint, (VPtr,), mdl)
     for n in 0:(num_rules - 1)
-        rule = ccall(sbml(:Model_getRule), VPtr, (VPtr, Cuint), mdl, n)
-        var = ccall(sbml(:Rule_getVariable), Cstring, (VPtr,), rule)
-        math_ptr = ccall(sbml(:Rule_getMath), VPtr, (VPtr,), rule)
+        rule_ptr = ccall(sbml(:Model_getRule), VPtr, (VPtr, Cuint), mdl, n)
+        type = if ccall(sbml(:Rule_isAlgebraic), Bool, (VPtr,), rule_ptr)
+            AlgebraicRule
+        elseif ccall(sbml(:Rule_isAssignment), Bool, (VPtr,), rule_ptr)
+            AssignmentRule
+        elseif ccall(sbml(:Rule_isRate), Bool, (VPtr,), rule_ptr)
+            RateRule
+        end
+        if type in (AssignmentRule, RateRule)
+            var = ccall(sbml(:Rule_getVariable), Cstring, (VPtr,), rule_ptr)
+        end
+        math_ptr = ccall(sbml(:Rule_getMath), VPtr, (VPtr,), rule_ptr)
         if math_ptr != C_NULL
-            rules[unsafe_string(var)] = parse_math(math_ptr)
+            math = parse_math(math_ptr)
+            rule = if type in (AssignmentRule, RateRule)
+                type(unsafe_string(var), math)
+            else
+                type(math)
+            end
+            push!(rules, rule)
         end
     end
 
