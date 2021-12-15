@@ -98,6 +98,15 @@ sbmlfiles = [
         1,
         fill(Inf, 1),
     ),
+    # has all rules types
+    (
+        joinpath(@__DIR__, "data", "00983-sbml-l3v2.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00983/00983-sbml-l3v2.xml",
+        "b84e53cc48edd5afc314e17f05c6a30a509aadb9486b3d788c7cf8df82a7527f",
+        0,
+        0,
+        Float64[],
+    ),
 ]
 
 @testset "Loading of models from various sources - $(reader)" for reader in (
@@ -200,6 +209,31 @@ end
         "p2" => SBML.MathApply("gt5", [SBML.MathVal{Int32}(8)]),
         "p1" => SBML.MathApply("gt5", [SBML.MathVal{Int32}(3)]),
     )
+end
+
+@testset "Rules" begin
+    m = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
+    @test m.rules == [
+        SBML.AssignmentRule("s", SBML.MathApply("/", [
+            SBML.MathApply("-", [
+                SBML.MathIdent("ModelValue_6"),
+                SBML.MathIdent("P")
+            ]),
+            SBML.MathIdent("N")
+        ]))
+    ]
+
+    m = readSBML(joinpath(@__DIR__, "data", "00983-sbml-l3v2.xml"))
+    @test m.rules == [
+        SBML.RateRule("x", SBML.MathVal{Int32}(1)),
+        SBML.AlgebraicRule(SBML.MathApply("+", [
+            SBML.MathApply("*", [SBML.MathVal{Int32}(-1), SBML.MathIdent("temp")]),
+            SBML.MathApply("/", [SBML.MathTime("time"), SBML.MathVal{Int32}(2)])
+        ])),
+        SBML.AssignmentRule("y", SBML.MathApply("delay", [
+            SBML.MathIdent("x"), SBML.MathIdent("temp")
+        ])),
+    ]
 end
 
 @testset "Extensive kinetic math" begin

@@ -478,7 +478,7 @@ function extract_model(mdl::VPtr)::SBML.Model
         if trig_math_ptr != C_NULL
             trig_math = parse_math(trig_math_ptr)
         end
-    
+
         event_assignments = EventAssignment[]
         num_event_assignments = ccall(sbml(:Event_getNumEventAssignments), Cuint, (VPtr,), ev)
         for j = 0:(num_event_assignments-1)
@@ -495,6 +495,32 @@ function extract_model(mdl::VPtr)::SBML.Model
         events[evname] = SBML.Event(evname, trig_math, event_assignments)
     end
 
+    # Rules
+    rules = Rule[]
+    num_rules = ccall(sbml(:Model_getNumRules), Cuint, (VPtr,), mdl)
+    for n in 0:(num_rules - 1)
+        rule_ptr = ccall(sbml(:Model_getRule), VPtr, (VPtr, Cuint), mdl, n)
+        type = if ccall(sbml(:Rule_isAlgebraic), Bool, (VPtr,), rule_ptr)
+            AlgebraicRule
+        elseif ccall(sbml(:Rule_isAssignment), Bool, (VPtr,), rule_ptr)
+            AssignmentRule
+        elseif ccall(sbml(:Rule_isRate), Bool, (VPtr,), rule_ptr)
+            RateRule
+        end
+        if type in (AssignmentRule, RateRule)
+            var = ccall(sbml(:Rule_getVariable), Cstring, (VPtr,), rule_ptr)
+        end
+        math_ptr = ccall(sbml(:Rule_getMath), VPtr, (VPtr,), rule_ptr)
+        if math_ptr != C_NULL
+            math = parse_math(math_ptr)
+            rule = if type in (AssignmentRule, RateRule)
+                type(unsafe_string(var), math)
+            else
+                type(math)
+            end
+            push!(rules, rule)
+        end
+    end
 
     return Model(
         parameters,
@@ -502,6 +528,7 @@ function extract_model(mdl::VPtr)::SBML.Model
         compartments,
         species,
         initial_assignments,
+        rules,
         reactions,
         objective,
         gene_products,
