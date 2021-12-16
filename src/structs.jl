@@ -127,7 +127,7 @@ unit names), and objective coefficient (`oc`). Also may contains `notes` and
 # Fields
 $(TYPEDFIELDS)
 """
-struct Reaction
+Base.@kwdef struct Reaction
     reactants::Dict{String,Float64}
     products::Dict{String,Float64}
     kinetic_parameters::Dict{String,Tuple{Float64,String}}
@@ -136,10 +136,8 @@ struct Reaction
     gene_product_association::Maybe{GeneProductAssociation}
     kinetic_math::Maybe{Math}
     reversible::Bool
-    notes::Maybe{String}
-    annotation::Maybe{String}
-    Reaction(rs, prs, pas, l, u, as, km, r, n = nothing, an = nothing) =
-        new(rs, prs, pas, l, u, as, km, r, n, an)
+    notes::Maybe{String} = nothing
+    annotation::Maybe{String} = nothing
 end
 
 """
@@ -273,7 +271,7 @@ objects.
 # Fields
 $(TYPEDFIELDS)
 """
-struct Model
+Base.@kwdef struct Model
     parameters::Dict{String,Tuple{Float64,String}}
     units::Dict{String,Vector{UnitPart}}
     compartments::Dict{String,Compartment}
@@ -285,8 +283,6 @@ struct Model
     gene_products::Dict{String,GeneProduct}
     function_definitions::Dict{String,FunctionDefinition}
     events::Dict{String,Event}
-    notes::Maybe{String}
-    annotation::Maybe{String}
-    Model(p, u, c, s, ia, rl, r, o, g, f, e, n = nothing, a = nothing) =
-        new(p, u, c, s, ia, rl, r, o, g, f, e, n, a)
+    notes::Maybe{String} = nothing
+    annotation::Maybe{String} = nothing
 end
