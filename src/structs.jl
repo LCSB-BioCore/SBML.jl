@@ -12,7 +12,7 @@ Compound units (such as "volt-amperes" and "dozens of yards per ounce") are
 built from multiple `UnitPart`s; see the definition of field `units` in
 [`SBML.Model`](@ref).
 """
-struct UnitPart
+Base.@kwdef struct UnitPart
     kind::String
     exponent::Int
     scale::Int
@@ -105,15 +105,14 @@ SBML Compartment with sizing information.
 # Fields
 $(TYPEDFIELDS)
 """
-struct Compartment
+Base.@kwdef struct Compartment
     name::Maybe{String}
     constant::Maybe{Bool}
     spatial_dimensions::Maybe{Int}
     size::Maybe{Float64}
     units::Maybe{String}
-    notes::Maybe{String}
-    annotation::Maybe{String}
-    Compartment(na, c, sd, s, u, no = nothing, an = nothing) = new(na, c, sd, s, u, no, an)
+    notes::Maybe{String} = nothing
+    annotation::Maybe{String} = nothing
 end
 
 """
@@ -194,7 +193,7 @@ identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 # Fields
 $(TYPEDFIELDS)
 """
-struct Species
+Base.@kwdef struct Species
     name::Maybe{String}
     compartment::String
     boundary_condition::Maybe{Bool}
@@ -203,10 +202,8 @@ struct Species
     initial_amount::Maybe{Tuple{Float64,Maybe{String}}}
     initial_concentration::Maybe{Tuple{Float64,Maybe{String}}}
     only_substance_units::Maybe{Bool}
-    notes::Maybe{String}
-    annotation::Maybe{String}
-    Species(na, co, b, f, ch, ia, ic, osu, no = nothing, a = nothing) =
-        new(na, co, b, f, ch, ia, ic, osu, no, a)
+    notes::Maybe{String} = nothing
+    annotation::Maybe{String} = nothing
 end
 
 """
@@ -217,23 +214,21 @@ Gene product metadata.
 # Fields
 $(TYPEDFIELDS)
 """
-struct GeneProduct
+Base.@kwdef struct GeneProduct
     name::Maybe{String}
     label::Maybe{String}
-    notes::Maybe{String}
-    annotation::Maybe{String}
-    GeneProduct(na, l, no = nothing, a = nothing) = new(na, l, no, a)
+    notes::Maybe{String} = nothing
+    annotation::Maybe{String} = nothing
 end
 
 """
 Custom function definition.
 """
-struct FunctionDefinition
+Base.@kwdef struct FunctionDefinition
     name::Maybe{String}
     body::Maybe{Math}
-    notes::Maybe{String}
-    annotation::Maybe{String}
-    FunctionDefinition(na, b, no = nothing, a = nothing) = new(na, b, no, a)
+    notes::Maybe{String} = nothing
+    annotation::Maybe{String} = nothing
 end
 
 """
@@ -242,9 +237,9 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-struct EventAssignment
+Base.@kwdef struct EventAssignment
     variable::String
-    math::Maybe{Math}
+    math::Maybe{Math} = nothing
 end
 
 """
@@ -253,10 +248,10 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-struct Event
-    name::Maybe{String}
-    trigger::Maybe{Math}
-    event_assignments::Vector{EventAssignment}
+Base.@kwdef struct Event
+    name::Maybe{String} = nothing
+    trigger::Maybe{Math} = nothing
+    event_assignments::Maybe{Vector{EventAssignment}} = nothing
 end
 
 """
