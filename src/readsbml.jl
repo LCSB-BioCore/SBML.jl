@@ -400,17 +400,17 @@ function extract_model(mdl::VPtr)::SBML.Model
         reversible = Bool(ccall(sbml(:Reaction_getReversible), Cint, (VPtr,), re))
 
         reid = get_string(re, :Reaction_getId)
-        reactions[reid] = Reaction(
+        reactions[reid] = Reaction(;
             reactants,
             products,
             kinetic_parameters,
             lower_bound,
             upper_bound,
-            association,
-            math,
+            gene_product_association = association,
+            kinetic_math = math,
             reversible,
-            get_notes(re),
-            get_annotation(re),
+            notes = get_notes(re),
+            annotation = get_annotation(re),
         )
     end
 
@@ -529,7 +529,7 @@ function extract_model(mdl::VPtr)::SBML.Model
         end
     end
 
-    return Model(
+    return Model(;
         parameters,
         units,
         compartments,
@@ -541,7 +541,7 @@ function extract_model(mdl::VPtr)::SBML.Model
         gene_products,
         function_definitions,
         events,
-        get_notes(mdl),
-        get_annotation(mdl),
+        notes = get_notes(mdl),
+        annotation = get_annotation(mdl),
     )
 end
