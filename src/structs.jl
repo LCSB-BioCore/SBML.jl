@@ -323,14 +323,14 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 struct Event
-    name::String
+    name::Maybe{String}
     trigger::Maybe{Math}
-    event_assignments::Maybe{Vector{EventAssignment}}
+    event_assignments::Vector{EventAssignment}
     Event(args...) = new(args...)
     Event(;
         name::String,
         trigger::Maybe{Math} = nothing,
-        event_assignments::Maybe{Vector{EventAssignment}} = nothing,
+        event_assignments::Vector{EventAssignment} = nothing,
     ) = new(name, trigger, event_assignments)
 end
 
