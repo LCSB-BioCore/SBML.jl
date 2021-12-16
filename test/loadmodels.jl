@@ -200,9 +200,8 @@ end
 
 @testset "Initial assignments" begin
     m = readSBML(joinpath(@__DIR__, "data", "00489-sbml-l3v2.xml"))
-    @test m.initial_assignments == Dict(
-        "S1" => SBML.MathApply("*", [SBML.MathVal{Int32}(2), SBML.MathIdent("p1")]),
-    )
+    @test m.initial_assignments ==
+          Dict("S1" => SBML.MathApply("*", [SBML.MathVal{Int32}(2), SBML.MathIdent("p1")]))
 
     m = readSBML(joinpath(@__DIR__, "data", "sbml01289.xml"))
     @test m.initial_assignments == Dict(
@@ -214,25 +213,37 @@ end
 @testset "Rules" begin
     m = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
     @test m.rules == [
-        SBML.AssignmentRule("s", SBML.MathApply("/", [
-            SBML.MathApply("-", [
-                SBML.MathIdent("ModelValue_6"),
-                SBML.MathIdent("P")
-            ]),
-            SBML.MathIdent("N")
-        ]))
+        SBML.AssignmentRule(
+            "s",
+            SBML.MathApply(
+                "/",
+                [
+                    SBML.MathApply(
+                        "-",
+                        [SBML.MathIdent("ModelValue_6"), SBML.MathIdent("P")],
+                    ),
+                    SBML.MathIdent("N"),
+                ],
+            ),
+        ),
     ]
 
     m = readSBML(joinpath(@__DIR__, "data", "00983-sbml-l3v2.xml"))
     @test m.rules == [
         SBML.RateRule("x", SBML.MathVal{Int32}(1)),
-        SBML.AlgebraicRule(SBML.MathApply("+", [
-            SBML.MathApply("*", [SBML.MathVal{Int32}(-1), SBML.MathIdent("temp")]),
-            SBML.MathApply("/", [SBML.MathTime("time"), SBML.MathVal{Int32}(2)])
-        ])),
-        SBML.AssignmentRule("y", SBML.MathApply("delay", [
-            SBML.MathIdent("x"), SBML.MathIdent("temp")
-        ])),
+        SBML.AlgebraicRule(
+            SBML.MathApply(
+                "+",
+                [
+                    SBML.MathApply("*", [SBML.MathVal{Int32}(-1), SBML.MathIdent("temp")]),
+                    SBML.MathApply("/", [SBML.MathTime("time"), SBML.MathVal{Int32}(2)]),
+                ],
+            ),
+        ),
+        SBML.AssignmentRule(
+            "y",
+            SBML.MathApply("delay", [SBML.MathIdent("x"), SBML.MathIdent("temp")]),
+        ),
     ]
 end
 

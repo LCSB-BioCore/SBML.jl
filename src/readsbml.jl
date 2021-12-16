@@ -458,7 +458,7 @@ function extract_model(mdl::VPtr)::SBML.Model
 
     initial_assignments = Dict{String,Math}()
     num_ias = ccall(sbml(:Model_getNumInitialAssignments), Cuint, (VPtr,), mdl)
-    for n in 0:(num_ias - 1)
+    for n = 0:(num_ias-1)
         ia = ccall(sbml(:Model_getInitialAssignment), VPtr, (VPtr, Cuint), mdl, n)
         sym = ccall(sbml(:InitialAssignment_getSymbol), Cstring, (VPtr,), ia)
         math_ptr = ccall(sbml(:InitialAssignment_getMath), VPtr, (VPtr,), ia)
@@ -480,7 +480,8 @@ function extract_model(mdl::VPtr)::SBML.Model
         end
 
         event_assignments = EventAssignment[]
-        num_event_assignments = ccall(sbml(:Event_getNumEventAssignments), Cuint, (VPtr,), ev)
+        num_event_assignments =
+            ccall(sbml(:Event_getNumEventAssignments), Cuint, (VPtr,), ev)
         for j = 0:(num_event_assignments-1)
             eva = ccall(sbml(:Event_getEventAssignment), VPtr, (VPtr, Cuint), ev, j)
             eva_var = ccall(sbml(:EventAssignment_getVariable), Cstring, (VPtr,), eva)
@@ -498,7 +499,7 @@ function extract_model(mdl::VPtr)::SBML.Model
     # Rules
     rules = Rule[]
     num_rules = ccall(sbml(:Model_getNumRules), Cuint, (VPtr,), mdl)
-    for n in 0:(num_rules - 1)
+    for n = 0:(num_rules-1)
         rule_ptr = ccall(sbml(:Model_getRule), VPtr, (VPtr, Cuint), mdl, n)
         type = if ccall(sbml(:Rule_isAlgebraic), Bool, (VPtr,), rule_ptr)
             AlgebraicRule

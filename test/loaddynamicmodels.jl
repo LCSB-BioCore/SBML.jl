@@ -2,7 +2,7 @@ compartment = SBML.MathIdent("compartment")
 k1 = SBML.MathIdent("k1")
 k2 = SBML.MathIdent("k2")
 reaction1_k = SBML.MathIdent("reaction1_k")
-S1= SBML.MathIdent("S1")
+S1 = SBML.MathIdent("S1")
 
 sbmlfiles = [
     # sbml_test_suite case 00001
@@ -13,17 +13,17 @@ sbmlfiles = [
         x -> nothing,
         1,
         ("reaction1", SBML.MathApply("*", [SBML.MathApply("*", [compartment, k1]), S1])),
-        ("S1", 0.00015)
+        ("S1", 0.00015),
     ),
     # case 00001 in older level and version
     (
         joinpath(@__DIR__, "data", "00001-sbml-l2v1.xml"),
         "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00001/00001-sbml-l2v1.xml",
         "71a145c58b08e475d76bdec644589b2a55b5c5c2fee218274c91677c0f30b508",
-        SBML.set_level_and_version(3,2),
+        SBML.set_level_and_version(3, 2),
         1,
         ("reaction1", SBML.MathApply("*", [SBML.MathApply("*", [compartment, k1]), S1])),
-        ("S1", 0.00015)
+        ("S1", 0.00015),
     ),
     # case 00057 with localParameters
     (
@@ -32,8 +32,11 @@ sbmlfiles = [
         "3e84e19cebbb79eea879847f541b1d22db6eb239f1f070ef4609f04c77688659",
         SBML.libsbml_convert("promoteLocalParameters"),
         2,
-        ("reaction1", SBML.MathApply("*", [SBML.MathApply("*", [compartment, reaction1_k]), S1])),
-        ("S1", 0.0003)
+        (
+            "reaction1",
+            SBML.MathApply("*", [SBML.MathApply("*", [compartment, reaction1_k]), S1]),
+        ),
+        ("S1", 0.0003),
     ),
     # case 00025 with functionDefinition
     (
@@ -43,7 +46,7 @@ sbmlfiles = [
         SBML.libsbml_convert("expandFunctionDefinitions"),
         1,
         ("reaction1", SBML.MathApply("*", [compartment, SBML.MathApply("*", [k1, S1])])),
-        ("S1", 0.0015)
+        ("S1", 0.0015),
     ),
     # case 00036 with initialAssignment
     (
@@ -53,12 +56,13 @@ sbmlfiles = [
         SBML.libsbml_convert("expandInitialAssignments"),
         2,
         ("reaction1", SBML.MathApply("*", [SBML.MathApply("*", [compartment, k2]), S1])),
-        ("S1", 0.01125)
+        ("S1", 0.01125),
     ),
 ]
 
 @testset "Loading of models from sbml_test_suite" begin
-    for (sbmlfile, url, hash, converter, expected_par, expected_rxn, expected_u0) in sbmlfiles
+    for (sbmlfile, url, hash, converter, expected_par, expected_rxn, expected_u0) in
+        sbmlfiles
         if !isfile(sbmlfile)
             Downloads.download(url, sbmlfile)
         end
@@ -69,7 +73,7 @@ sbmlfiles = [
         end
 
         @testset "Loading of $sbmlfile" begin
-            mdl = readSBML(sbmlfile,converter)
+            mdl = readSBML(sbmlfile, converter)
 
             @test typeof(mdl) == Model
 
