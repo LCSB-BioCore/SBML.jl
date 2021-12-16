@@ -17,6 +17,9 @@ struct UnitPart
     exponent::Int
     scale::Int
     multiplier::Float64
+    UnitPart(args...) = new(args...)
+    UnitPart(; kind, exponent = 1, scale = 1, multiplier = 1.0) =
+        new(kind, exponent, scale, multiplier)
 end
 
 
@@ -113,7 +116,16 @@ struct Compartment
     units::Maybe{String}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Compartment(na, c, sd, s, u, no = nothing, an = nothing) = new(na, c, sd, s, u, no, an)
+    Compartment(args...) = new(args...)
+    Compartment(;
+        name = nothing,
+        constant = nothing,
+        spatial_dimensions = nothing,
+        size = nothing,
+        units = nothing,
+        notes = nothing,
+        annotations = nothing,
+    ) = new(name, constant, spatial_dimensions, size, units, notes, annotation)
 end
 
 """
@@ -138,8 +150,31 @@ struct Reaction
     reversible::Bool
     notes::Maybe{String}
     annotation::Maybe{String}
-    Reaction(rs, prs, pas, l, u, as, km, r, n = nothing, an = nothing) =
-        new(rs, prs, pas, l, u, as, km, r, n, an)
+
+    Reaction(args...) = new(args...)
+    Reaction(;
+        reactants = Dict{String,Float64}(),
+        products = Dict{String,Float64}(),
+        kinetic_parameters = Dict{String,Tuple{Float64,String}}(),
+        lower_bound = nothing,
+        upper_bound = nothing,
+        gene_product_association = nothing,
+        kinetic_math = nothing,
+        reversible = false,
+        notes = nothing,
+        annotation = nothing,
+    ) = new(
+        reactants,
+        products,
+        kinetic_parameters,
+        lower_bound,
+        upper_bound,
+        gene_product_association,
+        kinetic_math,
+        reversible,
+        notes,
+        annotation,
+    )
 end
 
 """
@@ -207,8 +242,30 @@ struct Species
     only_substance_units::Maybe{Bool}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Species(na, co, b, f, ch, ia, ic, osu, no = nothing, a = nothing) =
-        new(na, co, b, f, ch, ia, ic, osu, no, a)
+    Species(args...) = new(args...)
+    Species(;
+        name = nothing,
+        compartment,
+        boundary_condition = nothing,
+        formula = nothing,
+        charge = nothing,
+        initial_amount = nothing,
+        initial_concentration = nothing,
+        only_substance_units = nothing,
+        notes = nothing,
+        annotation = nothing,
+    ) = new(
+        name,
+        compartment,
+        boundary_condition,
+        formula,
+        charge,
+        initial_amount,
+        initial_concentration,
+        only_substance_units,
+        notes,
+        annotation,
+    )
 end
 
 """
@@ -224,7 +281,9 @@ struct GeneProduct
     label::Maybe{String}
     notes::Maybe{String}
     annotation::Maybe{String}
-    GeneProduct(na, l, no = nothing, a = nothing) = new(na, l, no, a)
+    GeneProduct(args...) = new(args...)
+    GeneProduct(; name = nothing, label = nothing, notes = nothing, annotation = nothing) =
+        new(name, label, notes, annotation)
 end
 
 """
@@ -235,7 +294,13 @@ struct FunctionDefinition
     body::Maybe{Math}
     notes::Maybe{String}
     annotation::Maybe{String}
-    FunctionDefinition(na, b, no = nothing, a = nothing) = new(na, b, no, a)
+    FunctionDefinition(args...) = new(args...)
+    FunctionDefinition(;
+        name = nothing,
+        body = nothing,
+        notes = nothing,
+        annotation = nothing,
+    ) = new(name, body, notes, annotation)
 end
 
 """
@@ -247,6 +312,8 @@ $(TYPEDFIELDS)
 struct EventAssignment
     variable::String
     math::Maybe{Math}
+    EventAssignment(args...) = new(args...)
+    EventAssignment(; variable::String, math = nothing) = new(variable, math)
 end
 
 """
@@ -259,6 +326,12 @@ struct Event
     name::String
     trigger::Maybe{Math}
     event_assignments::Maybe{Vector{EventAssignment}}
+    Event(args...) = new(args...)
+    Event(;
+        name::String,
+        trigger::Maybe{Math} = nothing,
+        event_assignments::Maybe{Vector{EventAssignment}} = nothing,
+    ) = new(name, trigger, event_assignments)
 end
 
 """
@@ -287,6 +360,35 @@ struct Model
     events::Dict{String,Event}
     notes::Maybe{String}
     annotation::Maybe{String}
-    Model(p, u, c, s, ia, rl, r, o, g, f, e, n = nothing, a = nothing) =
-        new(p, u, c, s, ia, rl, r, o, g, f, e, n, a)
+
+    Model(args...) = new(args...)
+    Model(;
+        parameters = Dict{String,Tuple{Float64,String}}(),
+        units = Dict{String,Vector{UnitPart}}(),
+        compartments = Dict{String,Compartment}(),
+        species = Dict{String,Species}(),
+        initial_assignments = Dict{String,Math}(),
+        rules = Vector{Rule}(),
+        reactions = Dict{String,Reaction}(),
+        objective = Dict{String,Float64}(),
+        gene_products = Dict{String,GeneProduct}(),
+        function_definitions = Dict{String,FunctionDefinition}(),
+        events = Dict{String,Event}(),
+        notes = nothing,
+        annotation = nothing,
+    ) = new(
+        parameters,
+        units,
+        compartments,
+        species,
+        initial_assignments,
+        rules,
+        reactions,
+        objective,
+        gene_products,
+        function_definitions,
+        events,
+        notes,
+        annotation,
+    )
 end
