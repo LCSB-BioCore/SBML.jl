@@ -256,9 +256,9 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 struct Event
-    name::String
+    name::Maybe{String}
     trigger::Maybe{Math}
-    event_assignments::Maybe{Vector{EventAssignment}}
+    event_assignments::Vector{EventAssignment}
 end
 
 """
