@@ -23,5 +23,23 @@
         </kineticLaw>
       </reaction>
     </listOfReactions>
+    <!-- From example in SBML Level 3 Version 2 specification, section 4.10.4, page 67 -->
+    <listOfConstraints>
+      <constraint>
+	<math xmlns="http://www.w3.org/1998/Math/MathML"
+	      xmlns:sbml="http://www.sbml.org/sbml/level3/version2/core">
+	  <apply>
+	    <and/>
+	    <apply> <lt/> <cn sbml:units="mole"> 1 </cn> <ci> S1 </ci>
+	    </apply>
+	    <apply> <lt/> <ci> S1 </ci> <cn sbml:units="mole"> 100 </cn>
+	    </apply>
+	  </apply>
+	</math>
+	<message>
+	  <p xmlns="http://www.w3.org/1999/xhtml"> Species S1 is out of range. </p>
+	</message>
+      </constraint>
+    </listOfConstraints>
   </model>
 </sbml>
