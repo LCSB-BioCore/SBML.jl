@@ -187,6 +187,19 @@ end
 """
 $(TYPEDEF)
 
+SBML constraint.
+
+# Fields
+$(TYPEDFIELDS)
+"""
+struct Constraint
+    math::Math
+    message::String
+end
+
+"""
+$(TYPEDEF)
+
 Species metadata -- contains a human-readable `name`, a `compartment`
 identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 
@@ -273,6 +286,7 @@ Base.@kwdef struct Model
     species::Dict{String,Species}
     initial_assignments::Dict{String,Math}
     rules::Vector{Rule}
+    constraints::Vector{Constraint}
     reactions::Dict{String,Reaction}
     objective::Dict{String,Float64}
     gene_products::Dict{String,GeneProduct}
