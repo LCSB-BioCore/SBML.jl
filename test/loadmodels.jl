@@ -260,7 +260,7 @@ end
             SBML.MathVal{Float64}(100.0)
         ])
     ]),
-        "<message>\n  <p xmlns=\"http://www.w3.org/1999/xhtml\"> Species S1 is out of range. </p>\n</message>",
+        " Species S1 is out of range. ",
     )
 end
 

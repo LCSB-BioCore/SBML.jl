@@ -71,6 +71,20 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
     end
 end
 
+function get_string_from_xmlnode(xmlnode::VPtr)::String
+    if ccall(sbml(:XMLNode_isText), Bool, (VPtr,), xmlnode)
+        str_ptr = ccall(sbml(:XMLNode_getCharacters), Cstring, (VPtr,), xmlnode)
+        str_ptr == C_NULL ? "" : unsafe_string(str_ptr)
+    else
+        children_num = ccall(sbml(:XMLNode_getNumChildren), Cuint, (VPtr,), xmlnode)
+        join(
+            (get_string_from_xmlnode(ccall(sbml(:XMLNode_getChild), VPtr, (VPtr, Cint), xmlnode, n))
+             for n in 0:(children_num - 1)),
+            "\n"
+        )
+    end
+end
+
 function _readSBML(
     symbol::Symbol,
     fn::String,
@@ -534,9 +548,9 @@ function extract_model(mdl::VPtr)::SBML.Model
     num_constraints = ccall(sbml(:Model_getNumConstraints), Cuint, (VPtr,), mdl)
     for n = 0:(num_constraints-1)
         constraint_ptr = ccall(sbml(:Model_getConstraint), VPtr, (VPtr, Cuint), mdl, n)
+        xml_ptr = ccall(sbml(:Constraint_getMessage), VPtr, (VPtr,), constraint_ptr)
+        message = get_string_from_xmlnode(xml_ptr)
         math_ptr = ccall(sbml(:Constraint_getMath), VPtr, (VPtr,), constraint_ptr)
-        message_ptr = ccall(sbml(:Constraint_getMessageString), Cstring, (VPtr,), constraint_ptr)
-        message = message_ptr != C_NULL ? unsafe_string(message_ptr) : ""
         if math_ptr != C_NULL
             math = parse_math(math_ptr)
             constraint = Constraint(math, message)
