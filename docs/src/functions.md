@@ -1,7 +1,7 @@
 
 # Data types
 
-## Helpers
+## Helper types
 
 ```@autodocs
 Modules = [SBML]
