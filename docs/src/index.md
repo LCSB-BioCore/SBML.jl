@@ -4,8 +4,14 @@
 This package provides a straightforward way to load model- and
 simulation-relevant information from SBML files.
 
-The library provides a single function [`readSBML`](@ref) to load a
-[`SBML.Model`](@ref):
+The representation does not follow the XML structure within SBML, but instead
+translates the contents into native Julia structs. This makes the models much
+easier to work with from Julia,
+
+## Quick-start
+
+The "main" function of the library is [`readSBML`](@ref), which does exactly
+what it says: loads a SBML model from disk into the [`SBML.Model`](@ref):
 
 ```julia
 julia> using SBML
@@ -18,8 +24,9 @@ julia> mdl.compartments
  "Cytosol"
 ```
 
-There are several functions to help you with using the data in the usual
-COBRA-style workflows, such as [`stoichiometry_matrix`](@ref):
+There are several functions that help you with using the data in the usual
+COBRA-style workflows, such as [`stoichiometry_matrix`](@ref). Others are
+detailed in the relevant sections of the [function reference](functions.md).
 
 ```julia
 julia> metabolites, reactions, S = stoichiometry_matrix(mdl)
