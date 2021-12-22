@@ -132,7 +132,7 @@ function readSBML(
     sbml_conversion = document -> nothing;
     report_severities = ["Fatal", "Error"],
 )::SBML.Model
-    !isfile(fn) && error("$fn is not a file")
+    isfile(fn) || throw(AssertionError("$(fn) is not a file"))
     _readSBML(:readSBML, fn, sbml_conversion, report_severities)
 end
 """
