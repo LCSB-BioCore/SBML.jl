@@ -1,4 +1,4 @@
-name: IntegrationTest
+name: DownstreamTest
 on:
   push:
     branches: [master]
@@ -31,7 +31,7 @@ jobs:
         with:
           repository: ${{ matrix.package.user }}/${{ matrix.package.repo }}
           path: downstream
-      - name: Load this and run the downstream tests
+      - name: Load the tested version of SBML package and run the downstream tests
         shell: julia --color=yes --project=downstream {0}
         run: |
           using Pkg
