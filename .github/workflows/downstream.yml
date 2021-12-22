@@ -18,6 +18,7 @@ jobs:
         os: [ubuntu-latest]
         package:
           - {user: SciML, repo: SBMLToolkit.jl, group: All}
+          - {user: LCSB-BioCore, repo: COBREXA.jl, group: All}
           
     steps:
       - uses: actions/checkout@v2
