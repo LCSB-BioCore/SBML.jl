@@ -18,7 +18,7 @@ end
 
     @test typeof(mdl) == Model
 
-    @test_logs (:error, "SBML reported error: File unreadable.") @test_throws AssertionError readSBML(
+    @test_throws AssertionError readSBML(
         sbmlfile * ".does.not.really.exist",
     )
 
