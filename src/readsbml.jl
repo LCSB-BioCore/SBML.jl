@@ -141,12 +141,14 @@ m = readSBML("my_model.xml", doc -> begin
 end)
 ```
 """
-readSBML(
+function readSBML(
     fn::String,
     sbml_conversion = document -> nothing;
     report_severities = ["Fatal", "Error"],
-)::SBML.Model = _readSBML(:readSBML, fn, sbml_conversion, report_severities)
-
+)::SBML.Model
+    isfile(fn) || throw(AssertionError("$(fn) is not a file"))
+    _readSBML(:readSBML, fn, sbml_conversion, report_severities)
+end
 """
     readSBML(
         str::String,
