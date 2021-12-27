@@ -250,16 +250,13 @@ end
 @testset "Constraints" begin
     m = readSBML(joinpath(@__DIR__, "data", "custom.xml"))
     @test only(m.constraints) == SBML.Constraint(
-    SBML.MathApply("and", [
-        SBML.MathApply("lt", [
-            SBML.MathVal{Float64}(1.0),
-            SBML.MathIdent("S1")
-        ]),
-        SBML.MathApply("lt", [
-            SBML.MathIdent("S1"),
-            SBML.MathVal{Float64}(100.0)
-        ])
-    ]),
+        SBML.MathApply(
+            "and",
+            [
+                SBML.MathApply("lt", [SBML.MathVal{Float64}(1.0), SBML.MathIdent("S1")]),
+                SBML.MathApply("lt", [SBML.MathIdent("S1"), SBML.MathVal{Float64}(100.0)]),
+            ],
+        ),
         " Species S1 is out of range. ",
     )
 end

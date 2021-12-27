@@ -10,10 +10,7 @@ makedocs(
     sitename = "SBML.jl",
     authors = "The developers of SBML.jl",
     linkcheck = !("skiplinks" in ARGS),
-    pages = [
-        "Home" => "index.md",
-        "Reference" => "functions.md",
-    ],
+    pages = ["Home" => "index.md", "Reference" => "functions.md"],
 )
 
 deploydocs(
