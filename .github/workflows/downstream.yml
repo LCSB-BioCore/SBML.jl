@@ -9,6 +9,7 @@ jobs:
   test:
     name: ${{ matrix.package.repo }}/${{ matrix.package.group }}
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     env:
       GROUP: ${{ matrix.package.group }}
     strategy:
