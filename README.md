@@ -30,7 +30,7 @@ European Union's Horizon 2020 Programme under PerMedCoE project
 Zuckerberg Initiative ([chanzuckerberg.com](https://chanzuckerberg.com/)) under
 grant 2020-218578 (5022).
 
-<img src="docs/src/assets/unilu.svg" alt="Uni.lu logo" height="64px">   <img src="docs/src/assets/lcsb.svg" alt="LCSB logo" height="64px">   <img src="docs/src/assets/permedcoe.svg" alt="PerMedCoE logo" height="64px">   <img src="docs/src/assets/ucl.svg" alt="UCL logo" height="64px">
+<img src="docs/src/assets/unilu.svg" alt="Uni.lu logo" height="64px">   <img src="docs/src/assets/lcsb.svg" alt="LCSB logo" height="64px">   <img src="docs/src/assets/permedcoe.svg" alt="PerMedCoE logo" height="64px">   <img src="docs/src/assets/ucl.svg" alt="UCL logo" height="64px">
 
 ## Installation
 
