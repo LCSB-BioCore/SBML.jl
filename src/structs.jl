@@ -106,11 +106,11 @@ SBML Compartment with sizing information.
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Compartment
-    name::Maybe{String}
-    constant::Maybe{Bool}
-    spatial_dimensions::Maybe{Int}
-    size::Maybe{Float64}
-    units::Maybe{String}
+    name::Maybe{String} = nothing
+    constant::Maybe{Bool} = nothing
+    spatial_dimensions::Maybe{Int} = nothing
+    size::Maybe{Float64} = nothing
+    units::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
@@ -127,13 +127,13 @@ unit names), and objective coefficient (`oc`). Also may contains `notes` and
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Reaction
-    reactants::Dict{String,Float64}
-    products::Dict{String,Float64}
-    kinetic_parameters::Dict{String,Tuple{Float64,String}}
-    lower_bound::Maybe{String}
-    upper_bound::Maybe{String}
-    gene_product_association::Maybe{GeneProductAssociation}
-    kinetic_math::Maybe{Math}
+    reactants::Dict{String,Float64} = Dict()
+    products::Dict{String,Float64} = Dict()
+    kinetic_parameters::Dict{String,Tuple{Float64,String}} = Dict()
+    lower_bound::Maybe{String} = nothing
+    upper_bound::Maybe{String} = nothing
+    gene_product_association::Maybe{GeneProductAssociation} = nothing
+    kinetic_math::Maybe{Math} = nothing
     reversible::Bool
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
@@ -207,14 +207,14 @@ identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Species
-    name::Maybe{String}
+    name::Maybe{String} = nothing
     compartment::String
-    boundary_condition::Maybe{Bool}
-    formula::Maybe{String}
-    charge::Maybe{Int}
-    initial_amount::Maybe{Tuple{Float64,Maybe{String}}}
-    initial_concentration::Maybe{Tuple{Float64,Maybe{String}}}
-    only_substance_units::Maybe{Bool}
+    boundary_condition::Maybe{Bool} = nothing
+    formula::Maybe{String} = nothing
+    charge::Maybe{Int} = nothing
+    initial_amount::Maybe{Tuple{Float64,Maybe{String}}} = nothing
+    initial_concentration::Maybe{Tuple{Float64,Maybe{String}}} = nothing
+    only_substance_units::Maybe{Bool} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
@@ -228,8 +228,8 @@ Gene product metadata.
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct GeneProduct
-    name::Maybe{String}
-    label::Maybe{String}
+    name::Maybe{String} = nothing
+    label::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
@@ -238,8 +238,8 @@ end
 Custom function definition.
 """
 Base.@kwdef struct FunctionDefinition
-    name::Maybe{String}
-    body::Maybe{Math}
+    name::Maybe{String} = nothing
+    body::Maybe{Math} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
@@ -280,18 +280,18 @@ objects.
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Model
-    parameters::Dict{String,Tuple{Float64,String}}
-    units::Dict{String,Vector{UnitPart}}
-    compartments::Dict{String,Compartment}
-    species::Dict{String,Species}
-    initial_assignments::Dict{String,Math}
-    rules::Vector{Rule}
-    constraints::Vector{Constraint}
-    reactions::Dict{String,Reaction}
-    objective::Dict{String,Float64}
-    gene_products::Dict{String,GeneProduct}
-    function_definitions::Dict{String,FunctionDefinition}
-    events::Dict{String,Event}
+    parameters::Dict{String,Tuple{Float64,String}} = Dict()
+    units::Dict{String,Vector{UnitPart}} = Dict()
+    compartments::Dict{String,Compartment} = Dict()
+    species::Dict{String,Species} = Dict()
+    initial_assignments::Dict{String,Math} = Dict()
+    rules::Vector{Rule} = Rule[]
+    constraints::Vector{Constraint} = Constraint[]
+    reactions::Dict{String,Reaction} = Dict()
+    objective::Dict{String,Float64} = Dict()
+    gene_products::Dict{String,GeneProduct} = Dict()
+    function_definitions::Dict{String,FunctionDefinition} = Dict()
+    events::Dict{String,Event} = Dict()
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end

@@ -78,9 +78,12 @@ function get_string_from_xmlnode(xmlnode::VPtr)::String
     else
         children_num = ccall(sbml(:XMLNode_getNumChildren), Cuint, (VPtr,), xmlnode)
         join(
-            (get_string_from_xmlnode(ccall(sbml(:XMLNode_getChild), VPtr, (VPtr, Cint), xmlnode, n))
-             for n in 0:(children_num - 1)),
-            "\n"
+            (
+                get_string_from_xmlnode(
+                    ccall(sbml(:XMLNode_getChild), VPtr, (VPtr, Cint), xmlnode, n),
+                ) for n = 0:(children_num-1)
+            ),
+            "\n",
         )
     end
 end

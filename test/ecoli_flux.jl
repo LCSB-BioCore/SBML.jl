@@ -18,9 +18,7 @@ end
 
     @test typeof(mdl) == Model
 
-    @test_throws AssertionError readSBML(
-        sbmlfile * ".does.not.really.exist",
-    )
+    @test_throws AssertionError readSBML(sbmlfile * ".does.not.really.exist")
 
     @test SBML.unitful(mdl.units["mmol_per_gDW_per_hr"]) ≈
           3.6001008028224795 * u"mol * g^-1 * s^-1"
