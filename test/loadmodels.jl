@@ -107,6 +107,15 @@ sbmlfiles = [
         0,
         Float64[],
     ),
+    # has all kinds of default model units
+    (
+        joinpath(@__DIR__, "data", "00054-sbml-l3v2.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00054/00054-sbml-l3v2.xml",
+        "987038ec9bb847123c41136928462d7ed05ad697cc414cab09fcce9f5bbc8e73",
+        3,
+        2,
+        fill(Inf,2),
+    ),
 ]
 
 @testset "Loading of models from various sources - $(reader)" for reader in (
@@ -327,4 +336,14 @@ end
 @testset "events" begin
     m = readSBML(joinpath(@__DIR__, "data", "00026-sbml-l3v2.xml"))
     @test length(m.events) == 1
+end
+
+@testset "model units" begin
+    m = readSBML(joinpath(@__DIR__, "data", "00054-sbml-l3v2.xml"))
+    @test m.area_units == "area"
+    @test m.extent_units == "substance"
+    @test m.length_units == "metre"
+    @test m.substance_units == "substance"
+    @test m.time_units == "second"
+    @test m.volume_units == "volume"
 end
