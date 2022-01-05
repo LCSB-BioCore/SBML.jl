@@ -576,6 +576,12 @@ function extract_model(mdl::VPtr)::SBML.Model
         gene_products,
         function_definitions,
         events,
+        area_units = get_optional_string(mdl, :Model_getAreaUnits),
+        extent_units = get_optional_string(mdl, :Model_getExtentUnits),
+        length_units = get_optional_string(mdl, :Model_getLengthUnits),
+        substance_units = get_optional_string(mdl, :Model_getSubstanceUnits),
+        time_units = get_optional_string(mdl, :Model_getTimeUnits),
+        volume_units = get_optional_string(mdl, :Model_getVolumeUnits),
         notes = get_notes(mdl),
         annotation = get_annotation(mdl),
     )
