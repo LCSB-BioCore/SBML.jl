@@ -292,6 +292,9 @@ Base.@kwdef struct Model
     gene_products::Dict{String,GeneProduct} = Dict()
     function_definitions::Dict{String,FunctionDefinition} = Dict()
     events::Dict{String,Event} = Dict()
+    name::Maybe{String} = nothing
+    id::Maybe{String} = nothing
+    conversion_factor::Maybe{String} = nothing
     area_units::Maybe{String} = nothing
     extent_units::Maybe{String} = nothing
     length_units::Maybe{String} = nothing
