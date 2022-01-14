@@ -116,6 +116,15 @@ sbmlfiles = [
         2,
         fill(Inf,2),
     ),
+    # has conversionFactor model attribute
+    (
+        joinpath(@__DIR__, "data", "00975-sbml-l3v2.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/release/cases/semantic/00975/00975-sbml-l3v2.xml",
+        "e32c12b7bebfa8f146b8860cd8b82d5cad326c96c6a0d8ceb191591ac4e2f5ac",
+        2,
+        3,
+        fill(Inf,3),
+    ),
 ]
 
 @testset "Loading of models from various sources - $(reader)" for reader in (
@@ -338,12 +347,26 @@ end
     @test length(m.events) == 1
 end
 
-@testset "model units" begin
+@testset "model attributes" begin
     m = readSBML(joinpath(@__DIR__, "data", "00054-sbml-l3v2.xml"))
+    @test m.name == "case00054"
+    @test m.id == "case00054"
+    @test isnothing(m.conversion_factor)
     @test m.area_units == "area"
     @test m.extent_units == "substance"
     @test m.length_units == "metre"
     @test m.substance_units == "substance"
     @test m.time_units == "second"
     @test m.volume_units == "volume"
+
+    m = readSBML(joinpath(@__DIR__, "data", "00975-sbml-l3v2.xml"))
+    @test m.name == "case00975"
+    @test m.id == "case00975"
+    @test m.conversion_factor == "modelconv"
+    @test isnothing(m.area_units)
+    @test isnothing(m.extent_units)
+    @test isnothing(m.length_units)
+    @test isnothing(m.substance_units)
+    @test isnothing(m.time_units)
+    @test isnothing(m.volume_units)
 end
