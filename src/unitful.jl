@@ -68,7 +68,13 @@ unitful(u::Vector{UnitPart}) = prod(unitful.(u))
 Computes a properly unitful value from a value-unit pair stored in the model
 `m`.
 """
-unitful(m::Model, val::Tuple{Float64,String}) = unitful(m.units[val[2]]) * val[1]
+function unitful(m::Model, val::Tuple{Float64,String})
+    if haskey(m.units, val[2])
+        unitful(m.units[val[2]]) * val[1]
+    else 
+        UNITFUL_KIND_STRING[val[2]]
+    end
+end
 
 """
     unitful(m::Model, val::Tuple{Float64, String}, default_unit::Number)

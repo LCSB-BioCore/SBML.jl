@@ -114,7 +114,7 @@ sbmlfiles = [
         "987038ec9bb847123c41136928462d7ed05ad697cc414cab09fcce9f5bbc8e73",
         3,
         2,
-        fill(Inf,2),
+        fill(Inf, 2),
     ),
     # has conversionFactor model attribute
     (
@@ -123,7 +123,7 @@ sbmlfiles = [
         "e32c12b7bebfa8f146b8860cd8b82d5cad326c96c6a0d8ceb191591ac4e2f5ac",
         2,
         3,
-        fill(Inf,3),
+        fill(Inf, 3),
     ),
 ]
 
@@ -192,6 +192,9 @@ end
     m = readSBML(joinpath(@__DIR__, "data", "custom.xml"))
     @test SBML.unitful(m.units["non_existent"]) == 0.00314
     @test SBML.unitful(m.units["no_dimensions"]) == 20.0
+
+    m = readSBML(joinpath(@__DIR__, "data", "base_units.xml"))
+    !haskey(m.units, "mole") && (SBML.unitful(m, (1., "mole")) == 1 * u"mol")
 end
 
 @testset "Initial amounts and concentrations" begin
