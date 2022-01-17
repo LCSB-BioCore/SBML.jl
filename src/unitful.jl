@@ -72,7 +72,7 @@ function unitful(m::Model, val::Tuple{Float64,String})
     if haskey(m.units, val[2])
         unitful(m.units[val[2]]) * val[1]
     else 
-        UNITFUL_KIND_STRING[val[2]]
+        UNITFUL_KIND_STRING[val[2]] * val[1]
     end
 end
 
