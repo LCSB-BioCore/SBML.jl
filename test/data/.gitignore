@@ -1,3 +1,4 @@
 # Input files needed when running the tests will be downloaded here
 /*.xml
 !/custom.xml
+!/base_units.xml
