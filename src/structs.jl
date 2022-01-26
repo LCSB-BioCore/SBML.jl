@@ -100,6 +100,20 @@ end
 """
 $(TYPEDEF)
 
+# Fields
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct Parameter
+    # id::String
+    name::Maybe{String} = nothing
+    value::Maybe{Float64} = nothing
+    units::Maybe{String} = nothing
+    constant::Bool
+end
+
+"""
+$(TYPEDEF)
+
 SBML Compartment with sizing information.
 
 # Fields
@@ -129,7 +143,7 @@ $(TYPEDFIELDS)
 Base.@kwdef struct Reaction
     reactants::Dict{String,Float64} = Dict()
     products::Dict{String,Float64} = Dict()
-    kinetic_parameters::Dict{String,Tuple{Float64,String}} = Dict()
+    kinetic_parameters::Dict{String,Parameter} = Dict()
     lower_bound::Maybe{String} = nothing
     upper_bound::Maybe{String} = nothing
     gene_product_association::Maybe{GeneProductAssociation} = nothing
@@ -280,7 +294,7 @@ objects.
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Model
-    parameters::Dict{String,Tuple{Float64,String}} = Dict()
+    parameters::Dict{String,Parameter} = Dict()
     units::Dict{String,Vector{UnitPart}} = Dict()
     compartments::Dict{String,Compartment} = Dict()
     species::Dict{String,Species} = Dict()

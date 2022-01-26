@@ -147,7 +147,7 @@ end)
 function readSBML(
     fn::String,
     sbml_conversion = document -> nothing;
-    report_severities = ["Fatal", "Error"],
+    report_severities = ["Fatal", "Error"]
 )::SBML.Model
     isfile(fn) || throw(AssertionError("$(fn) is not a file"))
     _readSBML(:readSBML, fn, sbml_conversion, report_severities)
@@ -167,7 +167,7 @@ used to read from a file instead of a string.
 readSBMLFromString(
     str::AbstractString,
     sbml_conversion = document -> nothing;
-    report_severities = ["Fatal", "Error"],
+    report_severities = ["Fatal", "Error"]
 )::SBML.Model =
     _readSBML(:readSBMLFromString, String(str), sbml_conversion, report_severities)
 
@@ -203,10 +203,12 @@ function get_association(x::VPtr)::GeneProductAssociation
     end
 end
 
-extract_parameter(p::VPtr)::Pair{String,Tuple{Float64,String}} =
-    get_string(p, :Parameter_getId) => (
-        ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
-        mayfirst(get_optional_string(p, :Parameter_getUnits), ""),
+extract_parameter(p::VPtr)::Pair{String, Parameter} =
+    get_string(p, :Parameter_getId) => Parameter(
+        name = get_optional_string(p, :Parameter_getName),
+        value = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
+        units = get_optional_string(p, :Parameter_getUnits), 
+        constant = get_optional_bool(p, :Parameter_isSetConstant, :Parameter_getConstant),
     )
 
 """"
@@ -220,7 +222,7 @@ function extract_model(mdl::VPtr)::SBML.Model
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
     # get the parameters
-    parameters = Dict{String,Tuple{Float64,String}}()
+    parameters = Dict{String,Parameter}()
     for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
         p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
         id, v = extract_parameter(p)
@@ -353,7 +355,7 @@ function extract_model(mdl::VPtr)::SBML.Model
     reactions = Dict{String,Reaction}()
     for i = 1:ccall(sbml(:Model_getNumReactions), Cuint, (VPtr,), mdl)
         re = ccall(sbml(:Model_getReaction), VPtr, (VPtr, Cuint), mdl, i - 1)
-        kinetic_parameters = Dict{String,Tuple{Float64,String}}()
+        kinetic_parameters = Dict{String,Parameter}()
         lower_bound = nothing
         upper_bound = nothing
         math = nothing
@@ -429,7 +431,7 @@ function extract_model(mdl::VPtr)::SBML.Model
             kinetic_math = math,
             reversible,
             notes = get_notes(re),
-            annotation = get_annotation(re),
+            annotation = get_annotation(re)
         )
     end
 
@@ -586,6 +588,6 @@ function extract_model(mdl::VPtr)::SBML.Model
         time_units = get_optional_string(mdl, :Model_getTimeUnits),
         volume_units = get_optional_string(mdl, :Model_getVolumeUnits),
         notes = get_notes(mdl),
-        annotation = get_annotation(mdl),
+        annotation = get_annotation(mdl)
     )
 end
