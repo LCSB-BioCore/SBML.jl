@@ -62,16 +62,24 @@ function flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}}
     # may be a FBC plugged-in objective name that refers to the parameters.
     # We extract these, using the units from the parameters. For unbounded
     # reactions this gives -Inf or Inf as a default.
-
+    function param_to_tuple(p)
+        if p.units === nothing 
+            (p.value, "")
+        else 
+            (p.value, p.units)
+        end
+    end
     function get_bound(rxn, fld, param, default)
+        # default2 = param_to_tuple(default)
         p = mayfirst(getfield(rxn, fld), param)
-        get(rxn.kinetic_parameters, p, get(m.parameters, p, default))
+        param_to_tuple(get(rxn.kinetic_parameters, p, get(m.parameters, p, default)))
+        # (param.)
     end
     lb = Parameter(value = -Inf, name = "", constant = true)
     ub = Parameter(value = Inf, name = "", constant = true)
     (
-        map(x->(x.value, x.units), get_bound.(values(m.reactions), :lower_bound, "LOWER_BOUND", Ref(lb))),
-        map(x->(x.value, x.units), get_bound.(values(m.reactions), :upper_bound, "UPPER_BOUND", Ref(ub))),
+        get_bound.(values(m.reactions), :lower_bound, "LOWER_BOUND", Ref(lb)),
+        get_bound.(values(m.reactions), :upper_bound, "UPPER_BOUND", Ref(ub)),
     )
 end
 
@@ -86,11 +94,12 @@ function flux_objective(m::SBML.Model)::Vector{Float64}
     # even more). FBC-specified OC gets a priority.
     function get_oc(rid::String)
         p = get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing)
+        t = p !==nothing ? (p.value, p.units) : nothing
         mayfirst(
             get(m.objective, rid, nothing),
             maylift(
                 first,
-                (p.value, p.units)
+                t
             ),
             0.0,
         )
