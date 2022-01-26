@@ -67,10 +67,11 @@ function flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}}
         p = mayfirst(getfield(rxn, fld), param)
         get(rxn.kinetic_parameters, p, get(m.parameters, p, default))
     end
-
+    lb = Parameter(value = -Inf, name = "", constant = true)
+    ub = Parameter(value = Inf, name = "", constant = true)
     (
-        get_bound.(values(m.reactions), :lower_bound, "LOWER_BOUND", Ref((-Inf, ""))),
-        get_bound.(values(m.reactions), :upper_bound, "UPPER_BOUND", Ref((Inf, ""))),
+        map(x->(x.value, x.units), get_bound.(values(m.reactions), :lower_bound, "LOWER_BOUND", Ref(lb))),
+        map(x->(x.value, x.units), get_bound.(values(m.reactions), :upper_bound, "UPPER_BOUND", Ref(ub))),
     )
 end
 
@@ -84,11 +85,12 @@ function flux_objective(m::SBML.Model)::Vector{Float64}
     # As with bounds, this sometimes needs to be gathered from 2 places (maybe
     # even more). FBC-specified OC gets a priority.
     function get_oc(rid::String)
+        p = get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing)
         mayfirst(
             get(m.objective, rid, nothing),
             maylift(
                 first,
-                get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing),
+                (p.value, p.units)
             ),
             0.0,
         )
