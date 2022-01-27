@@ -100,6 +100,9 @@ end
 """
 $(TYPEDEF)
 
+Representation of SBML Parameter structure, holding a value annotated with
+units and constantness information.
+
 # Fields
 $(TYPEDFIELDS)
 """
