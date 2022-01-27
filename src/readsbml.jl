@@ -147,7 +147,7 @@ end)
 function readSBML(
     fn::String,
     sbml_conversion = document -> nothing;
-    report_severities = ["Fatal", "Error"]
+    report_severities = ["Fatal", "Error"],
 )::SBML.Model
     isfile(fn) || throw(AssertionError("$(fn) is not a file"))
     _readSBML(:readSBML, fn, sbml_conversion, report_severities)
@@ -167,7 +167,7 @@ used to read from a file instead of a string.
 readSBMLFromString(
     str::AbstractString,
     sbml_conversion = document -> nothing;
-    report_severities = ["Fatal", "Error"]
+    report_severities = ["Fatal", "Error"],
 )::SBML.Model =
     _readSBML(:readSBMLFromString, String(str), sbml_conversion, report_severities)
 
@@ -203,11 +203,11 @@ function get_association(x::VPtr)::GeneProductAssociation
     end
 end
 
-extract_parameter(p::VPtr)::Pair{String, Parameter} =
+extract_parameter(p::VPtr)::Pair{String,Parameter} =
     get_string(p, :Parameter_getId) => Parameter(
         name = get_optional_string(p, :Parameter_getName),
         value = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
-        units = get_optional_string(p, :Parameter_getUnits), 
+        units = get_optional_string(p, :Parameter_getUnits),
         constant = get_optional_bool(p, :Parameter_isSetConstant, :Parameter_getConstant),
     )
 
@@ -431,7 +431,7 @@ function extract_model(mdl::VPtr)::SBML.Model
             kinetic_math = math,
             reversible,
             notes = get_notes(re),
-            annotation = get_annotation(re)
+            annotation = get_annotation(re),
         )
     end
 
@@ -588,6 +588,6 @@ function extract_model(mdl::VPtr)::SBML.Model
         time_units = get_optional_string(mdl, :Model_getTimeUnits),
         volume_units = get_optional_string(mdl, :Model_getVolumeUnits),
         notes = get_notes(mdl),
-        annotation = get_annotation(mdl)
+        annotation = get_annotation(mdl),
     )
 end

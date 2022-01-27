@@ -114,7 +114,7 @@ sbmlfiles = [
         "987038ec9bb847123c41136928462d7ed05ad697cc414cab09fcce9f5bbc8e73",
         3,
         2,
-        fill(Inf,2),
+        fill(Inf, 2),
     ),
     # has conversionFactor model attribute
     (
@@ -123,7 +123,7 @@ sbmlfiles = [
         "e32c12b7bebfa8f146b8860cd8b82d5cad326c96c6a0d8ceb191591ac4e2f5ac",
         2,
         3,
-        fill(Inf,3),
+        fill(Inf, 3),
     ),
 ]
 
