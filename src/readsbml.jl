@@ -110,7 +110,7 @@ function _readSBML(
 
         model = ccall(sbml(:SBMLDocument_getModel), VPtr, (VPtr,), doc)
 
-        return extract_model(model)
+        return get_model(model)
     finally
         ccall(sbml(:SBMLDocument_free), Nothing, (VPtr,), doc)
     end
@@ -203,7 +203,7 @@ function get_association(x::VPtr)::GeneProductAssociation
     end
 end
 
-extract_parameter(p::VPtr)::Pair{String,Parameter} =
+get_parameter(p::VPtr)::Pair{String,Parameter} =
     get_string(p, :Parameter_getId) => Parameter(
         name = get_optional_string(p, :Parameter_getName),
         value = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
@@ -212,12 +212,12 @@ extract_parameter(p::VPtr)::Pair{String,Parameter} =
     )
 
 """"
-    function extract_model(mdl::VPtr)::SBML.Model
+    function get_model(mdl::VPtr)::SBML.Model
 
 Take the `SBMLModel_t` pointer and extract all information required to make a
 valid [`SBML.Model`](@ref) structure.
 """
-function extract_model(mdl::VPtr)::SBML.Model
+function get_model(mdl::VPtr)::SBML.Model
     # get the FBC plugin pointer (FbcModelPlugin_t)
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
@@ -225,7 +225,7 @@ function extract_model(mdl::VPtr)::SBML.Model
     parameters = Dict{String,Parameter}()
     for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
         p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
-        id, v = extract_parameter(p)
+        id, v = get_parameter(p)
         parameters[id] = v
     end
 
@@ -365,7 +365,7 @@ function extract_model(mdl::VPtr)::SBML.Model
         if kl != C_NULL
             for j = 1:ccall(sbml(:KineticLaw_getNumParameters), Cuint, (VPtr,), kl)
                 p = ccall(sbml(:KineticLaw_getParameter), VPtr, (VPtr, Cuint), kl, j - 1)
-                id, v = extract_parameter(p)
+                id, v = get_parameter(p)
                 parameters[id] = v
                 kinetic_parameters[id] = v
             end
