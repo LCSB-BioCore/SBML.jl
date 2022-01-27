@@ -107,7 +107,7 @@ Base.@kwdef struct Parameter
     name::Maybe{String} = nothing
     value::Maybe{Float64} = nothing
     units::Maybe{String} = nothing
-    constant::Bool
+    constant::Maybe{Bool} = nothing
 end
 
 """
