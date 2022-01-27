@@ -86,9 +86,9 @@ sbmlfiles = [
             if basename(sbmlfile) == "00037-sbml-l3v2.xml"
                 # When expanding initial assignments with libsbml, the initial amount
                 # becomes empty.
-                @test_broken mdl.species[id].initial_amount[1] == ic
+                @test_broken mdl.species[id].initial_amount == ic
             else
-                @test mdl.species[id].initial_amount[1] == ic
+                @test mdl.species[id].initial_amount == ic
             end
         end
     end

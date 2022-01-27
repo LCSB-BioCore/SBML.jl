@@ -225,8 +225,9 @@ Base.@kwdef struct Species
     boundary_condition::Maybe{Bool} = nothing
     formula::Maybe{String} = nothing
     charge::Maybe{Int} = nothing
-    initial_amount::Maybe{Tuple{Float64,Maybe{String}}} = nothing
-    initial_concentration::Maybe{Tuple{Float64,Maybe{String}}} = nothing
+    initial_amount::Maybe{Float64} = nothing
+    initial_concentration::Maybe{Float64} = nothing
+    substance_units::Maybe{String} = nothing
     only_substance_units::Maybe{Bool} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing

@@ -293,22 +293,6 @@ function get_model(mdl::VPtr)::SBML.Model
             end
         end
 
-        ia = nothing
-        if ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0
-            ia = (
-                ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp),
-                get_optional_string(sp, :Species_getSubstanceUnits),
-            )
-        end
-
-        ic = nothing
-        if ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0
-            ic = (
-                ccall(sbml(:Species_getInitialConcentration), Cdouble, (VPtr,), sp),
-                get_optional_string(sp, :Species_getSubstanceUnits),
-            )
-        end
-
         species[get_string(sp, :Species_getId)] = Species(
             get_optional_string(sp, :Species_getName),
             get_string(sp, :Species_getCompartment),
@@ -319,8 +303,13 @@ function get_model(mdl::VPtr)::SBML.Model
             ),
             formula,
             charge,
-            ia,
-            ic,
+            if (ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0)
+                ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp)
+            end,
+            if (ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0)
+                ccall(sbml(:Species_getInitialConcentration), Cdouble, (VPtr,), sp)
+            end,
+            get_optional_string(sp, :Species_getSubstanceUnits),
             get_optional_bool(
                 sp,
                 :Species_isSetHasOnlySubstanceUnits,

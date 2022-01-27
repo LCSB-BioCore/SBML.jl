@@ -146,7 +146,8 @@ available. If `convert_concentrations` is true and there is information about
 initial concentration available together with compartment size, the result is
 computed from the species' initial concentration.
 
-In the current version, units of the measurements are completely ignored.
+The units of measurement are ignored in this computation, but one may
+reconstruct them from `substance_units` field of [`Species`](@ref) structure.
 
 # Example
 ```
@@ -173,7 +174,7 @@ initial_amounts(
         maylift(first, s.initial_amount),
         if convert_concentrations
             maylift(
-                (ic, s) -> first(ic) * s,
+                (ic, s) -> ic * s,
                 s.initial_concentration,
                 compartment_size(s.compartment),
             )
@@ -199,11 +200,7 @@ initial_concentrations(
     k => mayfirst(
         maylift(first, s.initial_concentration),
         if convert_amounts
-            maylift(
-                (ia, s) -> first(ia) / s,
-                s.initial_amount,
-                compartment_size(s.compartment),
-            )
+            maylift((ia, s) -> ia / s, s.initial_amount, compartment_size(s.compartment))
         end,
     ) for (k, s) in m.species
 )
