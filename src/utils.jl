@@ -62,24 +62,27 @@ function flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}}
     # may be a FBC plugged-in objective name that refers to the parameters.
     # We extract these, using the units from the parameters. For unbounded
     # reactions this gives -Inf or Inf as a default.
-    function param_to_tuple(p)
-        if p.units === nothing
-            (p.value, "")
-        else
-            (p.value, p.units)
-        end
-    end
+
     function get_bound(rxn, fld, param, default)
-        # default2 = param_to_tuple(default)
-        p = mayfirst(getfield(rxn, fld), param)
-        param_to_tuple(get(rxn.kinetic_parameters, p, get(m.parameters, p, default)))
-        # (param.)
+        param_name = mayfirst(getfield(rxn, fld), param)
+        param =
+            get(rxn.kinetic_parameters, param_name, get(m.parameters, param_name, default))
+        return (param.value, mayfirst(param.units, ""))
     end
-    lb = Parameter(value = -Inf, name = "", constant = true)
-    ub = Parameter(value = Inf, name = "", constant = true)
+
     (
-        get_bound.(values(m.reactions), :lower_bound, "LOWER_BOUND", Ref(lb)),
-        get_bound.(values(m.reactions), :upper_bound, "UPPER_BOUND", Ref(ub)),
+        get_bound.(
+            values(m.reactions),
+            :lower_bound,
+            "LOWER_BOUND",
+            Ref(Parameter(value = -Inf)),
+        ),
+        get_bound.(
+            values(m.reactions),
+            :upper_bound,
+            "UPPER_BOUND",
+            Ref(Parameter(value = Inf)),
+        ),
     )
 end
 
@@ -93,9 +96,9 @@ function flux_objective(m::SBML.Model)::Vector{Float64}
     # As with bounds, this sometimes needs to be gathered from 2 places (maybe
     # even more). FBC-specified OC gets a priority.
     function get_oc(rid::String)
-        p = get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing)
-        t = p !== nothing ? (p.value, p.units) : nothing
-        mayfirst(get(m.objective, rid, nothing), maylift(first, t), 0.0)
+        kinetic_oc =
+            get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing)
+        mayfirst(get(m.objective, rid, nothing), maylift(p -> p.value, kinetic_oc), 0.0)
     end
     get_oc.(keys(m.reactions))
 end

@@ -104,7 +104,6 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Parameter
-    # id::String
     name::Maybe{String} = nothing
     value::Maybe{Float64} = nothing
     units::Maybe{String} = nothing
