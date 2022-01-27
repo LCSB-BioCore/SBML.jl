@@ -100,6 +100,22 @@ end
 """
 $(TYPEDEF)
 
+Representation of SBML Parameter structure, holding a value annotated with
+units and constantness information.
+
+# Fields
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct Parameter
+    name::Maybe{String} = nothing
+    value::Maybe{Float64} = nothing
+    units::Maybe{String} = nothing
+    constant::Maybe{Bool} = nothing
+end
+
+"""
+$(TYPEDEF)
+
 SBML Compartment with sizing information.
 
 # Fields
@@ -129,7 +145,7 @@ $(TYPEDFIELDS)
 Base.@kwdef struct Reaction
     reactants::Dict{String,Float64} = Dict()
     products::Dict{String,Float64} = Dict()
-    kinetic_parameters::Dict{String,Tuple{Float64,String}} = Dict()
+    kinetic_parameters::Dict{String,Parameter} = Dict()
     lower_bound::Maybe{String} = nothing
     upper_bound::Maybe{String} = nothing
     gene_product_association::Maybe{GeneProductAssociation} = nothing
@@ -212,8 +228,9 @@ Base.@kwdef struct Species
     boundary_condition::Maybe{Bool} = nothing
     formula::Maybe{String} = nothing
     charge::Maybe{Int} = nothing
-    initial_amount::Maybe{Tuple{Float64,Maybe{String}}} = nothing
-    initial_concentration::Maybe{Tuple{Float64,Maybe{String}}} = nothing
+    initial_amount::Maybe{Float64} = nothing
+    initial_concentration::Maybe{Float64} = nothing
+    substance_units::Maybe{String} = nothing
     only_substance_units::Maybe{Bool} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
@@ -280,7 +297,7 @@ objects.
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Model
-    parameters::Dict{String,Tuple{Float64,String}} = Dict()
+    parameters::Dict{String,Parameter} = Dict()
     units::Dict{String,Vector{UnitPart}} = Dict()
     compartments::Dict{String,Compartment} = Dict()
     species::Dict{String,Species} = Dict()

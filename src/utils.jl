@@ -64,13 +64,25 @@ function flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}}
     # reactions this gives -Inf or Inf as a default.
 
     function get_bound(rxn, fld, param, default)
-        p = mayfirst(getfield(rxn, fld), param)
-        get(rxn.kinetic_parameters, p, get(m.parameters, p, default))
+        param_name = mayfirst(getfield(rxn, fld), param)
+        param =
+            get(rxn.kinetic_parameters, param_name, get(m.parameters, param_name, default))
+        return (param.value, mayfirst(param.units, ""))
     end
 
     (
-        get_bound.(values(m.reactions), :lower_bound, "LOWER_BOUND", Ref((-Inf, ""))),
-        get_bound.(values(m.reactions), :upper_bound, "UPPER_BOUND", Ref((Inf, ""))),
+        get_bound.(
+            values(m.reactions),
+            :lower_bound,
+            "LOWER_BOUND",
+            Ref(Parameter(value = -Inf)),
+        ),
+        get_bound.(
+            values(m.reactions),
+            :upper_bound,
+            "UPPER_BOUND",
+            Ref(Parameter(value = Inf)),
+        ),
     )
 end
 
@@ -84,14 +96,9 @@ function flux_objective(m::SBML.Model)::Vector{Float64}
     # As with bounds, this sometimes needs to be gathered from 2 places (maybe
     # even more). FBC-specified OC gets a priority.
     function get_oc(rid::String)
-        mayfirst(
-            get(m.objective, rid, nothing),
-            maylift(
-                first,
-                get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing),
-            ),
-            0.0,
-        )
+        kinetic_oc =
+            get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing)
+        mayfirst(get(m.objective, rid, nothing), maylift(p -> p.value, kinetic_oc), 0.0)
     end
     get_oc.(keys(m.reactions))
 end
@@ -139,7 +146,8 @@ available. If `convert_concentrations` is true and there is information about
 initial concentration available together with compartment size, the result is
 computed from the species' initial concentration.
 
-In the current version, units of the measurements are completely ignored.
+The units of measurement are ignored in this computation, but one may
+reconstruct them from `substance_units` field of [`Species`](@ref) structure.
 
 # Example
 ```
@@ -166,7 +174,7 @@ initial_amounts(
         maylift(first, s.initial_amount),
         if convert_concentrations
             maylift(
-                (ic, s) -> first(ic) * s,
+                (ic, s) -> ic * s,
                 s.initial_concentration,
                 compartment_size(s.compartment),
             )
@@ -192,11 +200,7 @@ initial_concentrations(
     k => mayfirst(
         maylift(first, s.initial_concentration),
         if convert_amounts
-            maylift(
-                (ia, s) -> first(ia) / s,
-                s.initial_amount,
-                compartment_size(s.compartment),
-            )
+            maylift((ia, s) -> ia / s, s.initial_amount, compartment_size(s.compartment))
         end,
     ) for (k, s) in m.species
 )

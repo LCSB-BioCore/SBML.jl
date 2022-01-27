@@ -110,7 +110,7 @@ function _readSBML(
 
         model = ccall(sbml(:SBMLDocument_getModel), VPtr, (VPtr,), doc)
 
-        return extract_model(model)
+        return get_model(model)
     finally
         ccall(sbml(:SBMLDocument_free), Nothing, (VPtr,), doc)
     end
@@ -203,27 +203,29 @@ function get_association(x::VPtr)::GeneProductAssociation
     end
 end
 
-extract_parameter(p::VPtr)::Pair{String,Tuple{Float64,String}} =
-    get_string(p, :Parameter_getId) => (
-        ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
-        mayfirst(get_optional_string(p, :Parameter_getUnits), ""),
+get_parameter(p::VPtr)::Pair{String,Parameter} =
+    get_string(p, :Parameter_getId) => Parameter(
+        name = get_optional_string(p, :Parameter_getName),
+        value = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
+        units = get_optional_string(p, :Parameter_getUnits),
+        constant = get_optional_bool(p, :Parameter_isSetConstant, :Parameter_getConstant),
     )
 
 """"
-    function extract_model(mdl::VPtr)::SBML.Model
+    function get_model(mdl::VPtr)::SBML.Model
 
 Take the `SBMLModel_t` pointer and extract all information required to make a
 valid [`SBML.Model`](@ref) structure.
 """
-function extract_model(mdl::VPtr)::SBML.Model
+function get_model(mdl::VPtr)::SBML.Model
     # get the FBC plugin pointer (FbcModelPlugin_t)
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
 
     # get the parameters
-    parameters = Dict{String,Tuple{Float64,String}}()
+    parameters = Dict{String,Parameter}()
     for i = 1:ccall(sbml(:Model_getNumParameters), Cuint, (VPtr,), mdl)
         p = ccall(sbml(:Model_getParameter), VPtr, (VPtr, Cuint), mdl, i - 1)
-        id, v = extract_parameter(p)
+        id, v = get_parameter(p)
         parameters[id] = v
     end
 
@@ -291,22 +293,6 @@ function extract_model(mdl::VPtr)::SBML.Model
             end
         end
 
-        ia = nothing
-        if ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0
-            ia = (
-                ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp),
-                get_optional_string(sp, :Species_getSubstanceUnits),
-            )
-        end
-
-        ic = nothing
-        if ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0
-            ic = (
-                ccall(sbml(:Species_getInitialConcentration), Cdouble, (VPtr,), sp),
-                get_optional_string(sp, :Species_getSubstanceUnits),
-            )
-        end
-
         species[get_string(sp, :Species_getId)] = Species(
             get_optional_string(sp, :Species_getName),
             get_string(sp, :Species_getCompartment),
@@ -317,8 +303,13 @@ function extract_model(mdl::VPtr)::SBML.Model
             ),
             formula,
             charge,
-            ia,
-            ic,
+            if (ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0)
+                ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp)
+            end,
+            if (ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0)
+                ccall(sbml(:Species_getInitialConcentration), Cdouble, (VPtr,), sp)
+            end,
+            get_optional_string(sp, :Species_getSubstanceUnits),
             get_optional_bool(
                 sp,
                 :Species_isSetHasOnlySubstanceUnits,
@@ -353,7 +344,7 @@ function extract_model(mdl::VPtr)::SBML.Model
     reactions = Dict{String,Reaction}()
     for i = 1:ccall(sbml(:Model_getNumReactions), Cuint, (VPtr,), mdl)
         re = ccall(sbml(:Model_getReaction), VPtr, (VPtr, Cuint), mdl, i - 1)
-        kinetic_parameters = Dict{String,Tuple{Float64,String}}()
+        kinetic_parameters = Dict{String,Parameter}()
         lower_bound = nothing
         upper_bound = nothing
         math = nothing
@@ -363,7 +354,7 @@ function extract_model(mdl::VPtr)::SBML.Model
         if kl != C_NULL
             for j = 1:ccall(sbml(:KineticLaw_getNumParameters), Cuint, (VPtr,), kl)
                 p = ccall(sbml(:KineticLaw_getParameter), VPtr, (VPtr, Cuint), kl, j - 1)
-                id, v = extract_parameter(p)
+                id, v = get_parameter(p)
                 parameters[id] = v
                 kinetic_parameters[id] = v
             end
