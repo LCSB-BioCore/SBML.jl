@@ -260,17 +260,21 @@ function get_model(mdl::VPtr)::SBML.Model
         co = ccall(sbml(:Model_getCompartment), VPtr, (VPtr, Cuint), mdl, i - 1)
 
         compartments[get_string(co, :Compartment_getId)] = Compartment(
-            get_optional_string(co, :Compartment_getName),
-            get_optional_bool(co, :Compartment_isSetConstant, :Compartment_getConstant),
-            get_optional_int(
+            name = get_optional_string(co, :Compartment_getName),
+            constant = get_optional_bool(
+                co,
+                :Compartment_isSetConstant,
+                :Compartment_getConstant,
+            ),
+            spatial_dimensions = get_optional_int(
                 co,
                 :Compartment_isSetSpatialDimensions,
                 :Compartment_getSpatialDimensions,
             ),
-            get_optional_double(co, :Compartment_isSetSize, :Compartment_getSize),
-            get_optional_string(co, :Compartment_getUnits),
-            get_notes(co),
-            get_annotation(co),
+            size = get_optional_double(co, :Compartment_isSetSize, :Compartment_getSize),
+            units = get_optional_string(co, :Compartment_getUnits),
+            notes = get_notes(co),
+            annotation = get_annotation(co),
         )
     end
 
@@ -293,35 +297,35 @@ function get_model(mdl::VPtr)::SBML.Model
             end
         end
 
-        species[get_string(sp, :Species_getId)] = Species(
-            get_optional_string(sp, :Species_getName),
-            get_string(sp, :Species_getCompartment),
-            get_optional_bool(
+        species[get_string(sp, :Species_getId)] = Species(;
+            name = get_optional_string(sp, :Species_getName),
+            compartment = get_string(sp, :Species_getCompartment),
+            boundary_condition = get_optional_bool(
                 sp,
                 :Species_isSetBoundaryCondition,
                 :Species_getBoundaryCondition,
             ),
             formula,
             charge,
-            if (ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0)
+            initial_amount = if (
+                ccall(sbml(:Species_isSetInitialAmount), Cint, (VPtr,), sp) != 0
+            )
                 ccall(sbml(:Species_getInitialAmount), Cdouble, (VPtr,), sp)
             end,
-            if (ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0)
+            initial_concentration = if (
+                ccall(sbml(:Species_isSetInitialConcentration), Cint, (VPtr,), sp) != 0
+            )
                 ccall(sbml(:Species_getInitialConcentration), Cdouble, (VPtr,), sp)
             end,
-            get_optional_string(sp, :Species_getSubstanceUnits),
-            get_optional_bool(
+            substance_units = get_optional_string(sp, :Species_getSubstanceUnits),
+            only_substance_units = get_optional_bool(
                 sp,
                 :Species_isSetHasOnlySubstanceUnits,
                 :Species_getHasOnlySubstanceUnits,
             ),
-            get_optional_bool(
-                sp,
-                :Species_isSetConstant,
-                :Species_getConstant,
-            ),
-            get_notes(sp),
-            get_annotation(sp),
+            constant = get_optional_bool(sp, :Species_isSetConstant, :Species_getConstant),
+            notes = get_notes(sp),
+            annotation = get_annotation(sp),
         )
     end
 
@@ -446,10 +450,10 @@ function get_model(mdl::VPtr)::SBML.Model
 
             if id != nothing
                 gene_products[id] = GeneProduct(
-                    get_optional_string(gp, :GeneProduct_getName),
-                    get_optional_string(gp, :GeneProduct_getLabel),
-                    get_notes(gp),
-                    get_annotation(gp),
+                    name = get_optional_string(gp, :GeneProduct_getName),
+                    label = get_optional_string(gp, :GeneProduct_getLabel),
+                    notes = get_notes(gp),
+                    annotation = get_annotation(gp),
                 )
             end
         end
@@ -465,10 +469,10 @@ function get_model(mdl::VPtr)::SBML.Model
 
         function_definitions[get_string(fd, :FunctionDefinition_getId)] =
             FunctionDefinition(
-                get_optional_string(fd, :FunctionDefinition_getName),
-                def,
-                get_notes(fd),
-                get_annotation(fd),
+                name = get_optional_string(fd, :FunctionDefinition_getName),
+                body = def,
+                notes = get_notes(fd),
+                annotation = get_annotation(fd),
             )
     end
 
@@ -496,10 +500,10 @@ function get_model(mdl::VPtr)::SBML.Model
             push!(
                 event_assignments,
                 EventAssignment(
-                    unsafe_string(
+                    variable = unsafe_string(
                         ccall(sbml(:EventAssignment_getVariable), Cstring, (VPtr,), eva),
                     ),
-                    eva_math_ptr == C_NULL ? nothing : parse_math(eva_math_ptr),
+                    math = eva_math_ptr == C_NULL ? nothing : parse_math(eva_math_ptr),
                 ),
             )
         end
