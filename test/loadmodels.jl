@@ -378,3 +378,9 @@ end
     @test m.gene_products["G_b1241"].name == "adhE"
     @test m.reactions["R_PFK"].name == "Phosphofructokinase"
 end
+
+@testset "constantness" begin
+    m = readSBML(joinpath(@__DIR__, "data", "00975-sbml-l3v2.xml"))
+    @test m.species["S1"].constant == false
+    @test m.parameters["S1conv"].constant == true
+end
