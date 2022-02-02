@@ -143,6 +143,7 @@ unit names), and objective coefficient (`oc`). Also may contains `notes` and
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Reaction
+    name::Maybe{String} = nothing
     reactants::Dict{String,Float64} = Dict()
     products::Dict{String,Float64} = Dict()
     kinetic_parameters::Dict{String,Parameter} = Dict()

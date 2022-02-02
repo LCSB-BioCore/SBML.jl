@@ -370,3 +370,11 @@ end
     @test isnothing(m.time_units)
     @test isnothing(m.volume_units)
 end
+
+@testset "names of objects" begin
+    m = readSBML(joinpath(@__DIR__, "data", "e_coli_core.xml"))
+    @test m.compartments["e"].name == "extracellular space"
+    @test m.species["M_nh4_c"].name == "Ammonium"
+    @test m.gene_products["G_b1241"].name == "adhE"
+    @test m.reactions["R_PFK"].name == "Phosphofructokinase"
+end

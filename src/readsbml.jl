@@ -411,6 +411,7 @@ function get_model(mdl::VPtr)::SBML.Model
 
         reid = get_string(re, :Reaction_getId)
         reactions[reid] = Reaction(;
+            name = get_optional_string(re, :Reaction_getName),
             reactants,
             products,
             kinetic_parameters,
