@@ -233,6 +233,7 @@ Base.@kwdef struct Species
     initial_concentration::Maybe{Float64} = nothing
     substance_units::Maybe{String} = nothing
     only_substance_units::Maybe{Bool} = nothing
+    constant::Maybe{Bool} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end

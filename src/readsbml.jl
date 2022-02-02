@@ -315,6 +315,11 @@ function get_model(mdl::VPtr)::SBML.Model
                 :Species_isSetHasOnlySubstanceUnits,
                 :Species_getHasOnlySubstanceUnits,
             ),
+            get_optional_bool(
+                sp,
+                :Species_isSetConstant,
+                :Species_getConstant,
+            ),
             get_notes(sp),
             get_annotation(sp),
         )
