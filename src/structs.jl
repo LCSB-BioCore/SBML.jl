@@ -110,7 +110,7 @@ Base.@kwdef struct Parameter
     name::Maybe{String} = nothing
     value::Maybe{Float64} = nothing
     units::Maybe{String} = nothing
-    constant::Maybe{Bool} = nothing
+    constant::Bool
 end
 
 """
@@ -123,7 +123,7 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef struct Compartment
     name::Maybe{String} = nothing
-    constant::Maybe{Bool} = nothing
+    constant::Bool
     spatial_dimensions::Maybe{Int} = nothing
     size::Maybe{Float64} = nothing
     units::Maybe{String} = nothing
@@ -226,14 +226,14 @@ $(TYPEDFIELDS)
 Base.@kwdef struct Species
     name::Maybe{String} = nothing
     compartment::String
-    boundary_condition::Maybe{Bool} = nothing
+    boundary_condition::Bool
     formula::Maybe{String} = nothing
     charge::Maybe{Int} = nothing
     initial_amount::Maybe{Float64} = nothing
     initial_concentration::Maybe{Float64} = nothing
     substance_units::Maybe{String} = nothing
-    only_substance_units::Maybe{Bool} = nothing
-    constant::Maybe{Bool} = nothing
+    only_substance_units::Bool
+    constant::Bool
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end

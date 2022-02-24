@@ -75,13 +75,13 @@ function flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}}
             values(m.reactions),
             :lower_bound,
             "LOWER_BOUND",
-            Ref(Parameter(value = -Inf)),
+            Ref(Parameter(value = -Inf, constant = true)),
         ),
         get_bound.(
             values(m.reactions),
             :upper_bound,
             "UPPER_BOUND",
-            Ref(Parameter(value = Inf)),
+            Ref(Parameter(value = Inf, constant = true)),
         ),
     )
 end
