@@ -22,7 +22,7 @@ sbmlRoot(x) = sqrt(x)
 sbmlRoot(power, x) = x^(1 / power)
 
 """
-    default_symbolics_mapping :: Dict{String,Function}
+    default_symbolics_mapping :: Dict{String,Any}
 
 Default mapping of SBML function names to Julia functions, represented as a
 dictionary from Strings (SBML names) to functions.
@@ -31,7 +31,7 @@ The default mapping only contains the basic SBML functions that are
 unambiguously represented in Julia; it is supposed to be extended by the user
 if more functions need to be supported.
 """
-const default_symbolics_mapping = Dict{String,Function}(
+const default_symbolics_mapping = Dict{String,Any}(
     "*" => *,
     "+" => +,
     "-" => -,
