@@ -1,66 +1,5 @@
 
-"""
-    default_symbolics_mapping :: Dict{String,Any}
-
-Default mapping of SBML function names to Julia functions, represented as a
-dictionary from Strings (SBML names) to anything `eval`uable as Julia&Symbolics
-functions, such as symbols and expressions.
-
-The default mapping only contains the basic SBML functions that are
-unambiguously represented in Julia; it is supposed to be extended by the user
-if more functions need to be supported.
-"""
-const default_symbolics_mapping = Dict{String,Any}(
-    "*" => :*,
-    "+" => :+,
-    "-" => :-,
-    "/" => :/,
-    "abs" => :abs,
-    "and" => :&,
-    "arccos" => :acos,
-    "arccosh" => :acosh,
-    "arccot" => :acot,
-    "arccoth" => :acoth,
-    "arccsc" => :acsc,
-    "arccsch" => :acsch,
-    "arcsec" => :asec,
-    "arcsech" => :asech,
-    "arcsin" => :asin,
-    "arcsinh" => :asinh,
-    "arctan" => :atan,
-    "arctanh" => :atanh,
-    "ceiling" => :ceil,
-    "cos" => :cos,
-    "cosh" => :cosh,
-    "cot" => :cot,
-    "coth" => :coth,
-    "csc" => :csc,
-    "csch" => :csch,
-    "eq" => :isequal,
-    "exp" => :exp,
-    "factorial" => :factorial,
-    "floor" => :floor,
-    "geq" => :>=,
-    "gt" => :>,
-    "leq" => :<=,
-    "ln" => :log,
-    "log" => :sbmlLog,
-    "lt" => :<,
-    "neq" => :(sbmlNeq),
-    "not" => :not,
-    "or" => :|,
-    "piecewise" => :(sbmlPiecewise),
-    "power" => :^,
-    "rateOf" => :sbmlRateOf,
-    "root" => :sbmlRoot,
-    "sech" => :sech,
-    "sec" => :sec,
-    "sinh" => :sinh,
-    "sin" => :sin,
-    "tanh" => :tanh,
-    "tan" => :tan,
-    "xor" => :xor,
-)
+# some helper functions for SBML math
 
 function sbmlPiecewise(args...)
     if length(args) == 1
@@ -81,6 +20,68 @@ sbmlLog(base, x) = log(base, x)
 
 sbmlRoot(x) = sqrt(x)
 sbmlRoot(power, x) = x^(1 / power)
+
+"""
+    default_symbolics_mapping :: Dict{String,Function}
+
+Default mapping of SBML function names to Julia functions, represented as a
+dictionary from Strings (SBML names) to functions.
+
+The default mapping only contains the basic SBML functions that are
+unambiguously represented in Julia; it is supposed to be extended by the user
+if more functions need to be supported.
+"""
+const default_symbolics_mapping = Dict{String,Function}(
+    "*" => *,
+    "+" => +,
+    "-" => -,
+    "/" => /,
+    "abs" => abs,
+    "and" => &,
+    "arccos" => acos,
+    "arccosh" => acosh,
+    "arccot" => acot,
+    "arccoth" => acoth,
+    "arccsc" => acsc,
+    "arccsch" => acsch,
+    "arcsec" => asec,
+    "arcsech" => asech,
+    "arcsin" => asin,
+    "arcsinh" => asinh,
+    "arctan" => atan,
+    "arctanh" => atanh,
+    "ceiling" => ceil,
+    "cos" => cos,
+    "cosh" => cosh,
+    "cot" => cot,
+    "coth" => coth,
+    "csc" => csc,
+    "csch" => csch,
+    "eq" => isequal,
+    "exp" => exp,
+    "factorial" => factorial,
+    "floor" => floor,
+    "geq" => >=,
+    "gt" => >,
+    "leq" => <=,
+    "ln" => log,
+    "log" => sbmlLog,
+    "lt" => <,
+    "neq" => sbmlNeq,
+    "not" => !,
+    "or" => |,
+    "piecewise" => sbmlPiecewise,
+    "power" => ^,
+    "rateOf" => sbmlRateOf,
+    "root" => sbmlRoot,
+    "sech" => sech,
+    "sec" => sec,
+    "sinh" => sinh,
+    "sin" => sin,
+    "tanh" => tanh,
+    "tan" => tan,
+    "xor" => xor,
+)
 
 allowed_sym(x, allowed_funs) =
     haskey(allowed_funs, x) ? allowed_funs[x] :
@@ -129,7 +130,7 @@ function Base.convert(
     end,
     convert_const = (x::SBML.MathConst) -> Num(default_symbolics_constants[x.id]),
 )
-    conv(x::SBML.MathApply) = Num(eval(allowed_sym(x.fn, mapping))(conv.(x.args)...))
+    conv(x::SBML.MathApply) = Num(allowed_sym(x.fn, mapping)(conv.(x.args)...))
     conv(x::SBML.MathTime) = convert_time(x)
     conv(x::SBML.MathConst) = convert_const(x)
     function conv(x::SBML.MathIdent)
