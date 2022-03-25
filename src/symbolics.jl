@@ -129,7 +129,7 @@ function Base.convert(
     end,
     convert_const = (x::SBML.MathConst) -> Num(default_symbolics_constants[x.id]),
 )
-    conv(x::SBML.MathApply) = Num(eval(allowed_sym(x.fn, mapping))(conv.(x.args)...))
+    conv(x::SBML.MathApply) = Num(getfield(SBML, allowed_sym(x.fn, mapping))(conv.(x.args)...))
     conv(x::SBML.MathTime) = convert_time(x)
     conv(x::SBML.MathConst) = convert_const(x)
     function conv(x::SBML.MathIdent)
