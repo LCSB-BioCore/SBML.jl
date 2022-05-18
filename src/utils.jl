@@ -241,9 +241,14 @@ function extensive_kinetic_math(
         haskey(m.species, x.id) || return x
         sp = m.species[x.id]
         sp.only_substance_units && return x
-        sz = m.compartments[sp.compartment].size
+        
+        cn = sp.compartment
+        compartment = m.compartments[cn]
+        rn = [r.id for r in m.rules if r isa SBML.AssignmentRule]
+        idx = findfirst(x->x==cn, rn)
+        sz = isnothing(idx) ? SBML.MathVal(compartment.size) : m.rules[idx].math
         isnothing(sz) && (sz = handle_empty_compartment_size(x.id))
-        SBML.MathApply("/", [x, SBML.MathVal(sz)])
+        SBML.MathApply("/", [x, sz])
     end
     conv(x::SBML.MathApply) = SBML.MathApply(x.fn, conv.(x.args))
     conv(x::SBML.Math) = x
