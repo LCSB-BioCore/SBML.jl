@@ -419,4 +419,8 @@ end
         content = replace(content, '\r' => "")
         @test content == expected
     end
+    # Make sure that the model we read from the written out file is consistent
+    # with the original model.
+    round_trip_model = readSBMLFromString(writeSBML(model))
+    @test model.units == round_trip_model.units
 end
