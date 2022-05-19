@@ -237,13 +237,30 @@ function extensive_kinetic_math(
         ),
     ),
 )
-    conv(x::SBML.MathIdent) = begin
+        function occursin(needle::SBML.Math, haystack::SBML.Math)
+            if haystack isa Union{SBML.MathApply, SBML.MathLambda}
+                return any(occursin.(needle, haystack.args))
+            else
+                needle == haystack && return true
+            end
+            false
+        end
+            
+        function hassize(c_id::String, m::SBML.Model)
+            isnothing(m.compartments[c_id].size) || return true
+            c_id in [r.id for r in m.rules] && return true
+            any(occursin.(SBML.MathIdent(c_id), [r.math for r in m.rules if r isa SBML.AlgebraicRule])) && return true
+            false
+        end
+            
+        conv(x::SBML.MathIdent) = begin
         haskey(m.species, x.id) || return x
         sp = m.species[x.id]
         sp.only_substance_units && return x
-        sz = m.compartments[sp.compartment].size
-        isnothing(sz) && (sz = handle_empty_compartment_size(x.id))
-        SBML.MathApply("/", [x, SBML.MathVal(sz)])
+        # sz = m.compartments[sp.compartment].size
+        # isnothing(sz) && (sz = handle_empty_compartment_size(x.id))
+        hassize(sp.compartment, m) || handle_empty_compartment_size(x.id)
+        SBML.MathApply("/", [x, SBML.MathIdent(sp.compartment)])
     end
     conv(x::SBML.MathApply) = SBML.MathApply(x.fn, conv.(x.args))
     conv(x::SBML.Math) = x
