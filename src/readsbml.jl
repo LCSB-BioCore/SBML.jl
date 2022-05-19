@@ -590,3 +590,6 @@ function get_model(mdl::VPtr)::SBML.Model
         annotation = get_annotation(mdl),
     )
 end
+
+# Precompilation statements
+precompile(readSBML, (String,))
