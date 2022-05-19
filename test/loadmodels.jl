@@ -423,4 +423,5 @@ end
     # with the original model.
     round_trip_model = readSBMLFromString(writeSBML(model))
     @test model.units == round_trip_model.units
+    @test model.compartments == round_trip_model.compartments
 end
