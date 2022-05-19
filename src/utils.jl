@@ -257,8 +257,7 @@ function extensive_kinetic_math(
         haskey(m.species, x.id) || return x
         sp = m.species[x.id]
         sp.only_substance_units && return x
-        # sz = m.compartments[sp.compartment].size
-        # isnothing(sz) && (sz = handle_empty_compartment_size(x.id))
+        m.compartments[sp.compartment].spatial_dimensions == 0 && return x
         hassize(sp.compartment, m) || handle_empty_compartment_size(x.id)
         SBML.MathApply("/", [x, SBML.MathIdent(sp.compartment)])
     end
