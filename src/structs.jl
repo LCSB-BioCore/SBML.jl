@@ -19,6 +19,11 @@ Base.@kwdef struct UnitPart
     multiplier::Float64
 end
 
+Base.@kwdef struct UnitDefinition
+    name::Maybe{String} = nothing
+    list_of_units::Vector{UnitPart}
+end
+
 
 """
 Abstract type for all kinds of gene product associations
@@ -300,7 +305,7 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef struct Model
     parameters::Dict{String,Parameter} = Dict()
-    units::Dict{String,Vector{UnitPart}} = Dict()
+    units::Dict{String,UnitDefinition} = Dict()
     compartments::Dict{String,Compartment} = Dict()
     species::Dict{String,Species} = Dict()
     initial_assignments::Dict{String,Math} = Dict()

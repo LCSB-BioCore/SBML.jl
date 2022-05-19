@@ -43,6 +43,8 @@ const UNITFUL_KIND_STRING = Dict(
 )
 
 
+unitful(u::UnitDefinition) = unitful(u.list_of_units)
+
 """
     unitful(u::UnitPart)
 

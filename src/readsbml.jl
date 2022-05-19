@@ -230,11 +230,12 @@ function get_model(mdl::VPtr)::SBML.Model
     end
 
     # parse out the unit definitions
-    units = Dict{String,Vector{SBML.UnitPart}}()
+    units = Dict{String,UnitDefinition}()
     for i = 1:ccall(sbml(:Model_getNumUnitDefinitions), Cuint, (VPtr,), mdl)
         ud = ccall(sbml(:Model_getUnitDefinition), VPtr, (VPtr, Cuint), mdl, i - 1)
         id = get_string(ud, :UnitDefinition_getId)
-        units[id] = [
+        name = get_optional_string(ud, :UnitDefinition_getName)
+        list_of_units = [
             begin
                 u = ccall(sbml(:UnitDefinition_getUnit), VPtr, (VPtr, Cuint), ud, j - 1)
                 SBML.UnitPart(
@@ -252,6 +253,7 @@ function get_model(mdl::VPtr)::SBML.Model
                 )
             end for j = 1:ccall(sbml(:UnitDefinition_getNumUnits), Cuint, (VPtr,), ud)
         ]
+        units[id] = UnitDefinition(; name, list_of_units)
     end
 
     # parse out compartment names
