@@ -329,6 +329,7 @@ function get_model(mdl::VPtr)::SBML.Model
                 :Species_getHasOnlySubstanceUnits,
             ),
             constant = get_optional_bool(sp, :Species_isSetConstant, :Species_getConstant),
+            metaid = get_optional_string(sp, :SBase_getMetaId),
             notes = get_notes(sp),
             annotation = get_annotation(sp),
         )

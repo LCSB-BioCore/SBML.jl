@@ -1,3 +1,5 @@
+using StructHelpers
+
 
 """
 $(TYPEDEF)
@@ -300,9 +302,11 @@ Base.@kwdef struct Species
     substance_units::Maybe{String} = nothing
     only_substance_units::Maybe{Bool} = nothing
     constant::Maybe{Bool} = nothing
+    metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
+@batteries Species eq=true
 
 """
 $(TYPEDEF)
