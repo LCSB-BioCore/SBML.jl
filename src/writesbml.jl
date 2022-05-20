@@ -33,6 +33,29 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         isnothing(gene_product.notes) || ccall(sbml(:SBase_setNotesString), Cint, (VPtr, Cstring), geneproduct_t, gene_product.notes)
         isnothing(gene_product.annotation) || ccall(sbml(:SBase_setAnnotationString), Cint, (VPtr, Cstring), geneproduct_t, gene_product.annotation)
         # TODO: add the gene product to the FBC package
+        # res = ccall(sbml(:FbcModelPlugin_addGeneProduct), Cint, (VPtr, VPtr), model_fbc, geneproduct_t)
+        # !iszero(res) && @warn "Failed to add gene product \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
+    end
+
+    # Add species
+    for (id, species) in mdl.species
+        species_t = ccall(sbml(:Species_create), VPtr, (Cuint, Cuint), 3, 2)
+        ccall(sbml(:Species_setId), Cint, (VPtr, Cstring), species_t, id)
+        isnothing(species.name) || ccall(sbml(:Species_setName), Cint, (VPtr, Cstring), species_t, species.name)
+        isnothing(species.compartment) || ccall(sbml(:Species_setCompartment), Cint, (VPtr, Cstring), species_t, species.compartment)
+        isnothing(species.boundary_condition) || ccall(sbml(:Species_setBoundaryCondition), Cint, (VPtr, Cint), species_t, species.boundary_condition)
+        # isnothing(species.formula) || ccall(sbml(:Species_setFormula), Cint, (VPtr, Cstring), species_t, species.compartment)
+        isnothing(species.charge) || ccall(sbml(:Species_setCharge), Cint, (VPtr, Cint), species_t, species.charge)
+        isnothing(species.initial_amount) || ccall(sbml(:Species_setInitialAmount), Cint, (VPtr, Cdouble), species_t, species.initial_amount)
+        isnothing(species.initial_concentration) || ccall(sbml(:Species_setInitialConcentration), Cint, (VPtr, Cdouble), species_t, species.initial_concentration)
+        isnothing(species.substance_units) || ccall(sbml(:Species_setSubstanceUnits), Cint, (VPtr, Cstring), species_t, species.substance_units)
+        isnothing(species.only_substance_units) || ccall(sbml(:Species_setHasOnlySubstanceUnits), Cint, (VPtr, Cint), species_t, species.only_substance_units)
+        isnothing(species.constant) || ccall(sbml(:Species_setConstant), Cint, (VPtr, Cint), species_t, species.constant)
+        isnothing(species.metaid) || ccall(sbml(:SBase_setMetaId), Cint, (VPtr, Cstring), species_t, species.metaid)
+        isnothing(species.notes) || ccall(sbml(:SBase_setNotesString), Cint, (VPtr, Cstring), species_t, species.notes)
+        isnothing(species.annotation) || ccall(sbml(:SBase_setAnnotationString), Cint, (VPtr, Cstring), species_t, species.annotation)
+        res = ccall(sbml(:Model_addSpecies), Cint, (VPtr, VPtr), model, species_t)
+        !iszero(res) && @warn "Failed to add species \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
     # We can finally return the model
