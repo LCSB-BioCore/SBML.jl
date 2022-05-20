@@ -39,7 +39,7 @@ Base.@kwdef struct UnitDefinition
     name::Maybe{String} = nothing
     unit_parts::Vector{UnitPart}
 end
-
+@batteries UnitDefinition eq=true
 
 """
 $(TYPEDEF)
@@ -151,6 +151,7 @@ struct MathApply <: Math
     fn::String
     args::Vector{Math}
 end
+@batteries MathApply eq=true
 
 """
 $(TYPEDEF)
@@ -242,6 +243,7 @@ $(TYPEDFIELDS)
 struct AlgebraicRule <: Rule
     math::Math
 end
+@batteries AlgebraicRule eq=true
 
 """
 $(TYPEDEF)
@@ -255,6 +257,7 @@ struct AssignmentRule <: Rule
     id::String
     math::Math
 end
+@batteries AssignmentRule eq=true
 
 """
 $(TYPEDEF)
@@ -268,6 +271,7 @@ struct RateRule <: Rule
     id::String
     math::Math
 end
+@batteries RateRule eq=true
 
 """
 $(TYPEDEF)
@@ -281,6 +285,7 @@ struct Constraint
     math::Math
     message::String
 end
+@batteries Constraint eq=true
 
 """
 $(TYPEDEF)
