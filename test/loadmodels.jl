@@ -419,9 +419,13 @@ end
         content = replace(content, '\r' => "")
         @test content == expected
     end
+
     # Make sure that the model we read from the written out file is consistent
     # with the original model.
-    round_trip_model = readSBMLFromString(writeSBML(model))
-    @test model.units == round_trip_model.units
-    @test model.compartments == round_trip_model.compartments
+    @testset "Round-trip - $(file)" for file in ("Dasgupta2020.xml", "e_coli_core.xml")
+        model = readSBML(joinpath(@__DIR__, "data", file))
+        round_trip_model = readSBMLFromString(writeSBML(model))
+        @test model.units == round_trip_model.units
+        @test model.compartments == round_trip_model.compartments
+    end
 end

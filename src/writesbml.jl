@@ -24,6 +24,17 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         !iszero(res) && @warn "Failed to add compartment \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
+    # Add gene products
+    for (id, gene_product) in mdl.gene_products
+        geneproduct_t = ccall(sbml(:GeneProduct_create), VPtr, (Cuint, Cuint, Cuint), 3, 2, 2) # TODO: check what the PkgVersion should be
+        ccall(sbml(:GeneProduct_setId), Cint, (VPtr, Cstring), geneproduct_t, id)
+        isnothing(gene_product.name) || ccall(sbml(:GeneProduct_setName), Cint, (VPtr, Cstring), geneproduct_t, gene_product.name)
+        isnothing(gene_product.label) || ccall(sbml(:GeneProduct_setLabel), Cint, (VPtr, Cstring), geneproduct_t, gene_product.label)
+        isnothing(gene_product.notes) || ccall(sbml(:SBase_setNotesString), Cint, (VPtr, Cstring), geneproduct_t, gene_product.notes)
+        isnothing(gene_product.annotation) || ccall(sbml(:SBase_setAnnotationString), Cint, (VPtr, Cstring), geneproduct_t, gene_product.annotation)
+        # TODO: add the gene product to the FBC package
+    end
+
     # We can finally return the model
     return model
 end
