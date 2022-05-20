@@ -325,3 +325,5 @@ Base.:(==)(a::AlgebraicRule, b::AlgebraicRule) = a.math == b.math
 Base.:(==)(a::T, b::T) where {T<:Union{AssignmentRule,RateRule}} =
     a.id == b.id && a.math == b.math
 Base.:(==)(a::Constraint, b::Constraint) = a.math == b.math && a.message == b.message
+Base.:(==)(a::UnitDefinition, b::UnitDefinition) =
+    a.name == b.name && a.unit_parts == b.unit_parts

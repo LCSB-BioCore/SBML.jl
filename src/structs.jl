@@ -9,14 +9,28 @@ of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
              1/3600)    # second-to-hour multiplier
 
 Compound units (such as "volt-amperes" and "dozens of yards per ounce") are
-built from multiple `UnitPart`s; see the definition of field `units` in
-[`SBML.Model`](@ref).
+built from multiple `UnitPart`s.  See also [`SBML.UnitDefinition`](@ref).
 """
 Base.@kwdef struct UnitPart
     kind::String
     exponent::Int
     scale::Int
     multiplier::Float64
+end
+
+"""
+$(TYPEDEF)
+
+Representation of SBML unit definition, holding the name of the unit and a
+vector of [`SBML.UnitPart`](@ref)s.  See the definition of field `units` in
+[`SBML.Model`](@ref).
+
+# Fields
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct UnitDefinition
+    name::Maybe{String} = nothing
+    unit_parts::Vector{UnitPart}
 end
 
 
@@ -300,7 +314,7 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef struct Model
     parameters::Dict{String,Parameter} = Dict()
-    units::Dict{String,Vector{UnitPart}} = Dict()
+    units::Dict{String,UnitDefinition} = Dict()
     compartments::Dict{String,Compartment} = Dict()
     species::Dict{String,Species} = Dict()
     initial_assignments::Dict{String,Math} = Dict()
