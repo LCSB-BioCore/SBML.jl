@@ -21,7 +21,7 @@ end
 
 Base.@kwdef struct UnitDefinition
     name::Maybe{String} = nothing
-    list_of_units::Vector{UnitPart}
+    unit_parts::Vector{UnitPart}
 end
 
 
