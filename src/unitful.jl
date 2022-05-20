@@ -43,12 +43,18 @@ const UNITFUL_KIND_STRING = Dict(
 )
 
 
+"""
+    unitful(units::UnitDefinition)
+
+Converts an SBML unit definition (i.e., its vector of [`UnitPart`](@ref)s) to a
+corresponding Unitful unit.
+"""
 unitful(u::UnitDefinition) = unitful(u.unit_parts)
 
 """
     unitful(u::UnitPart)
 
-Converts an [`UnitPart`](@ref) to a corresponding Unitful unit.
+Converts a [`UnitPart`](@ref) to a corresponding Unitful unit.
 
 The conversion is done according to the formula from
 [SBML L3v2 core manual release 2](http://sbml.org/Special/specifications/sbml-level-3/version-2/core/release-2/sbml-level-3-version-2-release-2-core.pdf)(section 4.4.2).
@@ -59,7 +65,7 @@ unitful(u::UnitPart) =
 """
     unitful(units::Vector{UnitPart})
 
-Converts a SBML unit (i.e., a vector of [`UnitPart`](@ref)s) to a corresponding
+Converts an SBML unit (i.e., a vector of [`UnitPart`](@ref)s) to a corresponding
 Unitful unit.
 """
 unitful(u::Vector{UnitPart}) = prod(unitful.(u))
