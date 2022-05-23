@@ -2,6 +2,10 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Create the model pinter
     model = ccall(sbml(:SBMLDocument_createModel), VPtr, (VPtr,), doc)
 
+    # Set id and name
+    isnothing(mdl.id) || ccall(sbml(:Model_setId), Cint, (VPtr, Cstring), model, mdl.id)
+    isnothing(mdl.name) || ccall(sbml(:Model_setName), Cint, (VPtr, Cstring), model, mdl.name)
+
     # Add parameters
     for (id, parameter) in mdl.parameters
         parameter_t = ccall(sbml(:Parameter_create), VPtr, (Cuint, Cuint), 3, 2)
@@ -90,6 +94,17 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         res = ccall(sbml(:Model_addSpecies), Cint, (VPtr, VPtr), model, species_t)
         !iszero(res) && @warn "Failed to add species \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
+
+    # Add conversion factor
+    isnothing(mdl.conversion_factor) || ccall(sbml(:Model_setConversionFactor), Cint, (VPtr, Cstring), model, mdl.conversion_factor)
+
+    # Add other units attributes
+    isnothing(mdl.area_units) || ccall(sbml(:Model_setAreaUnits), Cint, (VPtr, Cstring), model, mdl.area_units)
+    isnothing(mdl.extent_units) || ccall(sbml(:Model_setExtentUnits), Cint, (VPtr, Cstring), model, mdl.extent_units)
+    isnothing(mdl.length_units) || ccall(sbml(:Model_setLengthUnits), Cint, (VPtr, Cstring), model, mdl.length_units)
+    isnothing(mdl.substance_units) || ccall(sbml(:Model_setSubstanceUnits), Cint, (VPtr, Cstring), model, mdl.substance_units)
+    isnothing(mdl.time_units) || ccall(sbml(:Model_setTimeUnits), Cint, (VPtr, Cstring), model, mdl.time_units)
+    isnothing(mdl.volume_units) || ccall(sbml(:Model_setVolumeUnits), Cint, (VPtr, Cstring), model, mdl.volume_units)
 
     # We can finally return the model
     return model
