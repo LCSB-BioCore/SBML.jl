@@ -208,6 +208,8 @@ end
 
 function get_astnode_ptr(m::MathApply)::VPtr
     astnode = ccall(sbml(:ASTNode_create), VPtr, ())
+    # Set the name
+    ccall(sbml(:ASTNode_setName), Cint, (VPtr, Cstring), astnode, m.fn)
     # Set the type
     if m.fn in keys(all_inv_function_mappings)
         ccall(sbml(:ASTNode_setType), Cint, (VPtr, Cuint), astnode, all_inv_function_mappings[m.fn])

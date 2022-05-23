@@ -37,6 +37,15 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         # !iszero(res) && @warn "Failed to add gene product \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
+    # Add initial assignments
+    for (symbol, math) in mdl.initial_assignments
+        initialassignment_t = ccall(sbml(:InitialAssignment_create), VPtr, (Cuint, Cuint), 3, 2)
+        ccall(sbml(:InitialAssignment_setSymbol), Cint, (VPtr, Cstring), initialassignment_t, symbol)
+        ccall(sbml(:InitialAssignment_setMath), Cint, (VPtr, VPtr), initialassignment_t, get_astnode_ptr(math))
+        res = ccall(sbml(:Model_addInitialAssignment), Cint, (VPtr, VPtr), model, initialassignment_t)
+        !iszero(res) && @warn "Failed to add initial assignment \"$(symbol)\": $(OPERATION_RETURN_VALUES[res])"
+    end
+
     # Add species
     for (id, species) in mdl.species
         species_t = ccall(sbml(:Species_create), VPtr, (Cuint, Cuint), 3, 2)

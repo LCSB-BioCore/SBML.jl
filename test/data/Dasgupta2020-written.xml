@@ -113,5 +113,12 @@
         </annotation>
       </species>
     </listOfSpecies>
+    <listOfInitialAssignments>
+      <initialAssignment symbol="ModelValue_6">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <ci> p0 </ci>
+        </math>
+      </initialAssignment>
+    </listOfInitialAssignments>
   </model>
 </sbml>

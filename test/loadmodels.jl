@@ -422,11 +422,12 @@ end
 
     # Make sure that the model we read from the written out file is consistent
     # with the original model.
-    @testset "Round-trip - $(file)" for file in ("Dasgupta2020.xml", "e_coli_core.xml")
-        model = readSBML(joinpath(@__DIR__, "data", file))
+    @testset "Round-trip - $(basename(file))" for file in first.(sbmlfiles)
+        model = readSBML(file)
         round_trip_model = readSBMLFromString(writeSBML(model))
         @test model.units == round_trip_model.units
         @test model.compartments == round_trip_model.compartments
+        @test model.initial_assignments == round_trip_model.initial_assignments
         # As far as I can tell, only annotation strings are different in the
         # species, because they may be written out in a different order.
         @test_skip model.species == round_trip_model.species
