@@ -1,19 +1,18 @@
-
 on:
+  pull_request:
   issue_comment:
     types: [created]
 
-name: PR auto-formatting command
+name: Formatting
 
 jobs:
-  format:
-    if: ${{ github.event.issue.pull_request && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER' || github.event.issue.user.id == github.event.comment.user.id) && startsWith(github.event.comment.body, '/format') }}
-    name: auto-format
+  formatting:
     runs-on: ubuntu-latest
     steps:
       - name: Clone the repository
         uses: actions/checkout@v3
       - name: Checkout the pull request code
+        if: github.event_name == 'issue_comment'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -34,7 +33,21 @@ jobs:
             # squash superfluous final newlines
             sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' "$filename"
           done
-      - name: Commit and push the changes
+      - name: Report problems
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ `git status -s | wc -l` -ne 0 ]
+          then gh pr comment ${{ github.event.number }} --body \
+          ":red_square: &nbsp;Commit ${{ github.event.pull_request.head.sha }} requires formatting!\
+          "$'\n\n'"Required formatting changes summary:\
+          "$'\n```\n'"`git diff --stat`"$'\n```'
+          else gh pr comment ${{ github.event.number }} --body \
+          ":green_circle: &nbsp;Commit ${{ github.event.pull_request.head.sha }} is formatted properly."
+          fi
+      - name: Commit fixes
+        if: github.event_name == 'issue_comment' && github.event.issue.pull_request && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER' || github.event.issue.user.id == github.event.comment.user.id) && startsWith(github.event.comment.body, '/format')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
