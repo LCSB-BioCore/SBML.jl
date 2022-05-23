@@ -113,6 +113,16 @@
         </annotation>
       </species>
     </listOfSpecies>
+    <listOfParameters>
+      <parameter id="p0" name="p0" value="10000" constant="true"/>
+      <parameter id="k3" name="k3" value="1.16" constant="true"/>
+      <parameter id="ModelValue_6" name="Initial for p0" value="10000" constant="true"/>
+      <parameter id="k_2" name="k_2" value="0.03" constant="true"/>
+      <parameter id="k1" name="k1" value="0.00021" constant="true"/>
+      <parameter id="s" name="s" value="0" constant="false"/>
+      <parameter id="k2" name="k2" value="7.5e-06" constant="true"/>
+      <parameter id="k_1" name="k_1" value="6.6e-09" constant="true"/>
+    </listOfParameters>
     <listOfInitialAssignments>
       <initialAssignment symbol="ModelValue_6">
         <math xmlns="http://www.w3.org/1998/Math/MathML">

@@ -2,6 +2,18 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Create the model pinter
     model = ccall(sbml(:SBMLDocument_createModel), VPtr, (VPtr,), doc)
 
+    # Add parameters
+    for (id, parameter) in mdl.parameters
+        parameter_t = ccall(sbml(:Parameter_create), VPtr, (Cuint, Cuint), 3, 2)
+        ccall(sbml(:Parameter_setId), Cint, (VPtr, Cstring), parameter_t, id)
+        isnothing(parameter.name) || ccall(sbml(:Parameter_setName), Cint, (VPtr, Cstring), parameter_t, parameter.name)
+        isnothing(parameter.value) || ccall(sbml(:Parameter_setValue), Cint, (VPtr, Cdouble), parameter_t, parameter.value)
+        isnothing(parameter.units) || ccall(sbml(:Parameter_setUnits), Cint, (VPtr, Cstring), parameter_t, parameter.units)
+        isnothing(parameter.constant) || ccall(sbml(:Parameter_setConstant), Cint, (VPtr, Cint), parameter_t, Cint(parameter.constant))
+        res = ccall(sbml(:Model_addParameter), Cint, (VPtr, VPtr), model, parameter_t)
+        !iszero(res) && @warn "Failed to add parameter \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
+    end
+
     # Add units
     for (name, units) in mdl.units
         res = ccall(sbml(:Model_addUnitDefinition), Cint, (VPtr, VPtr),

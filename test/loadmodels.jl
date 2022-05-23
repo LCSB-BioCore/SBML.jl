@@ -425,6 +425,7 @@ end
     @testset "Round-trip - $(basename(file))" for file in first.(sbmlfiles)
         model = readSBML(file)
         round_trip_model = readSBMLFromString(writeSBML(model))
+        @test model.parameters == round_trip_model.parameters
         @test model.units == round_trip_model.units
         @test model.compartments == round_trip_model.compartments
         @test model.initial_assignments == round_trip_model.initial_assignments
