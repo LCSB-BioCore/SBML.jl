@@ -46,6 +46,18 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         !iszero(res) && @warn "Failed to add initial assignment \"$(symbol)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
+    # Add constraints
+    for constraint in mdl.constraints
+        constraint_t = ccall(sbml(:Constraint_create), VPtr, (Cuint, Cuint), 3, 2)
+        # Note: this probably incorrect because our `Constraint` lost the XML namespace of the
+        # message, also we don't have an easy way to test this because no test file uses constraints.
+        message = ccall(sbml(:XMLNode_createTextNode), VPtr, (Cstring,), constraint.message)
+        ccall(sbml(:Constraint_setMessage), Cint, (VPtr, VPtr), constraint_t, message)
+        ccall(sbml(:Constraint_setMath), Cint, (VPtr, VPtr), constraint_t, get_astnode_ptr(constraint.math))
+        res = ccall(sbml(:Model_addConstraint), Cint, (VPtr, VPtr), model, constraint_t)
+        !iszero(res) && @warn "Failed to add constrain: $(OPERATION_RETURN_VALUES[res])"
+    end
+
     # Add species
     for (id, species) in mdl.species
         species_t = ccall(sbml(:Species_create), VPtr, (Cuint, Cuint), 3, 2)
