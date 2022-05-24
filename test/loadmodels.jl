@@ -296,11 +296,10 @@ end
     @test subterm.fn == "/"
     @test subterm.args[1] == SBML.MathIdent("S1")
     @test subterm.args[2] == SBML.MathIdent("C")
-    
+
     m = readSBML(joinpath(@__DIR__, "data", "sbml00140.xml"))
 
-    subterm =
-        SBML.extensive_kinetic_math(m, m.reactions["reaction1"].kinetic_math).args[2]
+    subterm = SBML.extensive_kinetic_math(m, m.reactions["reaction1"].kinetic_math).args[2]
     @test subterm.fn == "/"
     @test subterm.args[1] == SBML.MathIdent("S1")
     @test subterm.args[2] == SBML.MathIdent("compartment")
