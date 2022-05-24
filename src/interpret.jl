@@ -119,20 +119,20 @@ their own definition of `rateOf` that uses the correct derivative.
 """
 function interpret_math(
     x::SBML.Math;
-    map_apply = (fn::String, args, interpret::Function) ->
-        SBML.default_function_mapping[fn](interpret.(args)...),
+    map_apply = (x::SBML.MathApply, interpret::Function) ->
+        SBML.default_function_mapping[x.fn](interpret.(x.args)...),
     map_const = (x::SBML.MathConst) -> default_constants[x.id],
     map_ident = (x::SBML.MathIdent) ->
         throw(ErrorException("identifier mapping not defined")),
-    map_lambda = (x::SBML.MathLambda) ->
+    map_lambda = (x::SBML.MathLambda, interpret::Function) ->
         throw(ErrorException("lambda function mapping not defined")),
     map_time = (x::SBML.MathTime) -> throw(ErrorException("time mapping not defined")),
     map_value = (x::SBML.MathVal) -> x.val,
 )
-    interpret(x::SBML.MathApply) = map_apply(x.fn, x.args, interpret)
+    interpret(x::SBML.MathApply) = map_apply(x, interpret)
     interpret(x::SBML.MathConst) = map_const(x)
     interpret(x::SBML.MathIdent) = map_ident(x)
-    interpret(x::SBML.MathLambda) = map_lambda(x)
+    interpret(x::SBML.MathLambda) = map_lambda(x, interpret)
     interpret(x::SBML.MathTime) = map_time(x)
     interpret(x::SBML.MathVal) = map_value(x)
 
