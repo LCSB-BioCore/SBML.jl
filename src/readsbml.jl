@@ -71,38 +71,13 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
     end
 end
 
-"""
-    readSBML(
-        fn::String,
-        sbml_conversion = document -> nothing;
-        report_severities = ["Fatal", "Error"],
-    )::SBML.Model
-
-Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
-
-The `sbml_conversion` is a function that does an in-place modification of the
-single parameter, which is the C pointer to the loaded SBML document (C type
-`SBMLDocument*`). Several functions for doing that are prepared, including
-[`set_level_and_version`](@ref), [`libsbml_convert`](@ref), and
-[`convert_simplify_math`](@ref).
-
-`report_severities` switches on and off reporting of certain errors; see the
-documentation of [`get_error_messages`](@ref) for details.
-
-# Example
-```
-m = readSBML("my_model.xml", doc -> begin
-    set_level_and_version(3, 1)(doc)
-    convert_simplify_math(doc)
-end)
-```
-"""
-function readSBML(
+function _readSBML(
+    symbol::Symbol,
     fn::String,
-    sbml_conversion = document -> nothing;
+    sbml_conversion = document -> nothing,
     report_severities = ["Fatal", "Error"],
 )::SBML.Model
-    doc = ccall(sbml(:readSBML), VPtr, (Cstring,), fn)
+    doc = ccall(sbml(symbol), VPtr, (Cstring,), fn)
     try
         get_error_messages(
             doc,
@@ -123,6 +98,66 @@ function readSBML(
         ccall(sbml(:SBMLDocument_free), Nothing, (VPtr,), doc)
     end
 end
+
+"""
+    readSBML(
+        fn::String,
+        sbml_conversion = document -> nothing;
+        report_severities = ["Fatal", "Error"],
+    )::SBML.Model
+
+Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
+
+The `sbml_conversion` is a function that does an in-place modification of the
+single parameter, which is the C pointer to the loaded SBML document (C type
+`SBMLDocument*`). Several functions for doing that are prepared, including
+[`set_level_and_version`](@ref), [`libsbml_convert`](@ref), and
+[`convert_simplify_math`](@ref).
+
+`report_severities` switches on and off reporting of certain errors; see the
+documentation of [`get_error_messages`](@ref) for details.
+
+To read from a string instead of a file, use [`readSBMLFromString`](@ref).
+
+# Example
+```
+m = readSBML("my_model.xml", doc -> begin
+    set_level_and_version(3, 1)(doc)
+    convert_simplify_math(doc)
+end)
+```
+"""
+readSBML(
+    fn::String,
+    sbml_conversion = document -> nothing;
+    report_severities = ["Fatal", "Error"],
+)::SBML.Model = _readSBML(:readSBML, fn, sbml_conversion, report_severities)
+
+"""
+    readSBML(
+        str::String,
+        sbml_conversion = document -> nothing;
+        report_severities = ["Fatal", "Error"],
+    )::SBML.Model
+
+Read the SBML from the string `str` and return the contained `SBML.Model`.
+
+The `sbml_conversion` is a function that does an in-place modification of the
+single parameter, which is the C pointer to the loaded SBML document (C type
+`SBMLDocument*`). Several functions for doing that are prepared, including
+[`set_level_and_version`](@ref), [`libsbml_convert`](@ref), and
+[`convert_simplify_math`](@ref).
+
+`report_severities` switches on and off reporting of certain errors; see the
+documentation of [`get_error_messages`](@ref) for details.
+
+To read from a file instead of a string, use [`readSBML`](@ref).
+"""
+readSBMLFromString(
+    str::AbstractString,
+    sbml_conversion = document -> nothing;
+    report_severities = ["Fatal", "Error"],
+)::SBML.Model = _readSBML(:readSBMLFromString, String(str), sbml_conversion, report_severities)
 
 get_notes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString)
 get_annotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)
