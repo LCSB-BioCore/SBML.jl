@@ -216,7 +216,7 @@ Recursively determine if an SBML.Math expression occurs in another.
 """
 function Base.occursin(needle::SBML.Math, haystack::SBML.Math)
     if haystack isa Union{SBML.MathApply, SBML.MathLambda}
-        return any(occursin.(needle, haystack.args))
+        return any([occursin(needle, arg) for arg in haystack.args])
     else
         needle == haystack && return true
     end
@@ -233,8 +233,8 @@ Determine if the compartmint with id `c_id` has a size.
 """
 function hassize(c_id::String, m::SBML.Model)
     isnothing(m.compartments[c_id].size) || return true
-    c_id in [r.id for r in m.rules] && return true
-    any(occursin.(SBML.MathIdent(c_id), [r.math for r in m.rules if r isa SBML.AlgebraicRule])) && return true
+    c_id in [r.id for r in m.rules if r isa Union{SBML.AssignmentRule, SBML.RateRule}] && return true
+    any([occursin(SBML.MathIdent(c_id), r.math) for r in m.rules if r isa SBML.AlgebraicRule]) && return true
     false
 end
 
@@ -274,8 +274,9 @@ function extensive_kinetic_math(
         haskey(m.species, x.id) || return x
         sp = m.species[x.id]
         sp.only_substance_units && return x
-        m.compartments[sp.compartment].spatial_dimensions == 0 && return x
-        hassize(sp.compartment, m) || handle_empty_compartment_size(x.id)
+        c = m.compartments[sp.compartment]
+        hassize(sp.compartment, m) || c.spatial_dimensions == 0 || handle_empty_compartment_size(x.id)
+        c.spatial_dimensions == 0 && return x
         SBML.MathApply("/", [x, SBML.MathIdent(sp.compartment)])
     end
     conv(x::SBML.MathApply) = SBML.MathApply(x.fn, conv.(x.args))
