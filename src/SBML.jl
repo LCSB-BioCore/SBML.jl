@@ -8,7 +8,6 @@ using SBML_jll, Libdl
 using DocStringExtensions
 using IfElse
 using SparseArrays
-using Symbolics
 using Unitful
 
 include("types.jl")
@@ -16,9 +15,9 @@ include("structs.jl")
 include("version.jl")
 
 include("converters.jl")
+include("interpret.jl")
 include("math.jl")
 include("readsbml.jl")
-include("symbolics.jl")
 include("unitful.jl")
 include("utils.jl")
 

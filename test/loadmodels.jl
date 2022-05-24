@@ -292,10 +292,12 @@ end
 @testset "logBase and root math functions" begin
     m = readSBML(joinpath(@__DIR__, "data", "sbml01565.xml"))
 
-    @test convert(Num, m.reactions["J23"].kinetic_math) == 0.0
+    if TEST_SYMBOLICS
+        @test interpret_as_num(m.reactions["J23"].kinetic_math) == 0.0
 
-    @variables S29 S29b
-    @test isequal(convert(Num, m.reactions["J29"].kinetic_math), 2.0 * S29 * S29b)
+        @variables S29 S29b
+        @test isequal(interpret_as_num(m.reactions["J29"].kinetic_math), 2.0 * S29 * S29b)
+    end
 end
 
 @testset "rationals in math" begin
