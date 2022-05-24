@@ -131,8 +131,13 @@ maylift(f, args::Maybe...) = any(isnothing, args) ? nothing : f(args...)
 A helper for easily getting out a defaulted compartment size.
 """
 get_compartment_size(m::SBML.Model, compartment; default = nothing) =
-    mayfirst(maylift(x -> x.spatial_dimensions == 0 && isnothing(x.size) ? 1. : x.size,
-                     get(m.compartments, compartment, nothing)), default)
+    let c = get(m.compartments, compartment, nothing)
+        mayfirst(
+            maylift(x -> x.size, c),
+            maylift(x -> x.spatial_dimensions == 0 ? 1.0 : nothing, c),
+            default,
+        )
+    end
 
 """
     initial_amounts(
