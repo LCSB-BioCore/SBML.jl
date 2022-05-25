@@ -265,9 +265,11 @@ extensive_kinetic_math(m::SBML.Model, formula::SBML.Math) = interpret_math(
         sp = m.species[x.id]
         sp.only_substance_units && return x
         sz =
-            if !isboundbyrules(sp.compartment, m) &&
-               m.compartments[sp.compartment].spatial_dimensions == 0
-                # if the comparment ID isn't bound anywhere and it is a zero-dimensional compartment, default to 1.0
+            if isnothing(m.compartments[sp.compartment].size) &&
+               m.compartments[sp.compartment].spatial_dimensions == 0 &&
+               !isboundbyrules(sp.compartment, m)
+                # if the comparment ID isn't bound anywhere and it is a
+                # zero-dimensional unsized compartment, default to 1.0
                 SBML.MathVal(1.0)
             else
                 # otherwise just use the compartment ID as a variable
