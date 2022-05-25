@@ -218,7 +218,7 @@ Determine if `id` is used and not bound (aka. free) in `expr`.
 """
 isfreein(id::String, expr::SBML.Math) = interpret_math(
     expr,
-    map_apply = any(rec.(x.body)),
+    map_apply = any(rec.(x.args)),
     map_const = _ -> false,
     map_ident = x -> x.id == id,
     map_lambda = (x, rec) -> id in x.args ? false : rec(x.body),
@@ -236,22 +236,18 @@ Determine if an identifier is defined or used by any Rules in the model.
 """
 isboundbyrules(id::String, m::SBML.Model) =
     any(r.id == id for r in m.rules if typeof(r) in [SBML.AssignmentRule, SBML.RateRule]) ||
-    any(isfreein(Ref(id), r.math for r in m.rules))
+    any(isfreein.(Ref(id), r.math for r in m.rules))
 
 """
     function extensive_kinetic_math(
         m::SBML.Model,
-        formula::SBML.Math;
-        handle_empty_compartment_size = (id::String) -> throw(
-            DomainError(
-                "Non-substance-only-unit reference to species `\$id' in an unsized compartment `\$(m.species[id].compartment)'",
-            ),
-        ),
+        formula::SBML.Math
     )
 
 Convert a SBML math `formula` to "extensive" kinetic laws, where the references
 to species that are marked as not having only substance units are converted
-from amounts to concentrations.
+from amounts to concentrations. Compartment sizes are referenced by compartment
+identifiers. A compartment with no spatial
 
 If the data is missing, you can supply a function that adds them. A common way
 to handle errors is to assume that unsized compartments have volume 1.0 (of
@@ -260,15 +256,7 @@ whatever units), you can specify that behavior by supplying
 
 Handling of units in the conversion process is ignored in this version.
 """
-extensive_kinetic_math(
-    m::SBML.Model,
-    formula::SBML.Math;
-    handle_empty_compartment_size = (id::String) -> throw(
-        DomainError(
-            "Non-substance-only-unit reference to species `$id' in an unsized compartment `$(m.species[id].compartment)'",
-        ),
-    ),
-) = interpret_math(
+extensive_kinetic_math(m::SBML.Model, formula::SBML.Math) = interpret_math(
     formula,
     map_apply = (x, rec) -> SBML.MathApply(x.fn, rec.(x.args)),
     map_const = identity,
@@ -276,12 +264,16 @@ extensive_kinetic_math(
         haskey(m.species, x.id) || return x
         sp = m.species[x.id]
         sp.only_substance_units && return x
-        sz = m.compartments[sp.compartment].size
-        isnothing(sz) &&
-            !isboundbyrules(sp.compartment, m) &&
-            (sz = handle_empty_compartment_size(x.id))
-        isnothing(sz) && c.spatial_dimensions == 0 && (sz = 1.0)
-        return SBML.MathApply("/", [x, SBML.MathIdent(sp.compartment)])
+        sz =
+            if !isboundbyrules(sp.compartment, m) &&
+               m.compartments[sp.compartment].spatial_dimensions == 0
+                # if the comparment ID isn't bound anywhere and it is a zero-dimensional compartment, default to 1.0
+                SBML.MathVal(1.0)
+            else
+                # otherwise just use the compartment ID as a variable
+                SBML.MathIdent(sp.compartment)
+            end
+        return SBML.MathApply("/", [x, sz])
     end,
     map_lambda = (x, _) -> error(
         ErrorException("converting lambdas to extensive kinetic math is not supported"),
