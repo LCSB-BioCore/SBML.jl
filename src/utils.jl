@@ -131,7 +131,13 @@ maylift(f, args::Maybe...) = any(isnothing, args) ? nothing : f(args...)
 A helper for easily getting out a defaulted compartment size.
 """
 get_compartment_size(m::SBML.Model, compartment; default = nothing) =
-    mayfirst(maylift(x -> x.size, get(m.compartments, compartment, nothing)), default)
+    let c = get(m.compartments, compartment, nothing)
+        mayfirst(
+            maylift(x -> x.size, c),
+            maylift(x -> x.spatial_dimensions == 0 ? 1.0 : nothing, c),
+            default,
+        )
+    end
 
 """
     initial_amounts(
@@ -205,51 +211,87 @@ initial_concentrations(
     ) for (k, s) in m.species
 )
 
+"""
+    isfreein(id::String, expr::SBML.Math)
+
+Determine if `id` is used and not bound (aka. free) in `expr`.
+"""
+isfreein(id::String, expr::SBML.Math) = interpret_math(
+    expr,
+    map_apply = any(rec.(x.args)),
+    map_const = _ -> false,
+    map_ident = x -> x.id == id,
+    map_lambda = (x, rec) -> id in x.args ? false : rec(x.body),
+    map_time = _ -> false,
+    map_value = _ -> false,
+)
+
+"""
+    isboundbyrules(
+        id::String,
+        m::SBML.Model
+    )
+
+Determine if an identifier seems defined or used by any Rules in the model.
+"""
+seemsdefined(id::String, m::SBML.Model) =
+    any(r.id == id for r in m.rules if r isa AssignmentRule) ||
+    any(r.id == id for r in m.rules if r isa RateRule) ||
+    any(isfreein(id, r.math) for r in m.rules if r isa AlgebraicRule)
 
 """
     function extensive_kinetic_math(
         m::SBML.Model,
-        formula::SBML.Math;
-        handle_empty_compartment_size = (id::String) -> throw(
-            DomainError(
-                "Non-substance-only-unit reference to species `\$id' in an unsized compartment `\$(m.species[id].compartment)'",
-            ),
-        ),
+        formula::SBML.Math
     )
 
 Convert a SBML math `formula` to "extensive" kinetic laws, where the references
 to species that are marked as not having only substance units are converted
-from amounts to concentrations.
-
-If the data is missing, you can supply a function that adds them. A common way
-to handle errors is to assume that unsized compartments have volume 1.0 (of
-whatever units), you can specify that behavior by supplying
-`handle_empty_compartment_size = _ -> 1.0`.
-
-Handling of units in the conversion process is ignored in this version.
+from amounts to concentrations. Compartment sizes are referenced by compartment
+identifiers. A compartment with no obvious definition available in the model
+(as detected by [`seemsdefined`](@ref)) is either defaulted as size-less (i.e.,
+size is 1.0) in case it does not have spatial dimensions, or reported as
+erroneous.
 """
-function extensive_kinetic_math(
-    m::SBML.Model,
-    formula::SBML.Math;
-    handle_empty_compartment_size = (id::String) -> throw(
-        DomainError(
-            "Non-substance-only-unit reference to species `$id' in an unsized compartment `$(m.species[id].compartment)'",
-        ),
-    ),
-)
-    conv(x::SBML.MathIdent) = begin
+extensive_kinetic_math(m::SBML.Model, formula::SBML.Math) = interpret_math(
+    formula,
+    map_apply = (x, rec) -> SBML.MathApply(x.fn, rec.(x.args)),
+    map_const = identity,
+    map_ident = (x::SBML.MathIdent) -> begin
         haskey(m.species, x.id) || return x
         sp = m.species[x.id]
         sp.only_substance_units && return x
-        sz = m.compartments[sp.compartment].size
-        isnothing(sz) && (sz = handle_empty_compartment_size(x.id))
-        SBML.MathApply("/", [x, SBML.MathVal(sz)])
-    end
-    conv(x::SBML.MathApply) = SBML.MathApply(x.fn, conv.(x.args))
-    conv(x::SBML.Math) = x
-
-    conv(formula)
-end
+        if isnothing(m.compartments[sp.compartment].size) &&
+           !seemsdefined(sp.compartment, m)
+            if m.compartments[sp.compartment].spatial_dimensions == 0
+                # If the comparment ID doesn't seem directly defined anywhere
+                # and it is a zero-dimensional unsized compartment, just avoid
+                # any sizing questions.
+                return x
+            else
+                # In case the compartment is expected to be defined, complain.
+                throw(
+                    DomainError(
+                        sp.compartment,
+                        "compartment size is insufficiently defined",
+                    ),
+                )
+            end
+        else
+            # Now we are sure that the model either has the compartment with
+            # constant size, or the definition is easily reachable. So just use
+            # the compartment ID as a variable to compute the concentration (or
+            # area-centration etc, with different dimensionalities) by dividing
+            # it.
+            return SBML.MathApply("/", [x, SBML.MathIdent(sp.compartment)])
+        end
+    end,
+    map_lambda = (x, _) -> error(
+        ErrorException("converting lambdas to extensive kinetic math is not supported"),
+    ),
+    map_time = identity,
+    map_value = identity,
+)
 
 """
     get_error_messages(doc::VPtr, error::Exception, report_severities)

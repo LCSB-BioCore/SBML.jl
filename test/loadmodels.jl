@@ -36,6 +36,15 @@ sbmlfiles = [
         3,
         fill(Inf, 3),
     ),
+    # a cool model with assignmentRule for a compartment
+    (
+        joinpath(@__DIR__, "data", "sbml00140.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00140/00140-sbml-l3v2.xml",
+        "43f0151c4f414b610b46bb62033fdcc177f4ac5cc39f3fe8b208e2e335c8d847",
+        3,
+        1,
+        fill(Inf, 1),
+    ),
     # another model from SBML suite, with initial concentrations
     (
         joinpath(@__DIR__, "data", "sbml00374.xml"),
@@ -286,7 +295,14 @@ end
         SBML.extensive_kinetic_math(m, m.reactions["reaction1"].kinetic_math).args[1].args[2]
     @test subterm.fn == "/"
     @test subterm.args[1] == SBML.MathIdent("S1")
-    @test isapprox(subterm.args[2].val, 1.0)
+    @test subterm.args[2] == SBML.MathIdent("C")
+
+    m = readSBML(joinpath(@__DIR__, "data", "sbml00140.xml"))
+
+    subterm = SBML.extensive_kinetic_math(m, m.reactions["reaction1"].kinetic_math).args[2]
+    @test subterm.fn == "/"
+    @test subterm.args[1] == SBML.MathIdent("S1")
+    @test subterm.args[2] == SBML.MathIdent("compartment")
 end
 
 @testset "logBase and root math functions" begin

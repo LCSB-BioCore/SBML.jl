@@ -11,11 +11,11 @@ end
 
 const interpret_as_num(x::SBML.Math) = SBML.interpret_math(
     x;
-    map_apply = (fn::String, args, interpret::Function) ->
-        Num(symbolics_mapping[fn](interpret.(args)...)),
+    map_apply = (x::SBML.MathApply, interpret::Function) ->
+        Num(symbolics_mapping[x.fn](interpret.(x.args)...)),
     map_const = (x::SBML.MathConst) -> Num(SBML.default_constants[x.id]),
     map_ident = map_symbolics_time_ident,
-    map_lambda = (x::SBML.MathLambda) ->
+    map_lambda = (_, _) ->
         throw(ErrorException("Symbolics.jl does not support lambda functions")),
     map_time = map_symbolics_time_ident,
     map_value = (x::SBML.MathVal) -> Num(x.val),
