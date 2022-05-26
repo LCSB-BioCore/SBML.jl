@@ -12,7 +12,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
-DocStringExtensions = "0.8"
+DocStringExtensions = "0.8, 0.9"
 IfElse = "0.1"
 Symbolics = "3, 4"
 Unitful = "1"

@@ -1,5 +1,5 @@
 """
-    get_string(x::VPtr, fn_sym)::Maybe{String}
+$(TYPEDSIGNATURES)
 
 C-call the SBML function `fn_sym` with a single parameter `x`, interpret the
 result as a string and return it, or throw exception in case the pointer is
@@ -15,7 +15,7 @@ function get_string(x::VPtr, fn_sym)::String
 end
 
 """
-    get_optional_string(x::VPtr, fn_sym)::Maybe{String}
+$(TYPEDSIGNATURES)
 
 Like [`get_string`](@ref), but returns `nothing` instead of throwing an
 exception.
@@ -33,7 +33,7 @@ function get_optional_string(x::VPtr, fn_sym)::Maybe{String}
 end
 
 """
-    get_optional_bool(x::VPtr, is_sym, get_sym)::Maybe{Bool}
+$(TYPEDSIGNATURES)
 
 Helper for getting out boolean flags.
 """
@@ -46,7 +46,7 @@ function get_optional_bool(x::VPtr, is_sym, get_sym)::Maybe{Bool}
 end
 
 """
-    get_optional_int(x::VPtr, is_sym, get_sym)::Maybe{UInt}
+$(TYPEDSIGNATURES)
 
 Helper for getting out unsigned integers.
 """
@@ -59,7 +59,7 @@ function get_optional_int(x::VPtr, is_sym, get_sym)::Maybe{Int}
 end
 
 """
-    get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
+$(TYPEDSIGNATURES)
 
 Helper for getting out C doubles aka Float64s.
 """
@@ -88,6 +88,11 @@ function get_string_from_xmlnode(xmlnode::VPtr)::String
     end
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Internal helper for [`readSBML`](@ref).
+"""
 function _readSBML(
     symbol::Symbol,
     fn::String,
@@ -117,11 +122,7 @@ function _readSBML(
 end
 
 """
-    readSBML(
-        fn::String,
-        sbml_conversion = document -> nothing;
-        report_severities = ["Fatal", "Error"],
-    )::SBML.Model
+$(TYPEDSIGNATURES)
 
 Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
 
@@ -152,12 +153,9 @@ function readSBML(
     isfile(fn) || throw(AssertionError("$(fn) is not a file"))
     _readSBML(:readSBML, fn, sbml_conversion, report_severities)
 end
+
 """
-    readSBML(
-        str::String,
-        sbml_conversion = document -> nothing;
-        report_severities = ["Fatal", "Error"],
-    )::SBML.Model
+$(TYPEDSIGNATURES)
 
 Read the SBML from the string `str` and return the contained `SBML.Model`.
 
@@ -175,7 +173,7 @@ get_notes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString
 get_annotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)
 
 """
-    function get_association(x::VPtr)::GeneProductAssociation
+$(TYPEDSIGNATURES)
 
 Convert a pointer to SBML `FbcAssociation_t` to the `GeneProductAssociation`
 tree structure.
@@ -203,6 +201,11 @@ function get_association(x::VPtr)::GeneProductAssociation
     end
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Extract the value of SBML `Parameter_t`.
+"""
 get_parameter(p::VPtr)::Pair{String,Parameter} =
     get_string(p, :Parameter_getId) => Parameter(
         name = get_optional_string(p, :Parameter_getName),
@@ -212,7 +215,7 @@ get_parameter(p::VPtr)::Pair{String,Parameter} =
     )
 
 """"
-    function get_model(mdl::VPtr)::SBML.Model
+$(TYPEDSIGNATURES)
 
 Take the `SBMLModel_t` pointer and extract all information required to make a
 valid [`SBML.Model`](@ref) structure.

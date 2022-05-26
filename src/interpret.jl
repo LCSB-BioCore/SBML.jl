@@ -22,7 +22,7 @@ sbmlRoot(power, x) = x^(1 / power)
 sbmlRateOf(x) = throw(ErrorException("`rateOf' function mapping not defined"))
 
 """
-    default_function_mapping :: Dict{String,Any}
+$(TYPEDSIGNATURES)
 
 Default mapping of SBML function names to Julia functions, represented as a
 dictionary from Strings (SBML names) to functions.
@@ -88,7 +88,7 @@ allowed_sym(x, allowed_funs) =
     throw(DomainError(x, "Unknown SBML function"))
 
 """
-    const default_constants::Dict{String, Any}
+$(TYPEDSIGNATURES)
 
 A dictionary of default constants filled in place of SBML Math constants in the
 function conversion.
@@ -97,15 +97,7 @@ const default_constants =
     Dict{String,Any}("true" => true, "false" => false, "pi" => pi, "e" => exp(1))
 
 """
-    function interpret_math(
-        x::SBML.Math;
-        map_apply = (fn::String, args, interpret::Function) -> SBML.default_function_mapping[fn](interpret.(args)...),
-        map_const = (x::SBML.MathConst) -> default_constants[x.id],
-        map_ident = (x::SBML.MathIdent) -> throw(ErrorException("identifier mapping not defined")),
-        map_lambda = (x::SBML.MathLambda) -> throw(ErrorException("lambda function mapping not defined")),
-        map_time = (x::SBML.MathTime) -> throw(ErrorException("time mapping not defined")),
-        map_value = (x::SBML.MathVal) -> x.val,
-    )
+$(TYPEDSIGNATURES)
 
 Recursively interpret SBML.[`Math`](@ref) type. This can be used to relatively
 easily traverse and evaluate the SBML math, or translate it into any custom
