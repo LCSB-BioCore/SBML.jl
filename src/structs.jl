@@ -1,5 +1,7 @@
 
 """
+$(TYPEDEF)
+
 Part of a measurement unit definition that corresponds to the SBML definition
 of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
 
@@ -10,6 +12,9 @@ of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
 
 Compound units (such as "volt-amperes" and "dozens of yards per ounce") are
 built from multiple `UnitPart`s.  See also [`SBML.UnitDefinition`](@ref).
+
+# Fields
+$(TYPEDFIELDS)
 """
 Base.@kwdef struct UnitPart
     kind::String
@@ -35,26 +40,46 @@ end
 
 
 """
+$(TYPEDEF)
+
 Abstract type for all kinds of gene product associations
+
+# Fields
+$(TYPEDFIELDS)
 """
 abstract type GeneProductAssociation end
 
 """
+$(TYPEDEF)
+
 Gene product reference in the association expression
+
+# Fields
+$(TYPEDFIELDS)
 """
 struct GPARef <: GeneProductAssociation
     gene_product::String
 end
 
 """
+$(TYPEDEF)
+
 Boolean binary "and" in the association expression
+
+# Fields
+$(TYPEDFIELDS)
 """
 struct GPAAnd <: GeneProductAssociation
     terms::Vector{GeneProductAssociation}
 end
 
 """
+$(TYPEDEF)
+
 Boolean binary "or" in the association expression
+
+# Fields
+$(TYPEDFIELDS)
 """
 struct GPAOr <: GeneProductAssociation
     terms::Vector{GeneProductAssociation}
@@ -66,37 +91,62 @@ A simplified representation of MathML-specified math AST
 abstract type Math end
 
 """
+$(TYPEDEF)
+
 A literal value (usually a numeric constant) in mathematical expression
+
+# Fields
+$(TYPEDFIELDS)
 """
 struct MathVal{T} <: Math where {T}
     val::T
 end
 
 """
+$(TYPEDEF)
+
 An identifier (usually a variable name) in mathematical expression
+
+# Fields
+$(TYPEDFIELDS)
 """
 struct MathIdent <: Math
     id::String
 end
 
 """
+$(TYPEDEF)
+
 A constant identified by name (usually something like `pi`, `e` or `true`) in
 mathematical expression
+
+# Fields
+$(TYPEDFIELDS)
 """
 struct MathConst <: Math
     id::String
 end
 
 """
+$(TYPEDEF)
+
 A special value representing the current time of the simulation, with a special
 name.
+
+# Fields
+$(TYPEDFIELDS)
 """
 struct MathTime <: Math
     id::String
 end
 
 """
+$(TYPEDEF)
+
 Function application ("call by name", no tricks allowed) in mathematical expression
+
+# Fields
+$(TYPEDFIELDS)
 """
 struct MathApply <: Math
     fn::String
@@ -104,7 +154,12 @@ struct MathApply <: Math
 end
 
 """
+$(TYPEDEF)
+
 Function definition (aka "lambda") in mathematical expression
+
+# Fields
+$(TYPEDFIELDS)
 """
 struct MathLambda <: Math
     args::Vector{String}
@@ -268,7 +323,12 @@ Base.@kwdef struct GeneProduct
 end
 
 """
+$(TYPEDEF)
+
 Custom function definition.
+
+# Fields
+$(TYPEDFIELDS)
 """
 Base.@kwdef struct FunctionDefinition
     name::Maybe{String} = nothing

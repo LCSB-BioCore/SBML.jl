@@ -1,5 +1,5 @@
 """
-    function stoichiometry_matrix(m::SBML.Model)
+$(TYPEDSIGNATURES)
 
 Extract the vector of species (aka metabolite) identifiers, vector of reaction
 identifiers, and a sparse stoichiometry matrix (of type `SparseMatrixCSC` from
@@ -46,7 +46,7 @@ function stoichiometry_matrix(m::SBML.Model)
 end
 
 """
-    flux_bounds(m::SBML.Model)::NTuple{2, Vector{Tuple{Float64,String}}}
+$(TYPEDSIGNATURES)
 
 Extract the vectors of lower and upper bounds of reaction rates from the model,
 in the same order as `keys(m.reactions)`.  All bounds are accompanied with the
@@ -87,7 +87,7 @@ function flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}}
 end
 
 """
-    flux_objective(m::SBML.Model)::Vector{Float64}
+$(TYPEDSIGNATURES)
 
 Extract the vector of objective coefficients of each reaction, in the same
 order as `keys(m.reactions)`.
@@ -104,7 +104,7 @@ function flux_objective(m::SBML.Model)::Vector{Float64}
 end
 
 """
-    mayfirst(args::Maybe{T}...)::Maybe{T} where T
+$(TYPEDSIGNATURES)
 
 Helper to get the first non-`nothing` value from the arguments.
 """
@@ -118,7 +118,7 @@ function mayfirst(args...)
 end
 
 """
-    maylift(f, args::Maybe...)
+$(TYPEDSIGNATURES)
 
 Helper to lift a function to work on [`Maybe`](@ref), returning `nothing`
 whenever there's a `nothing` in args.
@@ -126,7 +126,7 @@ whenever there's a `nothing` in args.
 maylift(f, args::Maybe...) = any(isnothing, args) ? nothing : f(args...)
 
 """
-    get_compartment_size(m::SBML.Model, compartment; default = nothing)
+$(TYPEDSIGNATURES)
 
 A helper for easily getting out a defaulted compartment size.
 """
@@ -140,11 +140,7 @@ get_compartment_size(m::SBML.Model, compartment; default = nothing) =
     end
 
 """
-    initial_amounts(
-        m::SBML.Model;
-        convert_concentrations = false,
-        compartment_size = comp -> get_compartment_size(m, comp),
-    )
+$(TYPEDSIGNATURES)
 
 Return initial amounts for each species as a generator of pairs
 `species_name => initial_amount`; the amount is set to `nothing` if not
@@ -189,11 +185,7 @@ initial_amounts(
 )
 
 """
-    initial_concentrations(
-        m::SBML.Model;
-        convert_amounts = false,
-        compartment_size = comp -> get_compartment_size(m, comp),
-    )
+$(TYPEDSIGNATURES)
 
 Return initial concentrations of the species in the model. Refer to work-alike
 [`initial_amounts`](@ref) for details.
@@ -240,10 +232,7 @@ seemsdefined(id::String, m::SBML.Model) =
     any(isfreein(id, r.math) for r in m.rules if r isa AlgebraicRule)
 
 """
-    function extensive_kinetic_math(
-        m::SBML.Model,
-        formula::SBML.Math
-    )
+$(TYPEDSIGNATURES)
 
 Convert a SBML math `formula` to "extensive" kinetic laws, where the references
 to species that are marked as not having only substance units are converted
@@ -294,7 +283,7 @@ extensive_kinetic_math(m::SBML.Model, formula::SBML.Math) = interpret_math(
 )
 
 """
-    get_error_messages(doc::VPtr, error::Exception, report_severities)
+$(TYPEDSIGNATURES)
 
 Show the error messages reported by SBML in the `doc` document and throw the
 `error` if they are more than 1.
@@ -327,12 +316,7 @@ function get_error_messages(doc::VPtr, error::Exception, report_severities)
 end
 
 """
-    check_errors(
-        success::Integer,
-        doc::VPtr,
-        error::Exception,
-        report_severities = ["Fatal", "Error"],
-    )
+$(TYPEDSIGNATURES)
 
 If success is a 0-valued `Integer` (a logical `false`), then call
 [`get_error_messages`](@ref) to show the error messages reported by SBML in the
@@ -347,6 +331,12 @@ check_errors(
     report_severities = ["Fatal", "Error"],
 ) = Bool(success) || get_error_messages(doc, error, report_severities)
 
+"""
+$(TYPEDSIGNATURES)
+
+Pretty-printer for a SBML model.
+Avoids flushing too much stuff to terminal by accident.
+"""
 function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
     print(
         io,

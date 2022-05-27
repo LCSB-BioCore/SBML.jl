@@ -1,13 +1,13 @@
 
 """
-    ast_is(ast::VPtr, what::Symbol)::Bool
+$(TYPEDSIGNATURES)
 
 Helper for quickly recognizing kinds of ASTs
 """
 ast_is(ast::VPtr, what::Symbol)::Bool = ccall(sbml(what), Cint, (VPtr,), ast) != 0
 
 """
-    parse_math_children(ast::VPtr)::Vector{Math}
+$(TYPEDSIGNATURES)
 
 Recursively parse all children of an AST node.
 """
@@ -36,9 +36,9 @@ function relational_oper(t::Int)
 end
 
 """
-    parse_math(ast::VPtr)::Math
+$(TYPEDSIGNATURES)
 
-This attempts to parse out a decent Julia-esque ([`Math`](@ref) AST from a
+This attempts to parse out a decent Julia-esque [`Math`](@ref) AST from a
 pointer to `ASTNode_t`.
 """
 function parse_math(ast::VPtr)::Math

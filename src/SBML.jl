@@ -21,6 +21,11 @@ include("readsbml.jl")
 include("unitful.jl")
 include("utils.jl")
 
+"""
+$(TYPEDSIGNATURES)
+
+A shortcut that loads a function symbol from `SBML_jll`.
+"""
 sbml(sym::Symbol)::VPtr = dlsym(SBML_jll.libsbml_handle, sym)
 
 export readSBML, readSBMLFromString, stoichiometry_matrix, flux_bounds, flux_objective

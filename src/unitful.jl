@@ -44,7 +44,7 @@ const UNITFUL_KIND_STRING = Dict(
 
 
 """
-    unitful(units::UnitDefinition)
+$(TYPEDSIGNATURES)
 
 Converts an SBML unit definition (i.e., its vector of [`UnitPart`](@ref)s) to a
 corresponding Unitful unit.
@@ -52,7 +52,7 @@ corresponding Unitful unit.
 unitful(u::UnitDefinition) = unitful(u.unit_parts)
 
 """
-    unitful(u::UnitPart)
+$(TYPEDSIGNATURES)
 
 Converts a [`UnitPart`](@ref) to a corresponding Unitful unit.
 
@@ -63,7 +63,7 @@ unitful(u::UnitPart) =
     (u.multiplier * UNITFUL_KIND_STRING[u.kind] * exp10(u.scale))^u.exponent
 
 """
-    unitful(units::Vector{UnitPart})
+$(TYPEDSIGNATURES)
 
 Converts an SBML unit (i.e., a vector of [`UnitPart`](@ref)s) to a corresponding
 Unitful unit.
@@ -71,7 +71,7 @@ Unitful unit.
 unitful(u::Vector{UnitPart}) = prod(unitful.(u))
 
 """
-    unitful(m::Model, val::Tuple{Float64,String})
+$(TYPEDSIGNATURES)
 
 Computes a properly unitful value from a value-unit pair stored in the model
 `m`.
@@ -79,7 +79,7 @@ Computes a properly unitful value from a value-unit pair stored in the model
 unitful(m::Model, val::Tuple{Float64,String}) = unitful(m.units[val[2]]) * val[1]
 
 """
-    unitful(m::Model, val::Tuple{Float64, String}, default_unit::Number)
+$(TYPEDSIGNATURES)
 
 Overload of [`unitful`](@ref) that uses the `default_unit` if the unit is not
 found in the model.
@@ -94,7 +94,7 @@ unitful(m::Model, val::Tuple{Float64,String}, default_unit::Number) =
     mayfirst(maylift(unitful, get(m.units, val[2], nothing)), default_unit) * val[1]
 
 """
-    unitful(m::Model, val::Tuple{Float64, String}, default_unit::String)
+$(TYPEDSIGNATURES)
 
 Overload of [`unitful`](@ref) that allows specification of the `default_unit` by
 string ID.
