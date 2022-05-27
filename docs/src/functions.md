@@ -24,6 +24,16 @@ Pages = ["SBML.jl"]
 
 ## Loading and versioning
 
+```@autodocs
+Modules = [SBML]
+Pages = ["readsbml.jl"]
+```
+
+```@autodocs
+Modules = [SBML]
+Pages = ["version.jl"]
+```
+
 ## `libsbml` representation converters
 
 The converters are intended to be used as parameters of [`readSBML`](@ref).
@@ -49,11 +59,11 @@ Modules = [SBML]
 Pages = ["unitful.jl"]
 ```
 
-## MathML representation and `Symbolics.jl` compatibility
+## Math interpretation
 
 ```@autodocs
 Modules = [SBML]
-Pages = ["symbolics.jl"]
+Pages = ["interpret.jl"]
 ```
 
 ### Internal math helpers

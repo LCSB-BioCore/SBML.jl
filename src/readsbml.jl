@@ -214,7 +214,7 @@ get_parameter(p::VPtr)::Pair{String,Parameter} =
         constant = get_optional_bool(p, :Parameter_isSetConstant, :Parameter_getConstant),
     )
 
-""""
+"""
 $(TYPEDSIGNATURES)
 
 Take the `SBMLModel_t` pointer and extract all information required to make a
