@@ -7,7 +7,7 @@ name: Formatting
 
 jobs:
   formatting:
-    if: github.event_name == 'pull_request' || (github.event_name == 'issue_comment' && github.event.issue.pull_request)
+    if: github.event_name == 'pull_request' || (github.event_name == 'issue_comment' && github.event.issue.pull_request && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER' || github.event.issue.user.id == github.event.comment.user.id) && startsWith(github.event.comment.body, '/format')
     runs-on: ubuntu-latest
     steps:
       - name: Clone the repository
@@ -48,7 +48,7 @@ jobs:
           ":green_circle: &nbsp;Commit ${{ github.event.pull_request.head.sha }} is formatted properly."
           fi
       - name: Commit fixes
-        if: github.event_name == 'issue_comment' && github.event.issue.pull_request && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER' || github.event.issue.user.id == github.event.comment.user.id) && startsWith(github.event.comment.body, '/format')
+        if: github.event_name == 'issue_comment'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
