@@ -7,6 +7,7 @@ name: Formatting
 
 jobs:
   formatting:
+    if: github.event_name == 'pull_request' || (github.event_name == 'issue_comment' && github.event.issue.pull_request)
     runs-on: ubuntu-latest
     steps:
       - name: Clone the repository
