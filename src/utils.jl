@@ -210,7 +210,7 @@ Determine if `id` is used and not bound (aka. free) in `expr`.
 """
 isfreein(id::String, expr::SBML.Math) = interpret_math(
     expr,
-    map_apply = any(rec.(x.args)),
+    map_apply = (x, rec) -> any(rec.(x.args)),
     map_const = _ -> false,
     map_ident = x -> x.id == id,
     map_lambda = (x, rec) -> id in x.args ? false : rec(x.body),
