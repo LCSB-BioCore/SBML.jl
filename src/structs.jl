@@ -165,6 +165,7 @@ struct MathLambda <: Math
     args::Vector{String}
     body::Math
 end
+@batteries MathLambda eq=true
 
 """
 $(TYPEDEF)

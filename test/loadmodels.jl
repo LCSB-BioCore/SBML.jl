@@ -136,6 +136,14 @@ sbmlfiles = [
     ),
 ]
 
+# Define some "approximate equality" methods only for the purpose of tests.  The main
+# problem is that annotations may be written out in different order, so we can't do verbatim
+# comparison of strings.
+function Base.:(==)(fd1::SBML.FunctionDefinition, fd2::SBML.FunctionDefinition)::Bool
+    return fd1.name == fd2.name && fd1.body == fd2.body && fd1.notes == fd2.notes &&
+        isnothing(fd1.annotation) == isnothing(fd2.annotation)
+end
+
 @testset "Loading of models from various sources - $(reader)" for reader in (
     readSBML,
     readSBMLFromString,
@@ -433,6 +441,7 @@ end
         @test_skip model.species == round_trip_model.species
         @test model.initial_assignments == round_trip_model.initial_assignments
         @test model.constraints == round_trip_model.constraints
+        @test model.function_definitions == round_trip_model.function_definitions
         @test model.name == round_trip_model.name
         @test model.id == round_trip_model.id
         @test model.metaid == round_trip_model.metaid

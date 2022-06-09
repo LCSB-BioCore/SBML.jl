@@ -224,3 +224,19 @@ function get_astnode_ptr(m::MathApply)::VPtr
     ccall(sbml(:ASTNode_canonicalize), Cint, (VPtr,), astnode)
     return astnode
 end
+
+function get_astnode_ptr(m::MathLambda)::VPtr
+    astnode = ccall(sbml(:ASTNode_create), VPtr, ())
+    # All arguments
+    for child in MathIdent.(m.args)
+        child_ptr = get_astnode_ptr(child)
+        ccall(sbml(:ASTNode_addChild), Cint, (VPtr, VPtr), astnode, child_ptr)
+    end
+    # Add the body
+    body = get_astnode_ptr(m.body)
+    ccall(sbml(:ASTNode_addChild), Cint, (VPtr, VPtr), astnode, body)
+    # Set the type
+    ccall(sbml(:ASTNode_setType), Cint, (VPtr, Cuint), astnode, 267) # 267 == AST_LAMBDA
+    # Done
+    return astnode
+end

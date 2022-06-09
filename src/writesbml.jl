@@ -96,6 +96,18 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         !iszero(res) && @warn "Failed to add species \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
+    # Add function definitions
+    for (id, func_def) in mdl.function_definitions
+        functiondefinition_t = ccall(sbml(:FunctionDefinition_create), VPtr, (Cuint, Cuint), 3, 2)
+        ccall(sbml(:FunctionDefinition_setId), Cint, (VPtr, Cstring), functiondefinition_t, id)
+        isnothing(func_def.name) || ccall(sbml(:FunctionDefinition_setName), Cint, (VPtr, Cstring), functiondefinition_t, func_def.name)
+        isnothing(func_def.body) || ccall(sbml(:FunctionDefinition_setMath), Cint, (VPtr, VPtr), functiondefinition_t, get_astnode_ptr(func_def.body))
+        isnothing(func_def.notes) || ccall(sbml(:SBase_setNotesString), Cint, (VPtr, Cstring), functiondefinition_t, func_def.notes)
+        isnothing(func_def.annotation) || ccall(sbml(:SBase_setAnnotationString), Cint, (VPtr, Cstring), functiondefinition_t, func_def.annotation)
+        res = ccall(sbml(:Model_addFunctionDefinition), Cint, (VPtr, VPtr), model, functiondefinition_t)
+        !iszero(res) && @warn "Failed to add function definition \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
+    end
+
     # Add conversion factor
     isnothing(mdl.conversion_factor) || ccall(sbml(:Model_setConversionFactor), Cint, (VPtr, Cstring), model, mdl.conversion_factor)
 
