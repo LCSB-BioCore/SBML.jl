@@ -108,6 +108,13 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         !iszero(res) && @warn "Failed to add function definition \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
+    # Add rules
+    for rule in mdl.rules
+        rule_t = get_rule_ptr(rule)
+        res = ccall(sbml(:Model_addRule), Cint, (VPtr, VPtr), model, rule_t)
+        !iszero(res) && @warn "Failed to add rule: $(OPERATION_RETURN_VALUES[res])"
+    end
+
     # Add conversion factor
     isnothing(mdl.conversion_factor) || ccall(sbml(:Model_setConversionFactor), Cint, (VPtr, Cstring), model, mdl.conversion_factor)
 

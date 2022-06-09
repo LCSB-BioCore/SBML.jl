@@ -255,7 +255,7 @@ SBML assignment rule.
 $(TYPEDFIELDS)
 """
 struct AssignmentRule <: Rule
-    id::String
+    variable::String
     math::Math
 end
 @batteries AssignmentRule eq=true
@@ -269,7 +269,7 @@ SBML rate rule.
 $(TYPEDFIELDS)
 """
 struct RateRule <: Rule
-    id::String
+    variable::String
     math::Math
 end
 @batteries RateRule eq=true

@@ -394,5 +394,20 @@ response to activation both in 2D and in 3D</p>
         </math>
       </initialAssignment>
     </listOfInitialAssignments>
+    <listOfRules>
+      <assignmentRule variable="s">
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <apply>
+            <divide/>
+            <apply>
+              <minus/>
+              <ci> ModelValue_6 </ci>
+              <ci> P </ci>
+            </apply>
+            <ci> N </ci>
+          </apply>
+        </math>
+      </assignmentRule>
+    </listOfRules>
   </model>
 </sbml>

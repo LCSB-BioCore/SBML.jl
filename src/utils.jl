@@ -425,3 +425,20 @@ function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
         " parameters.",
     )
 end
+
+function get_rule_ptr(r::AlgebraicRule)::VPtr
+    algebraicrule_t = ccall(sbml(:AlgebraicRule_create), VPtr, (Cuint, Cuint), 3, 2)
+    ccall(sbml(:AlgebraicRule_setMath), Cint, (VPtr, VPtr), algebraicrule_t, get_astnode_ptr(r.math))
+    return algebraicrule_t
+end
+
+function get_rule_ptr(r::Union{AssignmentRule,RateRule})::VPtr
+    rule_t = if r isa AssignmentRule
+        ccall(sbml(:Rule_createAssignment), VPtr, (Cuint, Cuint), 3, 2)
+    else
+        ccall(sbml(:Rule_createRate), VPtr, (Cuint, Cuint), 3, 2)
+    end
+    ccall(sbml(:Rule_setVariable), Cint, (VPtr, Cstring), rule_t, r.variable)
+    ccall(sbml(:Rule_setMath), Cint, (VPtr, VPtr), rule_t, get_astnode_ptr(r.math))
+    return rule_t
+end
