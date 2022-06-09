@@ -520,16 +520,23 @@ function get_model(mdl::VPtr)::SBML.Model
             )
         end
 
+        trigger_ptr = ccall(sbml(:Event_getTrigger), VPtr, (VPtr,), ev)
         trig_math_ptr = ccall(
             sbml(:Trigger_getMath),
             VPtr,
             (VPtr,),
-            ccall(sbml(:Event_getTrigger), VPtr, (VPtr,), ev),
+            trigger_ptr,
+        )
+        trigger = Trigger(;
+            persistent = ccall(sbml(:Trigger_getPersistent), Bool, (VPtr,), trigger_ptr),
+            initial_value = ccall(sbml(:Trigger_getInitialValue), Bool, (VPtr,), trigger_ptr),
+            math = trig_math_ptr == C_NULL ? nothing : parse_math(trig_math_ptr),
         )
 
-        events[unsafe_string(ccall(sbml(:Event_getId), Cstring, (VPtr,), ev))] = SBML.Event(
-            get_optional_string(ev, :Event_getName),
-            trig_math_ptr == C_NULL ? nothing : parse_math(trig_math_ptr),
+        events[unsafe_string(ccall(sbml(:Event_getId), Cstring, (VPtr,), ev))] = SBML.Event(;
+            use_values_from_trigger_time = ccall(sbml(:Event_getUseValuesFromTriggerTime), Cint, (VPtr,), ev),
+            name = get_optional_string(ev, :Event_getName),
+            trigger,
             event_assignments,
         )
     end

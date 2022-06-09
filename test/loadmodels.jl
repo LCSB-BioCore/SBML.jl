@@ -443,6 +443,7 @@ end
         @test model.rules == round_trip_model.rules
         @test model.constraints == round_trip_model.constraints
         @test model.function_definitions == round_trip_model.function_definitions
+        @test model.events == round_trip_model.events
         @test model.name == round_trip_model.name
         @test model.id == round_trip_model.id
         @test model.metaid == round_trip_model.metaid

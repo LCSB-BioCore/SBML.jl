@@ -115,6 +115,31 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         !iszero(res) && @warn "Failed to add rule: $(OPERATION_RETURN_VALUES[res])"
     end
 
+    # Add events
+    for (id, event) in mdl.events
+        event_t = ccall(sbml(:Event_create), VPtr, (Cuint, Cuint), 3, 2)
+        ccall(sbml(:Event_setId), Cint, (VPtr, Cstring), event_t, id)
+        ccall(sbml(:Event_setUseValuesFromTriggerTime), Cint, (VPtr, Cint), event_t, event.use_values_from_trigger_time)
+        isnothing(event.name) || ccall(sbml(:Event_setName), Cint, (VPtr, Cstring), event_t, event.name)
+        if !isnothing(event.trigger)
+            trigger_t = ccall(sbml(:Trigger_create), VPtr, (Cuint, Cuint), 3, 2)
+            ccall(sbml(:Trigger_setPersistent), Cint, (VPtr, Cint), trigger_t, event.trigger.persistent)
+            ccall(sbml(:Trigger_setInitialValue), Cint, (VPtr, Cint), trigger_t, event.trigger.initial_value)
+            isnothing(event.trigger.math) || ccall(sbml(:Trigger_setMath), Cint, (VPtr, VPtr), trigger_t, get_astnode_ptr(event.trigger.math))
+            ccall(sbml(:Event_setTrigger), Cint, (VPtr, VPtr), event_t, trigger_t)
+        end
+        if !isnothing(event.event_assignments)
+            for event_assignment in event.event_assignments
+                event_assignment_t = ccall(sbml(:EventAssignment_create), VPtr, (Cuint, Cuint), 3, 2)
+                ccall(sbml(:EventAssignment_setVariable), Cint, (VPtr, Cstring), event_assignment_t, event_assignment.variable)
+                isnothing(event_assignment.math) || ccall(sbml(:EventAssignment_setMath), Cint, (VPtr, VPtr), event_assignment_t, get_astnode_ptr(event_assignment.math))
+                ccall(sbml(:Event_addEventAssignment), Cint, (VPtr, VPtr), event_t, event_assignment_t)
+            end
+        end
+        res = ccall(sbml(:Model_addEvent), Cint, (VPtr, VPtr), model, event_t)
+        !iszero(res) && @warn "Failed to add event \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
+    end
+
     # Add conversion factor
     isnothing(mdl.conversion_factor) || ccall(sbml(:Model_setConversionFactor), Cint, (VPtr, Cstring), model, mdl.conversion_factor)
 

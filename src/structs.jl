@@ -354,6 +354,20 @@ Base.@kwdef struct EventAssignment
     variable::String
     math::Maybe{Math} = nothing
 end
+@batteries EventAssignment eq=true
+
+"""
+$(TYPEDEF)
+
+# Fields
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct Trigger
+    persistent::Bool
+    initial_value::Bool
+    math::Maybe{Math} = nothing
+end
+@batteries Trigger eq=true
 
 """
 $(TYPEDEF)
@@ -373,10 +387,12 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Event
+    use_values_from_trigger_time::Cint
     name::Maybe{String} = nothing
-    trigger::Maybe{Math} = nothing
+    trigger::Maybe{Trigger} = nothing
     event_assignments::Maybe{Vector{EventAssignment}} = nothing
 end
+@batteries Event eq=true
 
 """
 $(TYPEDEF)
