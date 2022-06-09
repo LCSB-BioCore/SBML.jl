@@ -592,6 +592,7 @@ function get_model(mdl::VPtr)::SBML.Model
         events,
         name = get_optional_string(mdl, :Model_getName),
         id = get_optional_string(mdl, :Model_getId),
+        metaid = get_optional_string(mdl, :SBase_getMetaId),
         conversion_factor = get_optional_string(mdl, :Model_getConversionFactor),
         area_units = get_optional_string(mdl, :Model_getAreaUnits),
         extent_units = get_optional_string(mdl, :Model_getExtentUnits),

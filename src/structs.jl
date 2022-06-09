@@ -405,6 +405,7 @@ Base.@kwdef struct Model
     events::Dict{String,Event} = Dict()
     name::Maybe{String} = nothing
     id::Maybe{String} = nothing
+    metaid::Maybe{String} = nothing
     conversion_factor::Maybe{String} = nothing
     area_units::Maybe{String} = nothing
     extent_units::Maybe{String} = nothing

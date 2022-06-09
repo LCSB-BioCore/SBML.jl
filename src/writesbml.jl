@@ -2,8 +2,9 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Create the model pinter
     model = ccall(sbml(:SBMLDocument_createModel), VPtr, (VPtr,), doc)
 
-    # Set id and name
+    # Set ids and name
     isnothing(mdl.id) || ccall(sbml(:Model_setId), Cint, (VPtr, Cstring), model, mdl.id)
+    isnothing(mdl.metaid) || ccall(sbml(:SBase_setMetaId), Cint, (VPtr, Cstring), model, mdl.metaid)
     isnothing(mdl.name) || ccall(sbml(:Model_setName), Cint, (VPtr, Cstring), model, mdl.name)
 
     # Add parameters
@@ -105,6 +106,10 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     isnothing(mdl.substance_units) || ccall(sbml(:Model_setSubstanceUnits), Cint, (VPtr, Cstring), model, mdl.substance_units)
     isnothing(mdl.time_units) || ccall(sbml(:Model_setTimeUnits), Cint, (VPtr, Cstring), model, mdl.time_units)
     isnothing(mdl.volume_units) || ccall(sbml(:Model_setVolumeUnits), Cint, (VPtr, Cstring), model, mdl.volume_units)
+
+    # Notes and annotations
+    isnothing(mdl.notes) || ccall(sbml(:SBase_setNotesString), Cint, (VPtr, Cstring), model, mdl.notes)
+    isnothing(mdl.annotation) || ccall(sbml(:SBase_setAnnotationString), Cint, (VPtr, Cstring), model, mdl.annotation)
 
     # We can finally return the model
     return model

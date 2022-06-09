@@ -425,16 +425,17 @@ end
     @testset "Round-trip - $(basename(file))" for file in first.(sbmlfiles)
         model = readSBML(file)
         round_trip_model = readSBMLFromString(writeSBML(model))
-        @test model.id == round_trip_model.id
-        @test model.name == round_trip_model.name
         @test model.parameters == round_trip_model.parameters
         @test model.units == round_trip_model.units
         @test model.compartments == round_trip_model.compartments
-        @test model.initial_assignments == round_trip_model.initial_assignments
-        @test model.constraints == round_trip_model.constraints
         # As far as I can tell, only annotation strings are different in the
         # species, because they may be written out in a different order.
         @test_skip model.species == round_trip_model.species
+        @test model.initial_assignments == round_trip_model.initial_assignments
+        @test model.constraints == round_trip_model.constraints
+        @test model.name == round_trip_model.name
+        @test model.id == round_trip_model.id
+        @test model.metaid == round_trip_model.metaid
         @test model.conversion_factor == round_trip_model.conversion_factor
         @test model.area_units == round_trip_model.area_units
         @test model.extent_units == round_trip_model.extent_units
@@ -442,5 +443,9 @@ end
         @test model.substance_units == round_trip_model.substance_units
         @test model.time_units == round_trip_model.time_units
         @test model.volume_units == round_trip_model.volume_units
+        @test model.notes == round_trip_model.notes
+        # We can't compare the two strings verbatim because `writeSBML` may write some
+        # elements of the annotation in a slightly different order.
+        @test isnothing(model.annotation) == isnothing(round_trip_model.annotation)
     end
 end
