@@ -1,6 +1,14 @@
+# Ideally we'd like to use level 3, version 2, but because of
+# https://github.com/sbmlteam/libsbml/pull/235#issuecomment-1152491848 we have to match
+# level/version of the fbc plugin.
+const WRITESBML_DEFAULT_LEVEL = 3
+const WRITESBML_DEFAULT_VERSION = 1
+const WRITESBML_DEFAULT_PKGVERSION = 2
+
 function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Create the model pointer
     model = ccall(sbml(:SBMLDocument_createModel), VPtr, (VPtr,), doc)
+    fbc_plugin = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), model, "fbc")
 
     # Set ids and name
     isnothing(mdl.id) || ccall(sbml(:Model_setId), Cint, (VPtr, Cstring), model, mdl.id)
@@ -9,7 +17,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add parameters
     for (id, parameter) in mdl.parameters
-        parameter_t = ccall(sbml(:Parameter_create), VPtr, (Cuint, Cuint), 3, 2)
+        parameter_t = ccall(sbml(:Parameter_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
         ccall(sbml(:Parameter_setId), Cint, (VPtr, Cstring), parameter_t, id)
         isnothing(parameter.name) || ccall(sbml(:Parameter_setName), Cint, (VPtr, Cstring), parameter_t, parameter.name)
         isnothing(parameter.value) || ccall(sbml(:Parameter_setValue), Cint, (VPtr, Cdouble), parameter_t, parameter.value)
@@ -28,7 +36,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add compartments
     for (id, compartment) in mdl.compartments
-        compartment_t = ccall(sbml(:Compartment_create), VPtr, (Cuint, Cuint), 3, 2)
+        compartment_t = ccall(sbml(:Compartment_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
         ccall(sbml(:Compartment_setId), Cint, (VPtr, Cstring), compartment_t, id)
         isnothing(compartment.name) || ccall(sbml(:Compartment_setName), Cint, (VPtr, Cstring), compartment_t, compartment.name)
         isnothing(compartment.constant) || ccall(sbml(:Compartment_setConstant), Cint, (VPtr, Cint), compartment_t, Cint(compartment.constant))
@@ -43,20 +51,21 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add gene products
     for (id, gene_product) in mdl.gene_products
-        geneproduct_t = ccall(sbml(:GeneProduct_create), VPtr, (Cuint, Cuint, Cuint), 3, 2, 2) # TODO: check what the PkgVersion should be
-        ccall(sbml(:GeneProduct_setId), Cint, (VPtr, Cstring), geneproduct_t, id)
-        isnothing(gene_product.name) || ccall(sbml(:GeneProduct_setName), Cint, (VPtr, Cstring), geneproduct_t, gene_product.name)
-        isnothing(gene_product.label) || ccall(sbml(:GeneProduct_setLabel), Cint, (VPtr, Cstring), geneproduct_t, gene_product.label)
-        isnothing(gene_product.notes) || ccall(sbml(:SBase_setNotesString), Cint, (VPtr, Cstring), geneproduct_t, gene_product.notes)
-        isnothing(gene_product.annotation) || ccall(sbml(:SBase_setAnnotationString), Cint, (VPtr, Cstring), geneproduct_t, gene_product.annotation)
-        # TODO: add the gene product to the FBC package
-        # res = ccall(sbml(:FbcModelPlugin_addGeneProduct), Cint, (VPtr, VPtr), model_fbc, geneproduct_t)
-        # !iszero(res) && @warn "Failed to add gene product \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
+        fbc_plugin == C_NULL || ccall(sbml(:FbcModelPlugin_setStrict), Cint, (VPtr, Cint), fbc_plugin, true)
+        geneproduct_ptr = ccall(sbml(:GeneProduct_create), VPtr, (Cuint, Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION, WRITESBML_DEFAULT_PKGVERSION)
+        ccall(sbml(:GeneProduct_setId), Cint, (VPtr, Cstring), geneproduct_ptr, id)
+        ccall(sbml(:GeneProduct_setLabel), Cint, (VPtr, Cstring), geneproduct_ptr, gene_product.label)
+        isnothing(gene_product.name) || ccall(sbml(:GeneProduct_setName), Cint, (VPtr, Cstring), geneproduct_ptr, gene_product.name)
+        isnothing(gene_product.metaid) || ccall(sbml(:SBase_setMetaId), Cint, (VPtr, Cstring), geneproduct_ptr, gene_product.metaid)
+        isnothing(gene_product.notes) || ccall(sbml(:SBase_setNotesString), Cint, (VPtr, Cstring), geneproduct_ptr, gene_product.notes)
+        isnothing(gene_product.annotation) || ccall(sbml(:SBase_setAnnotationString), Cint, (VPtr, Cstring), geneproduct_ptr, gene_product.annotation)
+        res = ccall(sbml(:FbcModelPlugin_addGeneProduct), Cint, (VPtr, VPtr), fbc_plugin, geneproduct_ptr)
+        !iszero(res) && @warn "Failed to add gene product \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
     # Add initial assignments
     for (symbol, math) in mdl.initial_assignments
-        initialassignment_t = ccall(sbml(:InitialAssignment_create), VPtr, (Cuint, Cuint), 3, 2)
+        initialassignment_t = ccall(sbml(:InitialAssignment_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
         ccall(sbml(:InitialAssignment_setSymbol), Cint, (VPtr, Cstring), initialassignment_t, symbol)
         ccall(sbml(:InitialAssignment_setMath), Cint, (VPtr, VPtr), initialassignment_t, get_astnode_ptr(math))
         res = ccall(sbml(:Model_addInitialAssignment), Cint, (VPtr, VPtr), model, initialassignment_t)
@@ -65,7 +74,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add constraints
     for constraint in mdl.constraints
-        constraint_t = ccall(sbml(:Constraint_create), VPtr, (Cuint, Cuint), 3, 2)
+        constraint_t = ccall(sbml(:Constraint_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
         # Note: this probably incorrect because our `Constraint` lost the XML namespace of the
         # message, also we don't have an easy way to test this because no test file uses constraints.
         message = ccall(sbml(:XMLNode_createTextNode), VPtr, (Cstring,), constraint.message)
@@ -77,7 +86,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add species
     for (id, species) in mdl.species
-        species_t = ccall(sbml(:Species_create), VPtr, (Cuint, Cuint), 3, 2)
+        species_t = ccall(sbml(:Species_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
         ccall(sbml(:Species_setId), Cint, (VPtr, Cstring), species_t, id)
         isnothing(species.name) || ccall(sbml(:Species_setName), Cint, (VPtr, Cstring), species_t, species.name)
         isnothing(species.compartment) || ccall(sbml(:Species_setCompartment), Cint, (VPtr, Cstring), species_t, species.compartment)
@@ -98,7 +107,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add function definitions
     for (id, func_def) in mdl.function_definitions
-        functiondefinition_t = ccall(sbml(:FunctionDefinition_create), VPtr, (Cuint, Cuint), 3, 2)
+        functiondefinition_t = ccall(sbml(:FunctionDefinition_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
         ccall(sbml(:FunctionDefinition_setId), Cint, (VPtr, Cstring), functiondefinition_t, id)
         isnothing(func_def.name) || ccall(sbml(:FunctionDefinition_setName), Cint, (VPtr, Cstring), functiondefinition_t, func_def.name)
         isnothing(func_def.body) || ccall(sbml(:FunctionDefinition_setMath), Cint, (VPtr, VPtr), functiondefinition_t, get_astnode_ptr(func_def.body))
@@ -117,12 +126,12 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add events
     for (id, event) in mdl.events
-        event_t = ccall(sbml(:Event_create), VPtr, (Cuint, Cuint), 3, 2)
+        event_t = ccall(sbml(:Event_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
         ccall(sbml(:Event_setId), Cint, (VPtr, Cstring), event_t, id)
         ccall(sbml(:Event_setUseValuesFromTriggerTime), Cint, (VPtr, Cint), event_t, event.use_values_from_trigger_time)
         isnothing(event.name) || ccall(sbml(:Event_setName), Cint, (VPtr, Cstring), event_t, event.name)
         if !isnothing(event.trigger)
-            trigger_t = ccall(sbml(:Trigger_create), VPtr, (Cuint, Cuint), 3, 2)
+            trigger_t = ccall(sbml(:Trigger_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
             ccall(sbml(:Trigger_setPersistent), Cint, (VPtr, Cint), trigger_t, event.trigger.persistent)
             ccall(sbml(:Trigger_setInitialValue), Cint, (VPtr, Cint), trigger_t, event.trigger.initial_value)
             isnothing(event.trigger.math) || ccall(sbml(:Trigger_setMath), Cint, (VPtr, VPtr), trigger_t, get_astnode_ptr(event.trigger.math))
@@ -130,7 +139,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         end
         if !isnothing(event.event_assignments)
             for event_assignment in event.event_assignments
-                event_assignment_t = ccall(sbml(:EventAssignment_create), VPtr, (Cuint, Cuint), 3, 2)
+                event_assignment_t = ccall(sbml(:EventAssignment_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
                 ccall(sbml(:EventAssignment_setVariable), Cint, (VPtr, Cstring), event_assignment_t, event_assignment.variable)
                 isnothing(event_assignment.math) || ccall(sbml(:EventAssignment_setMath), Cint, (VPtr, VPtr), event_assignment_t, get_astnode_ptr(event_assignment.math))
                 ccall(sbml(:Event_addEventAssignment), Cint, (VPtr, VPtr), event_t, event_assignment_t)
@@ -161,15 +170,16 @@ end
 
 function _create_doc(mdl::Model)::VPtr
     doc = if isempty(mdl.gene_products)
-        ccall(sbml(:SBMLDocument_createWithLevelAndVersion), VPtr, (Cuint, Cuint), 3, 2)
+        ccall(sbml(:SBMLDocument_createWithLevelAndVersion), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
     else
         # Create SBML namespace with fbc package
-        ns = ccall(sbml(:SBMLNamespaces_create), VPtr, (Cuint, Cuint), 3, 2)
-        ccall(sbml(:SBMLNamespaces_addPackageNamespace), Cint, (VPtr, Cstring, Cuint, Cstring), ns, "fbc", 2, "")
+        ns = ccall(sbml(:SBMLNamespaces_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
+        ccall(sbml(:SBMLNamespaces_addPackageNamespace), Cint, (VPtr, Cstring, Cuint, Cstring), ns, "fbc", WRITESBML_DEFAULT_PKGVERSION, "")
         # Create document from SBML namespace
-        ccall(sbml(:SBMLDocument_createWithSBMLNamespaces), VPtr, (VPtr,), ns)
-        # # Require fbc package
-        # ccall(sbml(:SBMLDocument_setPackageRequired), Cint, (VPtr, Cstring, Cint), doc, "fbc", true)
+        d = ccall(sbml(:SBMLDocument_createWithSBMLNamespaces), VPtr, (VPtr,), ns)
+        # Require fbc package
+        ccall(sbml(:SBMLDocument_setPackageRequired), Cint, (VPtr, Cstring, Cint), d, "fbc", false)
+        d
     end
     return doc
 end

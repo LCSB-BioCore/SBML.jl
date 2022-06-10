@@ -143,6 +143,10 @@ function Base.:(==)(fd1::SBML.FunctionDefinition, fd2::SBML.FunctionDefinition):
     return fd1.name == fd2.name && fd1.body == fd2.body && fd1.notes == fd2.notes &&
         isnothing(fd1.annotation) == isnothing(fd2.annotation)
 end
+function Base.:(==)(gp1::SBML.GeneProduct, gp2::SBML.GeneProduct)::Bool
+    return gp1.label == gp2.label && gp1.name == gp2.name && gp1.metaid == gp2.metaid &&
+        gp1.notes == gp2.notes && isnothing(gp1.annotation) == isnothing(gp2.annotation)
+end
 
 @testset "Loading of models from various sources - $(reader)" for reader in (
     readSBML,
@@ -442,6 +446,7 @@ end
         @test model.initial_assignments == round_trip_model.initial_assignments
         @test model.rules == round_trip_model.rules
         @test model.constraints == round_trip_model.constraints
+        @test model.gene_products == round_trip_model.gene_products
         @test model.function_definitions == round_trip_model.function_definitions
         @test model.events == round_trip_model.events
         @test model.name == round_trip_model.name

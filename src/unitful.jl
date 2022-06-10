@@ -103,7 +103,7 @@ unitful(m::Model, val::Tuple{Float64,String}, default_unit::String) =
     unitful(m, val, unitful(m.units[default_unit]))
 
 function unit_definition(id::String, units::UnitDefinition)::VPtr
-    unit_definition = ccall(sbml(:UnitDefinition_create), VPtr, (Cint, Cint), 3, 2)
+    unit_definition = ccall(sbml(:UnitDefinition_create), VPtr, (Cint, Cint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
     ccall(sbml(:UnitDefinition_setId), Cint, (VPtr, Cstring), unit_definition, id)
     isnothing(units.name) || ccall(sbml(:UnitDefinition_setName), Cint, (VPtr, Cstring), unit_definition, units.name)
     for unit in units.unit_parts

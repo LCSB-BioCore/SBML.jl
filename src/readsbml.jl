@@ -464,6 +464,7 @@ function get_model(mdl::VPtr)::SBML.Model
                 gene_products[id] = GeneProduct(
                     label = get_string(gp, :GeneProduct_getLabel),
                     name = get_optional_string(gp, :GeneProduct_getName),
+                    metaid = get_optional_string(gp, :SBase_getMetaId),
                     notes = get_notes(gp),
                     annotation = get_annotation(gp),
                 )

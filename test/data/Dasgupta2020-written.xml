@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sbml xmlns="http://www.sbml.org/sbml/level3/version2/core" level="3" version="2">
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
   <model metaid="COPASI0" id="Dasgupta2020___Reduced_model_of_receptor_clusturing_and_aggregation" name="Dasgupta2020 - Reduced model of receptor clusturing and aggregation">
     <notes>
       <body xmlns="http://www.w3.org/1999/xhtml">
@@ -50,12 +50,14 @@ response to activation both in 2D and in 3D</p>
           <dcterms:creator>
             <rdf:Bag>
               <rdf:li rdf:parseType="Resource">
-                <vCard4:hasName rdf:parseType="Resource">
-                  <vCard4:family-name>Tiwari</vCard4:family-name>
-                  <vCard4:given-name>Krishna</vCard4:given-name>
-                </vCard4:hasName>
-                <vCard4:hasEmail>tiwarik@babraham.ac.uk</vCard4:hasEmail>
-                <vCard4:organization-name>Babraham Institute</vCard4:organization-name>
+                <vCard:N rdf:parseType="Resource">
+                  <vCard:Family>Tiwari</vCard:Family>
+                  <vCard:Given>Krishna</vCard:Given>
+                </vCard:N>
+                <vCard:EMAIL>tiwarik@babraham.ac.uk</vCard:EMAIL>
+                <vCard:ORG rdf:parseType="Resource">
+                  <vCard:Orgname>Babraham Institute</vCard:Orgname>
+                </vCard:ORG>
               </rdf:li>
             </rdf:Bag>
           </dcterms:creator>

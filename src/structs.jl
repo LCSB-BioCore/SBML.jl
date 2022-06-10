@@ -325,6 +325,7 @@ $(TYPEDFIELDS)
 Base.@kwdef struct GeneProduct
     label::String
     name::Maybe{String} = nothing
+    metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end

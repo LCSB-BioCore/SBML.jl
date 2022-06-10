@@ -427,16 +427,16 @@ function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
 end
 
 function get_rule_ptr(r::AlgebraicRule)::VPtr
-    algebraicrule_t = ccall(sbml(:AlgebraicRule_create), VPtr, (Cuint, Cuint), 3, 2)
+    algebraicrule_t = ccall(sbml(:AlgebraicRule_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
     ccall(sbml(:AlgebraicRule_setMath), Cint, (VPtr, VPtr), algebraicrule_t, get_astnode_ptr(r.math))
     return algebraicrule_t
 end
 
 function get_rule_ptr(r::Union{AssignmentRule,RateRule})::VPtr
     rule_t = if r isa AssignmentRule
-        ccall(sbml(:Rule_createAssignment), VPtr, (Cuint, Cuint), 3, 2)
+        ccall(sbml(:Rule_createAssignment), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
     else
-        ccall(sbml(:Rule_createRate), VPtr, (Cuint, Cuint), 3, 2)
+        ccall(sbml(:Rule_createRate), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
     end
     ccall(sbml(:Rule_setVariable), Cint, (VPtr, Cstring), rule_t, r.variable)
     ccall(sbml(:Rule_setMath), Cint, (VPtr, VPtr), rule_t, get_astnode_ptr(r.math))
