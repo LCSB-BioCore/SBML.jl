@@ -419,9 +419,9 @@ end
     expected = read(joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"), String)
     # Remove carriage returns, if any
     expected = replace(expected, '\r' => "")
-    @test writeSBML(model) == expected
+    @test @test_logs(writeSBML(model)) == expected
     mktemp() do filename, _
-        writeSBML(model, filename)
+        @test_logs(writeSBML(model, filename))
         content = read(filename, String)
         # Remove carriage returns, if any
         content = replace(content, '\r' => "")
@@ -432,7 +432,7 @@ end
     # with the original model.
     @testset "Round-trip - $(basename(file))" for file in first.(sbmlfiles)
         model = readSBML(file)
-        round_trip_model = readSBMLFromString(writeSBML(model))
+        round_trip_model = readSBMLFromString(@test_logs(writeSBML(model)))
         @test model.parameters == round_trip_model.parameters
         @test model.units == round_trip_model.units
         @test model.compartments == round_trip_model.compartments
