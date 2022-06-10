@@ -323,8 +323,8 @@ Gene product metadata.
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct GeneProduct
+    label::String
     name::Maybe{String} = nothing
-    label::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
