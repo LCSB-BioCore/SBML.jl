@@ -160,7 +160,18 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 end
 
 function _create_doc(mdl::Model)::VPtr
-    ccall(sbml(:SBMLDocument_createWithLevelAndVersion), VPtr, (Cuint, Cuint), 3, 2)
+    doc = if isempty(mdl.gene_products)
+        ccall(sbml(:SBMLDocument_createWithLevelAndVersion), VPtr, (Cuint, Cuint), 3, 2)
+    else
+        # Create SBML namespace with fbc package
+        ns = ccall(sbml(:SBMLNamespaces_create), VPtr, (Cuint, Cuint), 3, 2)
+        ccall(sbml(:SBMLNamespaces_addPackageNamespace), Cint, (VPtr, Cstring, Cuint, Cstring), ns, "fbc", 2, "")
+        # Create document from SBML namespace
+        ccall(sbml(:SBMLDocument_createWithSBMLNamespaces), VPtr, (VPtr,), ns)
+        # # Require fbc package
+        # ccall(sbml(:SBMLDocument_setPackageRequired), Cint, (VPtr, Cstring, Cint), doc, "fbc", true)
+    end
+    return doc
 end
 
 function writeSBML(mdl::Model, fn::String)
