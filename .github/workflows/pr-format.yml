@@ -34,23 +34,8 @@ jobs:
             # squash superfluous final newlines
             sed -i -e :a -e '/^\n*$/{$d;N;};/\n$/ba' "$filename"
           done
-      - name: Report problems
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: github.event_name == 'pull_request' && env.GITHUB_TOKEN != ''
-        run: |
-          if git diff --exit-code --quiet
-          then gh pr comment ${{ github.event.number }} --body \
-          ":green_circle: &nbsp;Commit ${{ github.event.pull_request.head.sha }} is formatted properly."
-          else gh pr comment ${{ github.event.number }} --body \
-          ":red_square: &nbsp;Commit ${{ github.event.pull_request.head.sha }} requires formatting!\
-          "$'\n\n'"Required formatting changes summary:\
-          "$'\n```\n'"`git diff --stat`"$'\n```'
-          fi
       - name: Fail on formatting problems
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: github.event_name == 'pull_request' && env.GITHUB_TOKEN == '' # pull from another repository cannot comment because there's no token
+        if: github.event_name == 'pull_request'
         run: |
           if git diff --exit-code --quiet
           then echo "Looks OK"
