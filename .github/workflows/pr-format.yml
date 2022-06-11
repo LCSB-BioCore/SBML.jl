@@ -52,10 +52,11 @@ jobs:
             git commit -a -m "automatic formatting" -m "triggered by @$GITHUB_ACTOR on PR #${{ github.event.issue.number }}"
             if git push
             then gh pr comment ${{ github.event.issue.number }} --body \
-              ":heavy_check_mark: auto-formatting triggered by [this comment](${{ github.event.comment.html_url }}) succeeded, commited as `git rev-parse HEAD`"
+              ":heavy_check_mark: Auto-formatting triggered by [this comment](${{ github.event.comment.html_url }}) succeeded, commited as `git rev-parse HEAD`"
             else gh pr comment ${{ github.event.issue.number }} --body \
-              ":x: auto-formatting triggered by [this comment](${{ github.event.comment.html_url }}) failed, perhaps someone pushed to the PR in the meantime?"
+              ":x: Auto-formatting triggered by [this comment](${{ github.event.comment.html_url }}) failed, perhaps someone pushed to the PR in the meantime?"
             fi
           else
-            echo "No changes, all good!"
+            then gh pr comment ${{ github.event.issue.number }} --body \
+              ":sunny: Auto-formatting triggered by [this comment](${{ github.event.comment.html_url }}) succeeded, but the code was already formatted correctly."
           fi
