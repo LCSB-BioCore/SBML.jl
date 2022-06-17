@@ -354,6 +354,17 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
+Base.@kwdef struct Objective
+    type::String
+    flux_objectives::Dict{String,Float64} = Dict()
+end
+
+"""
+$(TYPEDEF)
+
+# Fields
+$(TYPEDFIELDS)
+"""
 Base.@kwdef struct Event
     name::Maybe{String} = nothing
     trigger::Maybe{Math} = nothing
@@ -381,7 +392,7 @@ Base.@kwdef struct Model
     rules::Vector{Rule} = Rule[]
     constraints::Vector{Constraint} = Constraint[]
     reactions::Dict{String,Reaction} = Dict()
-    objective::Dict{String,Float64} = Dict()
+    objectives::Dict{String,Objective} = Dict()
     gene_products::Dict{String,GeneProduct} = Dict()
     function_definitions::Dict{String,FunctionDefinition} = Dict()
     events::Dict{String,Event} = Dict()

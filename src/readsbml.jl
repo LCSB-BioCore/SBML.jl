@@ -336,9 +336,10 @@ function get_model(mdl::VPtr)::SBML.Model
 
     # parse out the flux objectives (these are complementary to the objectives
     # that appear in the reactions, see comments lower)
-    objective = Dict{String,Float64}()
+    objectives = Dict{String,Objective}()
     if mdl_fbc != C_NULL
         for i = 1:ccall(sbml(:FbcModelPlugin_getNumObjectives), Cuint, (VPtr,), mdl_fbc)
+            flux_objectives = Dict{String,Float64}()
             o = ccall(
                 sbml(:FbcModelPlugin_getObjective),
                 VPtr,
@@ -346,11 +347,14 @@ function get_model(mdl::VPtr)::SBML.Model
                 mdl_fbc,
                 i - 1,
             )
+            type = get_string(o, :Objective_getType)
             for j = 1:ccall(sbml(:Objective_getNumFluxObjectives), Cuint, (VPtr,), o)
                 fo = ccall(sbml(:Objective_getFluxObjective), VPtr, (VPtr, Cuint), o, j - 1)
-                objective[get_string(fo, :FluxObjective_getReaction)] =
+                flux_objectives[get_string(fo, :FluxObjective_getReaction)] =
                     ccall(sbml(:FluxObjective_getCoefficient), Cdouble, (VPtr,), fo)
             end
+            objectives[get_string(o, :Objective_getId)] =
+                Objective(type, flux_objectives)
         end
     end
 
@@ -578,7 +582,7 @@ function get_model(mdl::VPtr)::SBML.Model
         rules,
         constraints,
         reactions,
-        objective,
+        objectives,
         gene_products,
         function_definitions,
         events,
