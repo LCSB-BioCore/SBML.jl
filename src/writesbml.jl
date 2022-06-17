@@ -84,6 +84,28 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         !iszero(res) && @warn "Failed to add constrain: $(OPERATION_RETURN_VALUES[res])"
     end
 
+    # Add reactions
+    for (id, reaction) in mdl.reactions
+        reaction_ptr = ccall(sbml(:Reaction_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
+        ccall(sbml(:Reaction_setId), Cint, (VPtr, Cstring), reaction_ptr, id)
+        ccall(sbml(:Reaction_setReversible), Cint, (VPtr, Cint), reaction_ptr, reaction.reversible)
+        # The fast attribute is mandatory in Level 3 Version 1, but it was removed in Level
+        # 3 Version 2.  When missing, it is assumed to be false.
+        ccall(sbml(:Reaction_setFast), Cint, (VPtr, Cint), reaction_ptr, false)
+        isnothing(reaction.name) || ccall(sbml(:Reaction_setName), Cint, (VPtr, Cstring), reaction_ptr, reaction.name)
+        # TODO: add reactants
+        # TODO: add products
+        # TODO: add kinetic parameters
+        # TODO: add lower bound
+        # TODO: add upper bound
+        # TODO: add gene product association
+        # TODO: add kinetic math
+        isnothing(reaction.notes) || ccall(sbml(:SBase_setNotesString), Cint, (VPtr, Cstring), reaction_ptr, reaction.notes)
+        isnothing(reaction.annotation) || ccall(sbml(:SBase_setAnnotationString), Cint, (VPtr, Cstring), reaction_ptr, reaction.annotation)
+        res = ccall(sbml(:Model_addReaction), Cint, (VPtr, VPtr), model, reaction_ptr)
+        !iszero(res) && @warn "Failed to add reaction \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
+    end
+
     # Add species
     for (id, species) in mdl.species
         species_t = ccall(sbml(:Species_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)

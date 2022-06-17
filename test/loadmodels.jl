@@ -446,6 +446,8 @@ end
         @test model.initial_assignments == round_trip_model.initial_assignments
         @test model.rules == round_trip_model.rules
         @test model.constraints == round_trip_model.constraints
+        # TODO: @test model.reactions == round_trip_model.reactions
+        # TODO: @test model.objective == round_trip_model.objective
         @test model.gene_products == round_trip_model.gene_products
         @test model.function_definitions == round_trip_model.function_definitions
         @test model.events == round_trip_model.events

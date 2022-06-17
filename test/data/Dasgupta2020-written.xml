@@ -411,5 +411,13 @@ response to activation both in 2D and in 3D</p>
         </math>
       </assignmentRule>
     </listOfRules>
+    <listOfReactions>
+      <reaction id="R4" name="R4" reversible="false" fast="false"/>
+      <reaction id="R3" name="R3" reversible="false" fast="false"/>
+      <reaction id="R6" name="R6" reversible="false" fast="false"/>
+      <reaction id="R1" name="R1" reversible="false" fast="false"/>
+      <reaction id="R5" name="R5" reversible="false" fast="false"/>
+      <reaction id="R2" name="R2" reversible="false" fast="false"/>
+    </listOfReactions>
   </model>
 </sbml>
