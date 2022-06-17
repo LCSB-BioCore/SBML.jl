@@ -380,6 +380,7 @@ Base.@kwdef struct Objective
     type::String
     flux_objectives::Dict{String,Float64} = Dict()
 end
+@batteries Objective eq=true
 
 """
 $(TYPEDEF)

@@ -106,6 +106,24 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         !iszero(res) && @warn "Failed to add reaction \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
+    # Add objectives
+    for (id, objective) in mdl.objectives
+        fbc_plugin == C_NULL || ccall(sbml(:FbcModelPlugin_setStrict), Cint, (VPtr, Cint), fbc_plugin, true)
+        objective_ptr = ccall(sbml(:Objective_create), VPtr, (Cuint, Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION, WRITESBML_DEFAULT_PKGVERSION)
+        ccall(sbml(:Objective_setId), Cint, (VPtr, Cstring), objective_ptr, id)
+        ccall(sbml(:Objective_setType), Cint, (VPtr, Cstring), objective_ptr, objective.type)
+        for (reaction, coefficient) in objective.flux_objectives
+            fluxobjective_ptr = ccall(sbml(:FluxObjective_create), VPtr, (Cuint, Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION, WRITESBML_DEFAULT_PKGVERSION)
+            ccall(sbml(:FluxObjective_setReaction), Cint, (VPtr, Cstring), fluxobjective_ptr, reaction)
+            ccall(sbml(:FluxObjective_setCoefficient), Cint, (VPtr, Cdouble), fluxobjective_ptr, coefficient)
+            res = ccall(sbml(:Objective_addFluxObjective), Cint, (VPtr, VPtr), objective_ptr, fluxobjective_ptr)
+            !iszero(res) && @warn "Failed to add flux objective \"$(reaction)\": $(OPERATION_RETURN_VALUES[res])"
+        end
+        res = ccall(sbml(:FbcModelPlugin_addObjective), Cint, (VPtr, VPtr), fbc_plugin, objective_ptr)
+        !iszero(res) && @warn "Failed to add objective \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
+    end
+    fbc_plugin == C_NULL || isnothing(mdl.active_objective) || ccall(sbml(:FbcModelPlugin_setActiveObjectiveId), Cint, (VPtr, Cstring), fbc_plugin, mdl.active_objective)
+
     # Add species
     for (id, species) in mdl.species
         species_t = ccall(sbml(:Species_create), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
@@ -191,7 +209,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 end
 
 function _create_doc(mdl::Model)::VPtr
-    doc = if isempty(mdl.gene_products)
+    doc = if isempty(mdl.gene_products) && isempty(mdl.objectives)
         ccall(sbml(:SBMLDocument_createWithLevelAndVersion), VPtr, (Cuint, Cuint), WRITESBML_DEFAULT_LEVEL, WRITESBML_DEFAULT_VERSION)
     else
         # Create SBML namespace with fbc package
@@ -199,7 +217,7 @@ function _create_doc(mdl::Model)::VPtr
         ccall(sbml(:SBMLNamespaces_addPackageNamespace), Cint, (VPtr, Cstring, Cuint, Cstring), ns, "fbc", WRITESBML_DEFAULT_PKGVERSION, "")
         # Create document from SBML namespace
         d = ccall(sbml(:SBMLDocument_createWithSBMLNamespaces), VPtr, (VPtr,), ns)
-        # Require fbc package
+        # Do not require fbc package
         ccall(sbml(:SBMLDocument_setPackageRequired), Cint, (VPtr, Cstring, Cint), d, "fbc", false)
         d
     end
