@@ -353,8 +353,7 @@ function get_model(mdl::VPtr)::SBML.Model
                 flux_objectives[get_string(fo, :FluxObjective_getReaction)] =
                     ccall(sbml(:FluxObjective_getCoefficient), Cdouble, (VPtr,), fo)
             end
-            objectives[get_string(o, :Objective_getId)] =
-                Objective(type, flux_objectives)
+            objectives[get_string(o, :Objective_getId)] = Objective(type, flux_objectives)
         end
     end
 
