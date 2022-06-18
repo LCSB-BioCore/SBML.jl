@@ -43,9 +43,6 @@ end
 $(TYPEDEF)
 
 Abstract type for all kinds of gene product associations
-
-# Fields
-$(TYPEDFIELDS)
 """
 abstract type GeneProductAssociation end
 

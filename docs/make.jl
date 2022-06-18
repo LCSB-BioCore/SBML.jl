@@ -5,7 +5,7 @@ makedocs(
     clean = false,
     format = Documenter.HTML(
         prettyurls = !("local" in ARGS),
-        canonical = "https://lcsb-biocore.github.io/DistributedData.jl/stable/",
+        canonical = "https://lcsb-biocore.github.io/SBML.jl/stable/",
     ),
     sitename = "SBML.jl",
     authors = "The developers of SBML.jl",
