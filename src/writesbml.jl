@@ -6,6 +6,50 @@ const WRITESBML_PKG_DEFAULT_LEVEL = 3
 const WRITESBML_PKG_DEFAULT_VERSION = 1
 const WRITESBML_PKG_DEFAULT_PKGVERSION = 2
 
+function set_parameter_ptr!(parameter_ptr::VPtr, id::String, parameter::Parameter)::VPtr
+    ccall(sbml(:Parameter_setId), Cint, (VPtr, Cstring), parameter_ptr, id)
+    isnothing(parameter.name) || ccall(
+        sbml(:Parameter_setName),
+        Cint,
+        (VPtr, Cstring),
+        parameter_ptr,
+        parameter.name,
+    )
+    isnothing(parameter.value) || ccall(
+        sbml(:Parameter_setValue),
+        Cint,
+        (VPtr, Cdouble),
+        parameter_ptr,
+        parameter.value,
+    )
+    isnothing(parameter.units) || ccall(
+        sbml(:Parameter_setUnits),
+        Cint,
+        (VPtr, Cstring),
+        parameter_ptr,
+        parameter.units,
+    )
+    isnothing(parameter.constant) || ccall(
+        sbml(:Parameter_setConstant),
+        Cint,
+        (VPtr, Cint),
+        parameter_ptr,
+        Cint(parameter.constant),
+    )
+    return parameter_ptr
+end
+
+function get_parameter_ptr(id::String, parameter::Parameter)::VPtr
+    parameter_ptr = ccall(
+        sbml(:Parameter_create),
+        VPtr,
+        (Cuint, Cuint),
+        WRITESBML_DEFAULT_LEVEL,
+        WRITESBML_DEFAULT_VERSION,
+    )
+    return set_parameter_ptr!(parameter_ptr, id, parameter)
+end
+
 function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Create the model pointer
     model = ccall(sbml(:SBMLDocument_createModel), VPtr, (VPtr,), doc)
@@ -25,45 +69,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add parameters
     for (id, parameter) in mdl.parameters
-        parameter_t = ccall(
-            sbml(:Parameter_create),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
-        ccall(sbml(:Parameter_setId), Cint, (VPtr, Cstring), parameter_t, id)
-        isnothing(parameter.name) || ccall(
-            sbml(:Parameter_setName),
-            Cint,
-            (VPtr, Cstring),
-            parameter_t,
-            parameter.name,
-        )
-        isnothing(parameter.value) || ccall(
-            sbml(:Parameter_setValue),
-            Cint,
-            (VPtr, Cdouble),
-            parameter_t,
-            parameter.value,
-        )
-        isnothing(parameter.units) || ccall(
-            sbml(:Parameter_setUnits),
-            Cint,
-            (VPtr, Cstring),
-            parameter_t,
-            parameter.units,
-        )
-        isnothing(parameter.constant) || ccall(
-            sbml(:Parameter_setConstant),
-            Cint,
-            (VPtr, Cint),
-            parameter_t,
-            Cint(parameter.constant),
-        )
-        res = ccall(sbml(:Model_addParameter), Cint, (VPtr, VPtr), model, parameter_t)
-        !iszero(res) &&
-            @warn "Failed to add parameter \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
+        parameter_ptr = ccall(sbml(:Model_createParameter), VPtr, (VPtr,), model)
+        set_parameter_ptr!(parameter_ptr, id, parameter)
     end
 
     # Add units
@@ -330,11 +337,42 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 true,
             )
         end
-        # TODO: add kinetic parameters
-        # TODO: add lower bound
-        # TODO: add upper bound
+        if !isempty(reaction.kinetic_parameters) || !isnothing(reaction.kinetic_math)
+            kinetic_law_ptr =
+                ccall(sbml(:Reaction_createKineticLaw), VPtr, (VPtr,), reaction_ptr)
+            for (id, parameter) in reaction.kinetic_parameters
+                error()
+                parameter_ptr =
+                    ccall(sbml(:KineticLaw_createParameter), VPtr, (VPtr,), kinetic_law_ptr)
+                set_parameter_ptr!(parameter_ptr, id, parameter)
+            end
+            isnothing(reaction.kinetic_math) || ccall(
+                sbml(:KineticLaw_setMath),
+                Cint,
+                (VPtr, VPtr),
+                kinetic_law_ptr,
+                get_astnode_ptr(reaction.kinetic_math),
+            )
+        end
+        if !isnothing(reaction.lower_bound) || !isnothing(reaction.upper_bound)
+            reaction_fbc_ptr =
+                ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), reaction_ptr, "fbc")
+            isnothing(reaction.lower_bound) || ccall(
+                sbml(:FbcReactionPlugin_setLowerFluxBound),
+                Cint,
+                (VPtr, Cstring),
+                reaction_fbc_ptr,
+                reaction.lower_bound,
+            )
+            isnothing(reaction.upper_bound) || ccall(
+                sbml(:FbcReactionPlugin_setUpperFluxBound),
+                Cint,
+                (VPtr, Cstring),
+                reaction_fbc_ptr,
+                reaction.upper_bound,
+            )
+        end
         # TODO: add gene product association
-        # TODO: add kinetic math
         isnothing(reaction.notes) || ccall(
             sbml(:SBase_setNotesString),
             Cint,

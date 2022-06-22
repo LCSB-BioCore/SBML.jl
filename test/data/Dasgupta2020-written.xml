@@ -414,31 +414,107 @@ response to activation both in 2D and in 3D</p>
         <listOfProducts>
           <speciesReference species="N" stoichiometry="1" constant="true"/>
         </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cell </ci>
+              <apply>
+                <ci> R4_flux </ci>
+                <ci> k2 </ci>
+                <ci> P </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
       </reaction>
       <reaction id="R3" name="R3" reversible="false">
         <listOfProducts>
           <speciesReference species="P" stoichiometry="1" constant="true"/>
         </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cell </ci>
+              <apply>
+                <ci> R3_flux </ci>
+                <ci> k_1 </ci>
+                <ci> N </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
       </reaction>
       <reaction id="R6" name="R6" reversible="false">
         <listOfReactants>
           <speciesReference species="N" stoichiometry="1" constant="true"/>
         </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cell </ci>
+              <ci> k3 </ci>
+              <ci> N </ci>
+            </apply>
+          </math>
+        </kineticLaw>
       </reaction>
       <reaction id="R1" name="R1" reversible="false">
         <listOfReactants>
           <speciesReference species="P" stoichiometry="1" constant="true"/>
         </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cell </ci>
+              <apply>
+                <ci> R1_flux </ci>
+                <ci> k1 </ci>
+                <ci> N </ci>
+                <ci> P </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
       </reaction>
       <reaction id="R5" name="R5" reversible="false">
         <listOfReactants>
           <speciesReference species="N" stoichiometry="1" constant="true"/>
         </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cell </ci>
+              <apply>
+                <ci> R5_flux </ci>
+                <ci> k_2 </ci>
+                <ci> N </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
       </reaction>
       <reaction id="R2" name="R2" reversible="false">
         <listOfReactants>
           <speciesReference species="P" stoichiometry="1" constant="true"/>
         </listOfReactants>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <times/>
+              <ci> Cell </ci>
+              <apply>
+                <ci> R2_flux </ci>
+                <ci> k2 </ci>
+                <ci> P </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
       </reaction>
     </listOfReactions>
   </model>
