@@ -136,23 +136,6 @@ sbmlfiles = [
     ),
 ]
 
-# Define some "approximate equality" methods only for the purpose of tests.  The main
-# problem is that annotations may be written out in different order, so we can't do verbatim
-# comparison of strings.
-function Base.:(==)(fd1::SBML.FunctionDefinition, fd2::SBML.FunctionDefinition)::Bool
-    return fd1.name == fd2.name &&
-           fd1.body == fd2.body &&
-           fd1.notes == fd2.notes &&
-           isnothing(fd1.annotation) == isnothing(fd2.annotation)
-end
-function Base.:(==)(gp1::SBML.GeneProduct, gp2::SBML.GeneProduct)::Bool
-    return gp1.label == gp2.label &&
-           gp1.name == gp2.name &&
-           gp1.metaid == gp2.metaid &&
-           gp1.notes == gp2.notes &&
-           isnothing(gp1.annotation) == isnothing(gp2.annotation)
-end
-
 @testset "Loading of models from various sources - $(reader)" for reader in (
     readSBML,
     readSBMLFromString,

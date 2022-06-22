@@ -1,5 +1,3 @@
-using StructHelpers
-
 
 """
 $(TYPEDEF)
@@ -39,7 +37,6 @@ Base.@kwdef struct UnitDefinition
     name::Maybe{String} = nothing
     unit_parts::Vector{UnitPart}
 end
-@batteries UnitDefinition eq = true
 
 """
 $(TYPEDEF)
@@ -151,7 +148,6 @@ struct MathApply <: Math
     fn::String
     args::Vector{Math}
 end
-@batteries MathApply eq = true
 
 """
 $(TYPEDEF)
@@ -165,7 +161,6 @@ struct MathLambda <: Math
     args::Vector{String}
     body::Math
 end
-@batteries MathLambda eq = true
 
 """
 $(TYPEDEF)
@@ -244,7 +239,6 @@ $(TYPEDFIELDS)
 struct AlgebraicRule <: Rule
     math::Math
 end
-@batteries AlgebraicRule eq = true
 
 """
 $(TYPEDEF)
@@ -258,7 +252,6 @@ struct AssignmentRule <: Rule
     variable::String
     math::Math
 end
-@batteries AssignmentRule eq = true
 
 """
 $(TYPEDEF)
@@ -272,7 +265,6 @@ struct RateRule <: Rule
     variable::String
     math::Math
 end
-@batteries RateRule eq = true
 
 """
 $(TYPEDEF)
@@ -286,7 +278,6 @@ struct Constraint
     math::Math
     message::String
 end
-@batteries Constraint eq = true
 
 """
 $(TYPEDEF)
@@ -312,7 +303,6 @@ Base.@kwdef struct Species
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
-@batteries Species eq = true
 
 """
 $(TYPEDEF)
@@ -355,7 +345,6 @@ Base.@kwdef struct EventAssignment
     variable::String
     math::Maybe{Math} = nothing
 end
-@batteries EventAssignment eq = true
 
 """
 $(TYPEDEF)
@@ -368,7 +357,6 @@ Base.@kwdef struct Trigger
     initial_value::Bool
     math::Maybe{Math} = nothing
 end
-@batteries Trigger eq = true
 
 """
 $(TYPEDEF)
@@ -380,7 +368,6 @@ Base.@kwdef struct Objective
     type::String
     flux_objectives::Dict{String,Float64} = Dict()
 end
-@batteries Objective eq = true
 
 """
 $(TYPEDEF)
@@ -394,7 +381,6 @@ Base.@kwdef struct Event
     trigger::Maybe{Trigger} = nothing
     event_assignments::Maybe{Vector{EventAssignment}} = nothing
 end
-@batteries Event eq = true
 
 """
 $(TYPEDEF)
