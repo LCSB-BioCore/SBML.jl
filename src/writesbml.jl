@@ -6,6 +6,47 @@ const WRITESBML_PKG_DEFAULT_LEVEL = 3
 const WRITESBML_PKG_DEFAULT_VERSION = 1
 const WRITESBML_PKG_DEFAULT_PKGVERSION = 2
 
+function get_rule_ptr(r::AlgebraicRule)::VPtr
+    algebraicrule_ptr = ccall(
+        sbml(:AlgebraicRule_create),
+        VPtr,
+        (Cuint, Cuint),
+        WRITESBML_DEFAULT_LEVEL,
+        WRITESBML_DEFAULT_VERSION,
+    )
+    ccall(
+        sbml(:AlgebraicRule_setMath),
+        Cint,
+        (VPtr, VPtr),
+        algebraicrule_ptr,
+        get_astnode_ptr(r.math),
+    )
+    return algebraicrule_ptr
+end
+
+function get_rule_ptr(r::Union{AssignmentRule,RateRule})::VPtr
+    rule_ptr = if r isa AssignmentRule
+        ccall(
+            sbml(:Rule_createAssignment),
+            VPtr,
+            (Cuint, Cuint),
+            WRITESBML_DEFAULT_LEVEL,
+            WRITESBML_DEFAULT_VERSION,
+        )
+    else
+        ccall(
+            sbml(:Rule_createRate),
+            VPtr,
+            (Cuint, Cuint),
+            WRITESBML_DEFAULT_LEVEL,
+            WRITESBML_DEFAULT_VERSION,
+        )
+    end
+    ccall(sbml(:Rule_setVariable), Cint, (VPtr, Cstring), rule_ptr, r.variable)
+    ccall(sbml(:Rule_setMath), Cint, (VPtr, VPtr), rule_ptr, get_astnode_ptr(r.math))
+    return rule_ptr
+end
+
 function set_parameter_ptr!(parameter_ptr::VPtr, id::String, parameter::Parameter)::VPtr
     ccall(sbml(:Parameter_setId), Cint, (VPtr, Cstring), parameter_ptr, id)
     isnothing(parameter.name) || ccall(
