@@ -393,7 +393,7 @@ end
     @test m.substance_units == "substance"
     @test m.time_units == "second"
     @test m.volume_units == "volume"
-    @test isnothing(m.active_objective)
+    @test m.active_objective == ""
 
     m = readSBML(joinpath(@__DIR__, "data", "00975-sbml-l3v2.xml"))
     @test m.name == "case00975"
@@ -405,7 +405,7 @@ end
     @test isnothing(m.substance_units)
     @test isnothing(m.time_units)
     @test isnothing(m.volume_units)
-    @test isnothing(m.active_objective)
+    @test m.active_objective == ""
 end
 
 @testset "names of objects" begin

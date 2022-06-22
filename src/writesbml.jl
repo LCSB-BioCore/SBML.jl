@@ -419,7 +419,6 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             @warn "Failed to add objective \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
     fbc_plugin == C_NULL ||
-        isnothing(mdl.active_objective) ||
         ccall(
             sbml(:FbcModelPlugin_setActiveObjectiveId),
             Cint,

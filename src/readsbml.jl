@@ -338,7 +338,7 @@ function get_model(mdl::VPtr)::SBML.Model
     # parse out the flux objectives (these are complementary to the objectives
     # that appear in the reactions, see comments lower)
     objectives = Dict{String,Objective}()
-    active_objective = nothing
+    active_objective = ""
     if mdl_fbc != C_NULL
         for i = 1:ccall(sbml(:FbcModelPlugin_getNumObjectives), Cuint, (VPtr,), mdl_fbc)
             flux_objectives = Dict{String,Float64}()
@@ -357,11 +357,7 @@ function get_model(mdl::VPtr)::SBML.Model
             end
             objectives[get_string(o, :Objective_getId)] = Objective(type, flux_objectives)
         end
-        active_objective = let
-            aoi = get_optional_string(mdl_fbc, :FbcModelPlugin_getActiveObjectiveId)
-            # Keep it to nothing if the string is empty
-            isempty(aoi) ? nothing : aoi
-        end
+        active_objective = get_string(mdl_fbc, :FbcModelPlugin_getActiveObjectiveId)
     end
 
     # reactions!
