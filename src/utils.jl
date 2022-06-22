@@ -89,18 +89,60 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Extract the vector of objective coefficients of each reaction, in the same
-order as `keys(m.reactions)`.
+Get the specified FBC maximization objective from a model, as a vector in the
+same order as `keys(m.reactions)`.
 """
-function flux_objective(m::SBML.Model)::Vector{Float64}
-    # As with bounds, this sometimes needs to be gathered from 2 places (maybe
-    # even more). FBC-specified OC gets a priority.
-    function get_oc(rid::String)
-        kinetic_oc =
-            get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing)
-        mayfirst(get(m.objective, rid, nothing), maylift(p -> p.value, kinetic_oc), 0.0)
+function fbc_flux_objective(m::Model, oid::String)
+
+    obj = m.objectives[oid]
+    coef = obj.type == "maximize" ? 1.0 : -1.0
+
+    [
+        maylift(o -> o * coef, get(obj.flux_objectives, rid, 0.0)) for
+        rid in keys(m.reactions)
+    ]
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Get a kinetic-parameter-specified flux objective from the model, as a vector in
+the same order as `keys(m.reactions)`.
+"""
+function kinetic_flux_objective(m::Model)
+    mayfirst.(
+        (
+            maylift(
+                p -> p.value,
+                get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing),
+            ) for rid in keys(m.reactions)
+        ),
+        0.0,
+    )
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Collect a single maximization objective from FBC, and from kinetic parameters
+if FBC is not available. Fails if there is more than 1 FBC objective.
+
+Provided for simplicity and compatibility with earlier versions of SBML.jl.
+"""
+function flux_objective(m::Model)::Vector{Float64}
+    oids = keys(m.objectives)
+    if length(oids) == 1
+        fbc_flux_objective(m, first(oids))
+    elseif length(oids) == 0
+        kinetic_flux_objective(m)
+    else
+        throw(
+            DomainError(
+                oids,
+                "Ambiguous objective choice in flux_objective. Use fbc_flux_objective to select a single objective.",
+            ),
+        )
     end
-    get_oc.(keys(m.reactions))
 end
 
 """
