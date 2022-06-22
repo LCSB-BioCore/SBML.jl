@@ -1,9 +1,10 @@
-# Ideally we'd like to use level 3, version 2, but because of
-# https://github.com/sbmlteam/libsbml/pull/235#issuecomment-1152491848 we have to match
-# level/version of the fbc plugin.
+# Level/Version for the document
 const WRITESBML_DEFAULT_LEVEL = 3
-const WRITESBML_DEFAULT_VERSION = 1
-const WRITESBML_DEFAULT_PKGVERSION = 2
+const WRITESBML_DEFAULT_VERSION = 2
+# Level/Version/Package version for the package
+const WRITESBML_PKG_DEFAULT_LEVEL = 3
+const WRITESBML_PKG_DEFAULT_VERSION = 1
+const WRITESBML_PKG_DEFAULT_PKGVERSION = 2
 
 function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Create the model pointer
@@ -151,9 +152,9 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             sbml(:GeneProduct_create),
             VPtr,
             (Cuint, Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-            WRITESBML_DEFAULT_PKGVERSION,
+            WRITESBML_PKG_DEFAULT_LEVEL,
+            WRITESBML_PKG_DEFAULT_VERSION,
+            WRITESBML_PKG_DEFAULT_PKGVERSION,
         )
         ccall(sbml(:GeneProduct_setId), Cint, (VPtr, Cstring), geneproduct_ptr, id)
         ccall(
@@ -271,9 +272,6 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             reaction_ptr,
             reaction.reversible,
         )
-        # The fast attribute is mandatory in Level 3 Version 1, but it was removed in Level
-        # 3 Version 2.  When missing, it is assumed to be false.
-        ccall(sbml(:Reaction_setFast), Cint, (VPtr, Cint), reaction_ptr, false)
         isnothing(reaction.name) || ccall(
             sbml(:Reaction_setName),
             Cint,
@@ -308,8 +306,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             )
         end
         for (species, stoichiometry) in reaction.products
-            product_ptr =
-                ccall(sbml(:Reaction_createProduct), VPtr, (VPtr,), reaction_ptr)
+            product_ptr = ccall(sbml(:Reaction_createProduct), VPtr, (VPtr,), reaction_ptr)
             ccall(
                 sbml(:SpeciesReference_setSpecies),
                 Cint,
@@ -363,9 +360,9 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             sbml(:Objective_create),
             VPtr,
             (Cuint, Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-            WRITESBML_DEFAULT_PKGVERSION,
+            WRITESBML_PKG_DEFAULT_LEVEL,
+            WRITESBML_PKG_DEFAULT_VERSION,
+            WRITESBML_PKG_DEFAULT_PKGVERSION,
         )
         ccall(sbml(:Objective_setId), Cint, (VPtr, Cstring), objective_ptr, id)
         ccall(
@@ -380,9 +377,9 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 sbml(:FluxObjective_create),
                 VPtr,
                 (Cuint, Cuint, Cuint),
-                WRITESBML_DEFAULT_LEVEL,
-                WRITESBML_DEFAULT_VERSION,
-                WRITESBML_DEFAULT_PKGVERSION,
+                WRITESBML_PKG_DEFAULT_LEVEL,
+                WRITESBML_PKG_DEFAULT_VERSION,
+                WRITESBML_PKG_DEFAULT_PKGVERSION,
             )
             ccall(
                 sbml(:FluxObjective_setReaction),
@@ -418,14 +415,13 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         !iszero(res) &&
             @warn "Failed to add objective \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
-    fbc_plugin == C_NULL ||
-        ccall(
-            sbml(:FbcModelPlugin_setActiveObjectiveId),
-            Cint,
-            (VPtr, Cstring),
-            fbc_plugin,
-            mdl.active_objective,
-        )
+    fbc_plugin == C_NULL || ccall(
+        sbml(:FbcModelPlugin_setActiveObjectiveId),
+        Cint,
+        (VPtr, Cstring),
+        fbc_plugin,
+        mdl.active_objective,
+    )
 
     # Add species
     fbc_plugin == C_NULL ||
@@ -723,25 +719,32 @@ function _create_doc(mdl::Model)::VPtr
             WRITESBML_DEFAULT_VERSION,
         )
     else
+        # Get fbc registry entry
+        sbmlext = ccall(sbml(:SBMLExtensionRegistry_getExtension), VPtr, (Cstring,), "fbc")
+        # create the sbml namespaces object with fbc
+        fbc = ccall(sbml(:XMLNamespaces_create), VPtr, ())
+        # create the sbml namespaces object with fbc
+        uri = ccall(
+            sbml(:SBMLExtension_getURI),
+            Cstring,
+            (VPtr, Cuint, Cuint, Cuint),
+            sbmlext,
+            WRITESBML_PKG_DEFAULT_LEVEL,
+            WRITESBML_PKG_DEFAULT_VERSION,
+            WRITESBML_PKG_DEFAULT_PKGVERSION,
+        )
+        ccall(sbml(:XMLNamespaces_add), Cint, (VPtr, Cstring, Cstring), fbc, uri, "fbc")
         # Create SBML namespace with fbc package
-        ns = ccall(
+        sbmlns = ccall(
             sbml(:SBMLNamespaces_create),
             VPtr,
             (Cuint, Cuint),
             WRITESBML_DEFAULT_LEVEL,
             WRITESBML_DEFAULT_VERSION,
         )
-        ccall(
-            sbml(:SBMLNamespaces_addPackageNamespace),
-            Cint,
-            (VPtr, Cstring, Cuint, Cstring),
-            ns,
-            "fbc",
-            WRITESBML_DEFAULT_PKGVERSION,
-            "",
-        )
+        ccall(sbml(:SBMLNamespaces_addPackageNamespaces), Cint, (VPtr, VPtr), sbmlns, fbc)
         # Create document from SBML namespace
-        d = ccall(sbml(:SBMLDocument_createWithSBMLNamespaces), VPtr, (VPtr,), ns)
+        d = ccall(sbml(:SBMLDocument_createWithSBMLNamespaces), VPtr, (VPtr,), sbmlns)
         # Do not require fbc package
         ccall(
             sbml(:SBMLDocument_setPackageRequired),
