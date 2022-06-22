@@ -33,4 +33,7 @@ export readSBML, readSBMLFromString, stoichiometry_matrix, flux_bounds, flux_obj
 export writeSBML
 export set_level_and_version, libsbml_convert, convert_simplify_math
 
+# Read a file at precompile time, to improve time-to-first `readSBML`.
+writeSBML(readSBML(joinpath(@__DIR__, "..", "test", "data", "Dasgupta2020-written.xml")))
+
 end # module
