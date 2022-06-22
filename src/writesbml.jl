@@ -138,9 +138,10 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     end
 
     # Add gene products
+    fbc_plugin == C_NULL ||
+        isempty(mdl.gene_products) ||
+        ccall(sbml(:FbcModelPlugin_setStrict), Cint, (VPtr, Cint), fbc_plugin, true)
     for (id, gene_product) in mdl.gene_products
-        fbc_plugin == C_NULL ||
-            ccall(sbml(:FbcModelPlugin_setStrict), Cint, (VPtr, Cint), fbc_plugin, true)
         geneproduct_ptr = ccall(
             sbml(:GeneProduct_create),
             VPtr,
@@ -308,9 +309,10 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     end
 
     # Add objectives
+    fbc_plugin == C_NULL ||
+        isempty(mdl.objectives) ||
+        ccall(sbml(:FbcModelPlugin_setStrict), Cint, (VPtr, Cint), fbc_plugin, true)
     for (id, objective) in mdl.objectives
-        fbc_plugin == C_NULL ||
-            ccall(sbml(:FbcModelPlugin_setStrict), Cint, (VPtr, Cint), fbc_plugin, true)
         objective_ptr = ccall(
             sbml(:Objective_create),
             VPtr,
@@ -381,88 +383,97 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         )
 
     # Add species
+    fbc_plugin == C_NULL ||
+        isempty(mdl.species) ||
+        ccall(sbml(:FbcModelPlugin_setStrict), Cint, (VPtr, Cint), fbc_plugin, true)
     for (id, species) in mdl.species
-        species_t = ccall(
-            sbml(:Species_create),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
-        ccall(sbml(:Species_setId), Cint, (VPtr, Cstring), species_t, id)
+        species_ptr = ccall(sbml(:Model_createSpecies), VPtr, (VPtr,), model)
+        ccall(sbml(:Species_setId), Cint, (VPtr, Cstring), species_ptr, id)
         isnothing(species.name) ||
-            ccall(sbml(:Species_setName), Cint, (VPtr, Cstring), species_t, species.name)
+            ccall(sbml(:Species_setName), Cint, (VPtr, Cstring), species_ptr, species.name)
         isnothing(species.compartment) || ccall(
             sbml(:Species_setCompartment),
             Cint,
             (VPtr, Cstring),
-            species_t,
+            species_ptr,
             species.compartment,
         )
         isnothing(species.boundary_condition) || ccall(
             sbml(:Species_setBoundaryCondition),
             Cint,
             (VPtr, Cint),
-            species_t,
+            species_ptr,
             species.boundary_condition,
         )
-        # isnothing(species.formula) || ccall(sbml(:Species_setFormula), Cint, (VPtr, Cstring), species_t, species.compartment)
+        species_fbc_ptr =
+            ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), species_ptr, "fbc")
+        species_fbc_ptr == C_NULL ||
+            isnothing(species.formula) ||
+            ccall(
+                sbml(:FbcSpeciesPlugin_setChemicalFormula),
+                Cint,
+                (VPtr, Cstring),
+                species_fbc_ptr,
+                species.formula,
+            )
         isnothing(species.charge) ||
-            ccall(sbml(:Species_setCharge), Cint, (VPtr, Cint), species_t, species.charge)
+            ccall(sbml(:Species_setCharge), Cint, (VPtr, Cint), species_ptr, species.charge)
         isnothing(species.initial_amount) || ccall(
             sbml(:Species_setInitialAmount),
             Cint,
             (VPtr, Cdouble),
-            species_t,
+            species_ptr,
             species.initial_amount,
         )
         isnothing(species.initial_concentration) || ccall(
             sbml(:Species_setInitialConcentration),
             Cint,
             (VPtr, Cdouble),
-            species_t,
+            species_ptr,
             species.initial_concentration,
         )
         isnothing(species.substance_units) || ccall(
             sbml(:Species_setSubstanceUnits),
             Cint,
             (VPtr, Cstring),
-            species_t,
+            species_ptr,
             species.substance_units,
         )
         isnothing(species.only_substance_units) || ccall(
             sbml(:Species_setHasOnlySubstanceUnits),
             Cint,
             (VPtr, Cint),
-            species_t,
+            species_ptr,
             species.only_substance_units,
         )
         isnothing(species.constant) || ccall(
             sbml(:Species_setConstant),
             Cint,
             (VPtr, Cint),
-            species_t,
+            species_ptr,
             species.constant,
         )
-        isnothing(species.metaid) ||
-            ccall(sbml(:SBase_setMetaId), Cint, (VPtr, Cstring), species_t, species.metaid)
+        isnothing(species.metaid) || ccall(
+            sbml(:SBase_setMetaId),
+            Cint,
+            (VPtr, Cstring),
+            species_ptr,
+            species.metaid,
+        )
         isnothing(species.notes) || ccall(
             sbml(:SBase_setNotesString),
             Cint,
             (VPtr, Cstring),
-            species_t,
+            species_ptr,
             species.notes,
         )
         isnothing(species.annotation) || ccall(
             sbml(:SBase_setAnnotationString),
             Cint,
             (VPtr, Cstring),
-            species_t,
+            species_ptr,
             species.annotation,
         )
-        res = ccall(sbml(:Model_addSpecies), Cint, (VPtr, VPtr), model, species_t)
-        !iszero(res) &&
-            @warn "Failed to add species \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
     # Add function definitions
@@ -658,7 +669,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 end
 
 function _create_doc(mdl::Model)::VPtr
-    doc = if isempty(mdl.gene_products) && isempty(mdl.objectives)
+    doc = if isempty(mdl.gene_products) && isempty(mdl.objectives) && isempty(mdl.species)
         ccall(
             sbml(:SBMLDocument_createWithLevelAndVersion),
             VPtr,

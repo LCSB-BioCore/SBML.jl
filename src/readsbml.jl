@@ -357,8 +357,11 @@ function get_model(mdl::VPtr)::SBML.Model
             end
             objectives[get_string(o, :Objective_getId)] = Objective(type, flux_objectives)
         end
-        active_objective =
-            get_optional_string(mdl_fbc, :FbcModelPlugin_getActiveObjectiveId)
+        active_objective = let
+            aoi = get_optional_string(mdl_fbc, :FbcModelPlugin_getActiveObjectiveId)
+            # Keep it to nothing if the string is empty
+            isempty(aoi) ? nothing : aoi
+        end
     end
 
     # reactions!

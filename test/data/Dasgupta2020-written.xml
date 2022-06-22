@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" level="3" version="1">
-  <model metaid="COPASI0" id="Dasgupta2020___Reduced_model_of_receptor_clusturing_and_aggregation" name="Dasgupta2020 - Reduced model of receptor clusturing and aggregation">
+<sbml xmlns="http://www.sbml.org/sbml/level3/version1/core" xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2" level="3" version="1" fbc:required="false">
+  <model metaid="COPASI0" id="Dasgupta2020___Reduced_model_of_receptor_clusturing_and_aggregation" name="Dasgupta2020 - Reduced model of receptor clusturing and aggregation" fbc:strict="true">
     <notes>
       <body xmlns="http://www.w3.org/1999/xhtml">
         <p>a simple kinetic mass-action-law-based model could be utilized to adequately describe clustering in
