@@ -428,9 +428,7 @@ end
         @test model.parameters == round_trip_model.parameters
         @test model.units == round_trip_model.units
         @test model.compartments == round_trip_model.compartments
-        # As far as I can tell, only annotation strings are different in the
-        # species, because they may be written out in a different order.
-        @test_skip model.species == round_trip_model.species
+        @test model.species == round_trip_model.species
         @test model.initial_assignments == round_trip_model.initial_assignments
         @test model.rules == round_trip_model.rules
         @test model.constraints == round_trip_model.constraints

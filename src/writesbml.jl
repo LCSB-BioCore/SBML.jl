@@ -527,17 +527,22 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         )
         species_fbc_ptr =
             ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), species_ptr, "fbc")
-        species_fbc_ptr == C_NULL ||
-            isnothing(species.formula) ||
-            ccall(
+        if species_fbc_ptr != C_NULL
+            isnothing(species.formula) || ccall(
                 sbml(:FbcSpeciesPlugin_setChemicalFormula),
                 Cint,
                 (VPtr, Cstring),
                 species_fbc_ptr,
                 species.formula,
             )
-        isnothing(species.charge) ||
-            ccall(sbml(:Species_setCharge), Cint, (VPtr, Cint), species_ptr, species.charge)
+            isnothing(species.charge) || ccall(
+                sbml(:FbcSpeciesPlugin_setCharge),
+                Cint,
+                (VPtr, Cint),
+                species_fbc_ptr,
+                species.charge,
+            )
+        end
         isnothing(species.initial_amount) || ccall(
             sbml(:Species_setInitialAmount),
             Cint,
