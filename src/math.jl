@@ -39,24 +39,14 @@ end
 
 # Mapping of AST node type value subset to mathematical operations. Depends on
 # `ASTNodeType.h` (also see below the case with AST_NAME_TIME)
-const math_opers = Dict{Int32,String}(
-    43 => "+",
-    45 => "-",
-    42 => "*",
-    47 => "/",
-    94 => "^",
-)
+const math_opers = Dict{Int32,String}(43 => "+", 45 => "-", 42 => "*", 47 => "/", 94 => "^")
 # Inverse mapping, needed for creating `ASTNode_t` pointers from `MathApply` objects.
 const inv_math_opers = Dict(val => key for (key, val) in math_opers)
 
 # Mapping of AST node type value subset to logical operations. Depends on
 # `ASTNodeType.h` (also see below the case with AST_NAME_TIME)
-const logical_opers = Dict{Int32,String}(
-    304 => "and",
-    305 => "not",
-    306 => "or",
-    307 => "xor",
-)
+const logical_opers =
+    Dict{Int32,String}(304 => "and", 305 => "not", 306 => "or", 307 => "xor")
 # Inverse mapping, needed for creating `ASTNode_t` pointers from `MathApply` objects.
 const inv_logical_opers = Dict(val => key for (key, val) in logical_opers)
 
@@ -176,7 +166,8 @@ function get_astnode_ptr(m::MathTime)::VPtr
 end
 
 function get_astnode_ptr(m::Union{MathIdent,MathConst})::VPtr
-    m.id in ("?invalid?", "?unsupported?") && error("Cannot get a pointer for `MathIdent` with ID \"$(m.id)\"")
+    m.id in ("?invalid?", "?unsupported?") &&
+        error("Cannot get a pointer for `MathIdent` with ID \"$(m.id)\"")
     astnode = ccall(sbml(:ASTNode_create), VPtr, ())
     ccall(sbml(:ASTNode_setName), Cint, (VPtr, Cstring), astnode, m.id)
     ccall(sbml(:ASTNode_canonicalize), Cint, (VPtr,), astnode)
@@ -194,7 +185,14 @@ function get_astnode_ptr(m::MathVal{<:Rational})::VPtr
     astnode = ccall(sbml(:ASTNode_create), VPtr, ())
     # Note: this can be in principle a lossy reconstruction as `Rational`s in
     # Julia are automatically simplified (e.g., 5//10 -> 1//2).
-    ccall(sbml(:ASTNode_setRational), Cint, (VPtr, Clong, Clong), astnode, numerator(m.val), denominator(m.val))
+    ccall(
+        sbml(:ASTNode_setRational),
+        Cint,
+        (VPtr, Clong, Clong),
+        astnode,
+        numerator(m.val),
+        denominator(m.val),
+    )
     ccall(sbml(:ASTNode_canonicalize), Cint, (VPtr,), astnode)
     return astnode
 end
@@ -212,7 +210,13 @@ function get_astnode_ptr(m::MathApply)::VPtr
     ccall(sbml(:ASTNode_setName), Cint, (VPtr, Cstring), astnode, m.fn)
     # Set the type
     if m.fn in keys(all_inv_function_mappings)
-        ccall(sbml(:ASTNode_setType), Cint, (VPtr, Cuint), astnode, all_inv_function_mappings[m.fn])
+        ccall(
+            sbml(:ASTNode_setType),
+            Cint,
+            (VPtr, Cuint),
+            astnode,
+            all_inv_function_mappings[m.fn],
+        )
     else
         ccall(sbml(:ASTNode_setType), Cint, (VPtr, Cuint), astnode, 268) # 268 == AST_FUNCTION
     end
