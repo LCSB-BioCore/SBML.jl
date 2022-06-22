@@ -412,12 +412,36 @@ response to activation both in 2D and in 3D</p>
       </assignmentRule>
     </listOfRules>
     <listOfReactions>
-      <reaction id="R4" name="R4" reversible="false" fast="false"/>
-      <reaction id="R3" name="R3" reversible="false" fast="false"/>
-      <reaction id="R6" name="R6" reversible="false" fast="false"/>
-      <reaction id="R1" name="R1" reversible="false" fast="false"/>
-      <reaction id="R5" name="R5" reversible="false" fast="false"/>
-      <reaction id="R2" name="R2" reversible="false" fast="false"/>
+      <reaction id="R4" name="R4" reversible="false" fast="false">
+        <listOfProducts>
+          <speciesReference species="N" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+      </reaction>
+      <reaction id="R3" name="R3" reversible="false" fast="false">
+        <listOfProducts>
+          <speciesReference species="P" stoichiometry="1" constant="true"/>
+        </listOfProducts>
+      </reaction>
+      <reaction id="R6" name="R6" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="N" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+      </reaction>
+      <reaction id="R1" name="R1" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="P" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+      </reaction>
+      <reaction id="R5" name="R5" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="N" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+      </reaction>
+      <reaction id="R2" name="R2" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="P" stoichiometry="1" constant="true"/>
+        </listOfReactants>
+      </reaction>
     </listOfReactions>
   </model>
 </sbml>

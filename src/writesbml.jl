@@ -9,6 +9,11 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Create the model pointer
     model = ccall(sbml(:SBMLDocument_createModel), VPtr, (VPtr,), doc)
     fbc_plugin = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), model, "fbc")
+    fbc_plugin == C_NULL ||
+        isempty(mdl.gene_products) ||
+        isempty(mdl.objectives) ||
+        isempty(mdl.species) ||
+        ccall(sbml(:FbcModelPlugin_setStrict), Cint, (VPtr, Cint), fbc_plugin, true)
 
     # Set ids and name
     isnothing(mdl.id) || ccall(sbml(:Model_setId), Cint, (VPtr, Cstring), model, mdl.id)
@@ -257,13 +262,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add reactions
     for (id, reaction) in mdl.reactions
-        reaction_ptr = ccall(
-            sbml(:Reaction_create),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
+        reaction_ptr = ccall(sbml(:Model_createReaction), VPtr, (VPtr,), model)
         ccall(sbml(:Reaction_setId), Cint, (VPtr, Cstring), reaction_ptr, id)
         ccall(
             sbml(:Reaction_setReversible),
@@ -282,8 +281,58 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             reaction_ptr,
             reaction.name,
         )
-        # TODO: add reactants
-        # TODO: add products
+        for (species, stoichiometry) in reaction.reactants
+            reactant_ptr =
+                ccall(sbml(:Reaction_createReactant), VPtr, (VPtr,), reaction_ptr)
+            ccall(
+                sbml(:SpeciesReference_setSpecies),
+                Cint,
+                (VPtr, Cstring),
+                reactant_ptr,
+                species,
+            )
+            ccall(
+                sbml(:SpeciesReference_setStoichiometry),
+                Cint,
+                (VPtr, Cdouble),
+                reactant_ptr,
+                stoichiometry,
+            )
+            # Assume constant reactant for the time being
+            ccall(
+                sbml(:SpeciesReference_setConstant),
+                Cint,
+                (VPtr, Cint),
+                reactant_ptr,
+                true,
+            )
+        end
+        for (species, stoichiometry) in reaction.products
+            product_ptr =
+                ccall(sbml(:Reaction_createProduct), VPtr, (VPtr,), reaction_ptr)
+            ccall(
+                sbml(:SpeciesReference_setSpecies),
+                Cint,
+                (VPtr, Cstring),
+                product_ptr,
+                species,
+            )
+            ccall(
+                sbml(:SpeciesReference_setStoichiometry),
+                Cint,
+                (VPtr, Cdouble),
+                product_ptr,
+                stoichiometry,
+            )
+            # Assume constant product for the time being
+            ccall(
+                sbml(:SpeciesReference_setConstant),
+                Cint,
+                (VPtr, Cint),
+                product_ptr,
+                true,
+            )
+        end
         # TODO: add kinetic parameters
         # TODO: add lower bound
         # TODO: add upper bound
@@ -303,9 +352,6 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             reaction_ptr,
             reaction.annotation,
         )
-        res = ccall(sbml(:Model_addReaction), Cint, (VPtr, VPtr), model, reaction_ptr)
-        !iszero(res) &&
-            @warn "Failed to add reaction \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
     # Add objectives
