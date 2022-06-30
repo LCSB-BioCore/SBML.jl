@@ -12,94 +12,52 @@ function set_gene_product_association_ptr!(
     gene_product_association_ptr::VPtr,
     gpr::GPARef,
 )::VPtr
+    gpref_ptr = ccall(
+        sbml(:GeneProductAssociation_createGeneProductRef),
+        VPtr,
+        (VPtr,),
+        gene_product_association_ptr,
+    )
     ccall(
         sbml(:GeneProductRef_setGeneProduct),
         Cint,
         (VPtr, Cstring),
-        gene_product_association_ptr,
+        gpref_ptr,
         gpr.gene_product,
     )
-    return gene_product_association_ptr
-end
-
-function get_gene_product_association_ptr(gpr::GPARef)::VPtr
-    gene_product_association_ptr = ccall(
-        sbml(:GeneProductRef_create),
-        VPtr,
-        (Cuint, Cuint, Cuint),
-        WRITESBML_PKG_DEFAULT_LEVEL,
-        WRITESBML_PKG_DEFAULT_VERSION,
-        WRITESBML_PKG_DEFAULT_PKGVERSION,
-    )
-    return set_gene_product_association_ptr!(gene_product_association_ptr, gpr)
+    return nothing
 end
 
 function set_gene_product_association_ptr!(
     gene_product_association_ptr::VPtr,
     gpa::GPAAnd,
 )::VPtr
-    for term in gpa.terms
-        term_ptr = if term isa GPARef
-            ccall(
-                sbml(:FbcAnd_createGeneProductRef),
-                VPtr,
-                (VPtr,),
-                gene_product_association_ptr,
-            )
-        elseif term isa GPAAnd
-            ccall(sbml(:FbcAnd_createAnd), VPtr, (VPtr,), gene_product_association_ptr)
-        elseif term isa GPAOr
-            ccall(sbml(:FbcAnd_createOr), VPtr, (VPtr,), gene_product_association_ptr)
-        end
-        set_gene_product_association_ptr!(term_ptr, term)
-    end
-    return gene_product_association_ptr
-end
-
-function get_gene_product_association_ptr(gpa::GPAAnd)::VPtr
-    gene_product_association_ptr = ccall(
-        sbml(:FbcAnd_create),
+    gpa_ptr = ccall(
+        sbml(:GeneProductAssociation_createAnd),
         VPtr,
-        (Cuint, Cuint, Cuint),
-        WRITESBML_PKG_DEFAULT_LEVEL,
-        WRITESBML_PKG_DEFAULT_VERSION,
-        WRITESBML_PKG_DEFAULT_PKGVERSION,
+        (VPtr,),
+        gene_product_association_ptr,
     )
-    return set_gene_product_association_ptr!(gene_product_association_ptr, gpa)
+    for term in gpa.terms
+        set_gene_product_association_ptr!(gpa_ptr, term)
+    end
+    return nothing
 end
 
 function set_gene_product_association_ptr!(
     gene_product_association_ptr::VPtr,
     gpo::GPAOr,
 )::VPtr
-    for term in gpo.terms
-        term_ptr = if term isa GPARef
-            ccall(
-                sbml(:FbcOr_createGeneProductRef),
-                VPtr,
-                (VPtr,),
-                gene_product_association_ptr,
-            )
-        elseif term isa GPAAnd
-            ccall(sbml(:FbcOr_createAnd), VPtr, (VPtr,), gene_product_association_ptr)
-        elseif term isa GPAOr
-            ccall(sbml(:FbcOr_createOr), VPtr, (VPtr,), gene_product_association_ptr)
-        end
-        set_gene_product_association_ptr!(term_ptr, term)
-    end
-    return gene_product_association_ptr
-end
-
-function get_gene_product_association_ptr(gpo::GPAOr)::VPtr
-    gene_product_association_ptr = ccall(
-        sbml(:FbcOr_create),
+    gpo_ptr = ccall(
+        sbml(:GeneProductAssociation_createOr),
         VPtr,
-        (Cuint, Cuint, Cuint),
-        WRITESBML_PKG_DEFAULT_LEVEL,
-        WRITESBML_PKG_DEFAULT_VERSION,
-        WRITESBML_PKG_DEFAULT_PKGVERSION,
+        (VPtr,),
+        gene_product_association_ptr,
     )
-    return set_gene_product_association_ptr!(gene_product_association_ptr, gpo)
+    for term in gpo.terms
+        set_gene_product_association_ptr!(gpo_ptr, term)
+    end
+    return nothing
 end
 
 function get_rule_ptr(r::AlgebraicRule)::VPtr
@@ -510,13 +468,24 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 reaction_fbc_ptr,
                 reaction.upper_bound,
             )
-            isnothing(reaction.gene_product_association) || ccall(
-                sbml(:FbcReactionPlugin_setGeneProductAssociation),
-                Cint,
-                (VPtr, VPtr),
-                reaction_fbc_ptr,
-                get_gene_product_association_ptr(reaction.gene_product_association),
-            )
+            if !isnothing(reaction.gene_product_association)
+                gene_product_association_ptr = ccall(
+                    sbml(:GeneProductAssociation_create),
+                    VPtr,
+                    (Cuint, Cuint, Cuint),
+                    WRITESBML_PKG_DEFAULT_LEVEL,
+                    WRITESBML_PKG_DEFAULT_VERSION,
+                    WRITESBML_PKG_DEFAULT_PKGVERSION,
+                )
+                set_gene_product_association_ptr!(gene_product_association_ptr, reaction.gene_product_association)
+                ccall(
+                    sbml(:FbcReactionPlugin_setGeneProductAssociation),
+                    Cint,
+                    (VPtr, VPtr),
+                    reaction_fbc_ptr,
+                    gene_product_association_ptr,
+                )
+            end
         end
         isnothing(reaction.notes) || ccall(
             sbml(:SBase_setNotesString),
