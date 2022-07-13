@@ -21,4 +21,7 @@
     )
 
     @test isequal(SBML.interpret_math(test), 0.5)
+
+    test = SBML.MathConst("exponentiale")
+    @test isequal(SBML.interpret_math(test), exp(1))
 end
