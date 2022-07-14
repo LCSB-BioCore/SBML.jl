@@ -35,6 +35,20 @@ end
 """
 $(TYPEDSIGNATURES)
 
+Like [`get_string`](@ref), but returns `nothing` instead of throwing an
+exception. Also returns values only if `fn_test` returns true.
+"""
+function get_optional_string(x::VPtr, fn_test, fn_sym)::Maybe{String}
+    if ccall(sbml(fn_test), Cint, (VPtr,), x) == 0
+        return nothing
+    else
+        get_optional_string(x, fn_sym)
+    end
+end
+
+"""
+$(TYPEDSIGNATURES)
+
 Helper for getting out boolean flags.
 """
 function get_optional_bool(x::VPtr, is_sym, get_sym)::Maybe{Bool}
@@ -329,6 +343,7 @@ function get_model(mdl::VPtr)::SBML.Model
                 :Species_getHasOnlySubstanceUnits,
             ),
             constant = get_optional_bool(sp, :Species_isSetConstant, :Species_getConstant),
+            metaid = get_optional_string(sp, :SBase_getMetaId),
             notes = get_notes(sp),
             annotation = get_annotation(sp),
         )
@@ -337,7 +352,7 @@ function get_model(mdl::VPtr)::SBML.Model
     # parse out the flux objectives (these are complementary to the objectives
     # that appear in the reactions, see comments lower)
     objectives = Dict{String,Objective}()
-    active_objective = nothing
+    active_objective = ""
     if mdl_fbc != C_NULL
         for i = 1:ccall(sbml(:FbcModelPlugin_getNumObjectives), Cuint, (VPtr,), mdl_fbc)
             flux_objectives = Dict{String,Float64}()
@@ -356,8 +371,7 @@ function get_model(mdl::VPtr)::SBML.Model
             end
             objectives[get_string(o, :Objective_getId)] = Objective(type, flux_objectives)
         end
-        active_objective =
-            get_optional_string(mdl_fbc, :FbcModelPlugin_getActiveObjectiveId)
+        active_objective = get_string(mdl_fbc, :FbcModelPlugin_getActiveObjectiveId)
     end
 
     # reactions!
@@ -386,8 +400,16 @@ function get_model(mdl::VPtr)::SBML.Model
 
         re_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), re, "fbc")
         if re_fbc != C_NULL
-            lower_bound = get_optional_string(re_fbc, :FbcReactionPlugin_getLowerFluxBound)
-            upper_bound = get_optional_string(re_fbc, :FbcReactionPlugin_getUpperFluxBound)
+            lower_bound = get_optional_string(
+                re_fbc,
+                :FbcReactionPlugin_isSetLowerFluxBound,
+                :FbcReactionPlugin_getLowerFluxBound,
+            )
+            upper_bound = get_optional_string(
+                re_fbc,
+                :FbcReactionPlugin_isSetUpperFluxBound,
+                :FbcReactionPlugin_getUpperFluxBound,
+            )
         end
 
         # extract stoichiometry
@@ -440,6 +462,7 @@ function get_model(mdl::VPtr)::SBML.Model
             gene_product_association = association,
             kinetic_math = math,
             reversible,
+            metaid = get_optional_string(re, :SBase_getMetaId),
             notes = get_notes(re),
             annotation = get_annotation(re),
         )
@@ -461,8 +484,9 @@ function get_model(mdl::VPtr)::SBML.Model
 
             if id != nothing
                 gene_products[id] = GeneProduct(
+                    label = get_string(gp, :GeneProduct_getLabel),
                     name = get_optional_string(gp, :GeneProduct_getName),
-                    label = get_optional_string(gp, :GeneProduct_getLabel),
+                    metaid = get_optional_string(gp, :SBase_getMetaId),
                     notes = get_notes(gp),
                     annotation = get_annotation(gp),
                 )
@@ -519,18 +543,31 @@ function get_model(mdl::VPtr)::SBML.Model
             )
         end
 
-        trig_math_ptr = ccall(
-            sbml(:Trigger_getMath),
-            VPtr,
-            (VPtr,),
-            ccall(sbml(:Event_getTrigger), VPtr, (VPtr,), ev),
+        trigger_ptr = ccall(sbml(:Event_getTrigger), VPtr, (VPtr,), ev)
+        trig_math_ptr = ccall(sbml(:Trigger_getMath), VPtr, (VPtr,), trigger_ptr)
+        trigger = Trigger(;
+            persistent = ccall(sbml(:Trigger_getPersistent), Bool, (VPtr,), trigger_ptr),
+            initial_value = ccall(
+                sbml(:Trigger_getInitialValue),
+                Bool,
+                (VPtr,),
+                trigger_ptr,
+            ),
+            math = trig_math_ptr == C_NULL ? nothing : parse_math(trig_math_ptr),
         )
 
-        events[unsafe_string(ccall(sbml(:Event_getId), Cstring, (VPtr,), ev))] = SBML.Event(
-            get_optional_string(ev, :Event_getName),
-            trig_math_ptr == C_NULL ? nothing : parse_math(trig_math_ptr),
-            event_assignments,
-        )
+        events[unsafe_string(ccall(sbml(:Event_getId), Cstring, (VPtr,), ev))] =
+            SBML.Event(;
+                use_values_from_trigger_time = ccall(
+                    sbml(:Event_getUseValuesFromTriggerTime),
+                    Cint,
+                    (VPtr,),
+                    ev,
+                ),
+                name = get_optional_string(ev, :Event_getName),
+                trigger,
+                event_assignments,
+            )
     end
 
     # Rules
@@ -591,6 +628,7 @@ function get_model(mdl::VPtr)::SBML.Model
         events,
         name = get_optional_string(mdl, :Model_getName),
         id = get_optional_string(mdl, :Model_getId),
+        metaid = get_optional_string(mdl, :SBase_getMetaId),
         conversion_factor = get_optional_string(mdl, :Model_getConversionFactor),
         area_units = get_optional_string(mdl, :Model_getAreaUnits),
         extent_units = get_optional_string(mdl, :Model_getExtentUnits),
@@ -602,6 +640,3 @@ function get_model(mdl::VPtr)::SBML.Model
         annotation = get_annotation(mdl),
     )
 end
-
-# Precompilation statements
-precompile(readSBML, (String,))

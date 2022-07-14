@@ -15,6 +15,9 @@ else
     end
 end
 
+# Some utilities needed for testing
+include("common.jl")
+
 @testset "SBML test suite" begin
     include("version.jl")
 

@@ -38,7 +38,6 @@ Base.@kwdef struct UnitDefinition
     unit_parts::Vector{UnitPart}
 end
 
-
 """
 $(TYPEDEF)
 
@@ -218,6 +217,7 @@ Base.@kwdef struct Reaction
     gene_product_association::Maybe{GeneProductAssociation} = nothing
     kinetic_math::Maybe{Math} = nothing
     reversible::Bool
+    metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
@@ -250,7 +250,7 @@ SBML assignment rule.
 $(TYPEDFIELDS)
 """
 struct AssignmentRule <: Rule
-    id::String
+    variable::String
     math::Math
 end
 
@@ -263,7 +263,7 @@ SBML rate rule.
 $(TYPEDFIELDS)
 """
 struct RateRule <: Rule
-    id::String
+    variable::String
     math::Math
 end
 
@@ -300,6 +300,7 @@ Base.@kwdef struct Species
     substance_units::Maybe{String} = nothing
     only_substance_units::Maybe{Bool} = nothing
     constant::Maybe{Bool} = nothing
+    metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
@@ -313,8 +314,9 @@ Gene product metadata.
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct GeneProduct
+    label::String
     name::Maybe{String} = nothing
-    label::Maybe{String} = nothing
+    metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
@@ -351,6 +353,18 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
+Base.@kwdef struct Trigger
+    persistent::Bool
+    initial_value::Bool
+    math::Maybe{Math} = nothing
+end
+
+"""
+$(TYPEDEF)
+
+# Fields
+$(TYPEDFIELDS)
+"""
 Base.@kwdef struct Objective
     type::String
     flux_objectives::Dict{String,Float64} = Dict()
@@ -363,8 +377,9 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Event
+    use_values_from_trigger_time::Cint
     name::Maybe{String} = nothing
-    trigger::Maybe{Math} = nothing
+    trigger::Maybe{Trigger} = nothing
     event_assignments::Maybe{Vector{EventAssignment}} = nothing
 end
 
@@ -390,12 +405,13 @@ Base.@kwdef struct Model
     constraints::Vector{Constraint} = Constraint[]
     reactions::Dict{String,Reaction} = Dict()
     objectives::Dict{String,Objective} = Dict()
-    active_objective::Maybe{String} = nothing
+    active_objective::String = ""
     gene_products::Dict{String,GeneProduct} = Dict()
     function_definitions::Dict{String,FunctionDefinition} = Dict()
     events::Dict{String,Event} = Dict()
     name::Maybe{String} = nothing
     id::Maybe{String} = nothing
+    metaid::Maybe{String} = nothing
     conversion_factor::Maybe{String} = nothing
     area_units::Maybe{String} = nothing
     extent_units::Maybe{String} = nothing
