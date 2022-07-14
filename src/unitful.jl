@@ -119,12 +119,12 @@ function unit_definition(id::String, units::UnitDefinition)::VPtr
         units.name,
     )
     for unit in units.unit_parts
-        unit_t = ccall(sbml(:UnitDefinition_createUnit), VPtr, (VPtr,), unit_definition)
+        unit_ptr = ccall(sbml(:UnitDefinition_createUnit), VPtr, (VPtr,), unit_definition)
         unit_kind = ccall(sbml(:UnitKind_forName), Cint, (Cstring,), unit.kind)
-        ccall(sbml(:Unit_setKind), Cint, (VPtr, Cint), unit_t, unit_kind)
-        ccall(sbml(:Unit_setScale), Cint, (VPtr, Cint), unit_t, unit.scale)
-        ccall(sbml(:Unit_setExponent), Cint, (VPtr, Cint), unit_t, unit.exponent)
-        ccall(sbml(:Unit_setMultiplier), Cint, (VPtr, Cdouble), unit_t, unit.multiplier)
+        ccall(sbml(:Unit_setKind), Cint, (VPtr, Cint), unit_ptr, unit_kind)
+        ccall(sbml(:Unit_setScale), Cint, (VPtr, Cint), unit_ptr, unit.scale)
+        ccall(sbml(:Unit_setExponent), Cint, (VPtr, Cint), unit_ptr, unit.exponent)
+        ccall(sbml(:Unit_setMultiplier), Cint, (VPtr, Cdouble), unit_ptr, unit.multiplier)
     end
     return unit_definition
 end

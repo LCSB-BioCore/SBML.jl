@@ -190,64 +190,64 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add compartments
     for (id, compartment) in mdl.compartments
-        compartment_t = ccall(
+        compartment_ptr = ccall(
             sbml(:Compartment_create),
             VPtr,
             (Cuint, Cuint),
             WRITESBML_DEFAULT_LEVEL,
             WRITESBML_DEFAULT_VERSION,
         )
-        ccall(sbml(:Compartment_setId), Cint, (VPtr, Cstring), compartment_t, id)
+        ccall(sbml(:Compartment_setId), Cint, (VPtr, Cstring), compartment_ptr, id)
         isnothing(compartment.name) || ccall(
             sbml(:Compartment_setName),
             Cint,
             (VPtr, Cstring),
-            compartment_t,
+            compartment_ptr,
             compartment.name,
         )
         isnothing(compartment.constant) || ccall(
             sbml(:Compartment_setConstant),
             Cint,
             (VPtr, Cint),
-            compartment_t,
+            compartment_ptr,
             Cint(compartment.constant),
         )
         isnothing(compartment.spatial_dimensions) || ccall(
             sbml(:Compartment_setSpatialDimensions),
             Cint,
             (VPtr, Cuint),
-            compartment_t,
+            compartment_ptr,
             Cuint(compartment.spatial_dimensions),
         )
         isnothing(compartment.size) || ccall(
             sbml(:Compartment_setSize),
             Cint,
             (VPtr, Cdouble),
-            compartment_t,
+            compartment_ptr,
             Cdouble(compartment.size),
         )
         isnothing(compartment.units) || ccall(
             sbml(:Compartment_setUnits),
             Cint,
             (VPtr, Cstring),
-            compartment_t,
+            compartment_ptr,
             compartment.units,
         )
         isnothing(compartment.notes) || ccall(
             sbml(:SBase_setNotesString),
             Cint,
             (VPtr, Cstring),
-            compartment_t,
+            compartment_ptr,
             compartment.notes,
         )
         isnothing(compartment.annotation) || ccall(
             sbml(:SBase_setAnnotationString),
             Cint,
             (VPtr, Cstring),
-            compartment_t,
+            compartment_ptr,
             compartment.annotation,
         )
-        res = ccall(sbml(:Model_addCompartment), Cint, (VPtr, VPtr), model, compartment_t)
+        res = ccall(sbml(:Model_addCompartment), Cint, (VPtr, VPtr), model, compartment_ptr)
         !iszero(res) &&
             @warn "Failed to add compartment \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
@@ -314,7 +314,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add initial assignments
     for (symbol, math) in mdl.initial_assignments
-        initialassignment_t = ccall(
+        initialassignment_ptr = ccall(
             sbml(:InitialAssignment_create),
             VPtr,
             (Cuint, Cuint),
@@ -325,14 +325,14 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             sbml(:InitialAssignment_setSymbol),
             Cint,
             (VPtr, Cstring),
-            initialassignment_t,
+            initialassignment_ptr,
             symbol,
         )
         ccall(
             sbml(:InitialAssignment_setMath),
             Cint,
             (VPtr, VPtr),
-            initialassignment_t,
+            initialassignment_ptr,
             get_astnode_ptr(math),
         )
         res = ccall(
@@ -340,7 +340,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             Cint,
             (VPtr, VPtr),
             model,
-            initialassignment_t,
+            initialassignment_ptr,
         )
         !iszero(res) &&
             @warn "Failed to add initial assignment \"$(symbol)\": $(OPERATION_RETURN_VALUES[res])"
@@ -348,7 +348,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add constraints
     for constraint in mdl.constraints
-        constraint_t = ccall(
+        constraint_ptr = ccall(
             sbml(:Constraint_create),
             VPtr,
             (Cuint, Cuint),
@@ -358,15 +358,15 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         # Note: this probably incorrect because our `Constraint` lost the XML namespace of the
         # message, also we don't have an easy way to test this because no test file uses constraints.
         message = ccall(sbml(:XMLNode_createTextNode), VPtr, (Cstring,), constraint.message)
-        ccall(sbml(:Constraint_setMessage), Cint, (VPtr, VPtr), constraint_t, message)
+        ccall(sbml(:Constraint_setMessage), Cint, (VPtr, VPtr), constraint_ptr, message)
         ccall(
             sbml(:Constraint_setMath),
             Cint,
             (VPtr, VPtr),
-            constraint_t,
+            constraint_ptr,
             get_astnode_ptr(constraint.math),
         )
-        res = ccall(sbml(:Model_addConstraint), Cint, (VPtr, VPtr), model, constraint_t)
+        res = ccall(sbml(:Model_addConstraint), Cint, (VPtr, VPtr), model, constraint_ptr)
         !iszero(res) && @warn "Failed to add constrain: $(OPERATION_RETURN_VALUES[res])"
     end
 
@@ -692,7 +692,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add function definitions
     for (id, func_def) in mdl.function_definitions
-        functiondefinition_t = ccall(
+        functiondefinition_ptr = ccall(
             sbml(:FunctionDefinition_create),
             VPtr,
             (Cuint, Cuint),
@@ -703,35 +703,35 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             sbml(:FunctionDefinition_setId),
             Cint,
             (VPtr, Cstring),
-            functiondefinition_t,
+            functiondefinition_ptr,
             id,
         )
         isnothing(func_def.name) || ccall(
             sbml(:FunctionDefinition_setName),
             Cint,
             (VPtr, Cstring),
-            functiondefinition_t,
+            functiondefinition_ptr,
             func_def.name,
         )
         isnothing(func_def.body) || ccall(
             sbml(:FunctionDefinition_setMath),
             Cint,
             (VPtr, VPtr),
-            functiondefinition_t,
+            functiondefinition_ptr,
             get_astnode_ptr(func_def.body),
         )
         isnothing(func_def.notes) || ccall(
             sbml(:SBase_setNotesString),
             Cint,
             (VPtr, Cstring),
-            functiondefinition_t,
+            functiondefinition_ptr,
             func_def.notes,
         )
         isnothing(func_def.annotation) || ccall(
             sbml(:SBase_setAnnotationString),
             Cint,
             (VPtr, Cstring),
-            functiondefinition_t,
+            functiondefinition_ptr,
             func_def.annotation,
         )
         res = ccall(
@@ -739,7 +739,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             Cint,
             (VPtr, VPtr),
             model,
-            functiondefinition_t,
+            functiondefinition_ptr,
         )
         !iszero(res) &&
             @warn "Failed to add function definition \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
@@ -747,32 +747,32 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add rules
     for rule in mdl.rules
-        rule_t = get_rule_ptr(rule)
-        res = ccall(sbml(:Model_addRule), Cint, (VPtr, VPtr), model, rule_t)
+        rule_ptr = get_rule_ptr(rule)
+        res = ccall(sbml(:Model_addRule), Cint, (VPtr, VPtr), model, rule_ptr)
         !iszero(res) && @warn "Failed to add rule: $(OPERATION_RETURN_VALUES[res])"
     end
 
     # Add events
     for (id, event) in mdl.events
-        event_t = ccall(
+        event_ptr = ccall(
             sbml(:Event_create),
             VPtr,
             (Cuint, Cuint),
             WRITESBML_DEFAULT_LEVEL,
             WRITESBML_DEFAULT_VERSION,
         )
-        ccall(sbml(:Event_setId), Cint, (VPtr, Cstring), event_t, id)
+        ccall(sbml(:Event_setId), Cint, (VPtr, Cstring), event_ptr, id)
         ccall(
             sbml(:Event_setUseValuesFromTriggerTime),
             Cint,
             (VPtr, Cint),
-            event_t,
+            event_ptr,
             event.use_values_from_trigger_time,
         )
         isnothing(event.name) ||
-            ccall(sbml(:Event_setName), Cint, (VPtr, Cstring), event_t, event.name)
+            ccall(sbml(:Event_setName), Cint, (VPtr, Cstring), event_ptr, event.name)
         if !isnothing(event.trigger)
-            trigger_t = ccall(
+            trigger_ptr = ccall(
                 sbml(:Trigger_create),
                 VPtr,
                 (Cuint, Cuint),
@@ -783,28 +783,28 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 sbml(:Trigger_setPersistent),
                 Cint,
                 (VPtr, Cint),
-                trigger_t,
+                trigger_ptr,
                 event.trigger.persistent,
             )
             ccall(
                 sbml(:Trigger_setInitialValue),
                 Cint,
                 (VPtr, Cint),
-                trigger_t,
+                trigger_ptr,
                 event.trigger.initial_value,
             )
             isnothing(event.trigger.math) || ccall(
                 sbml(:Trigger_setMath),
                 Cint,
                 (VPtr, VPtr),
-                trigger_t,
+                trigger_ptr,
                 get_astnode_ptr(event.trigger.math),
             )
-            ccall(sbml(:Event_setTrigger), Cint, (VPtr, VPtr), event_t, trigger_t)
+            ccall(sbml(:Event_setTrigger), Cint, (VPtr, VPtr), event_ptr, trigger_ptr)
         end
         if !isnothing(event.event_assignments)
             for event_assignment in event.event_assignments
-                event_assignment_t = ccall(
+                event_assignment_ptr = ccall(
                     sbml(:EventAssignment_create),
                     VPtr,
                     (Cuint, Cuint),
@@ -815,26 +815,26 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                     sbml(:EventAssignment_setVariable),
                     Cint,
                     (VPtr, Cstring),
-                    event_assignment_t,
+                    event_assignment_ptr,
                     event_assignment.variable,
                 )
                 isnothing(event_assignment.math) || ccall(
                     sbml(:EventAssignment_setMath),
                     Cint,
                     (VPtr, VPtr),
-                    event_assignment_t,
+                    event_assignment_ptr,
                     get_astnode_ptr(event_assignment.math),
                 )
                 ccall(
                     sbml(:Event_addEventAssignment),
                     Cint,
                     (VPtr, VPtr),
-                    event_t,
-                    event_assignment_t,
+                    event_ptr,
+                    event_assignment_ptr,
                 )
             end
         end
-        res = ccall(sbml(:Model_addEvent), Cint, (VPtr, VPtr), model, event_t)
+        res = ccall(sbml(:Model_addEvent), Cint, (VPtr, VPtr), model, event_ptr)
         !iszero(res) &&
             @warn "Failed to add event \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
