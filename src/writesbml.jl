@@ -497,6 +497,13 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 :GeneProductAssociation_createGeneProductRef,
             )
         end
+        isnothing(reaction.metaid) || ccall(
+            sbml(:SBase_setMetaId),
+            Cint,
+            (VPtr, Cstring),
+            reaction_ptr,
+            reaction.metaid,
+        )
         isnothing(reaction.notes) || ccall(
             sbml(:SBase_setNotesString),
             Cint,

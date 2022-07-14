@@ -462,6 +462,7 @@ function get_model(mdl::VPtr)::SBML.Model
             gene_product_association = association,
             kinetic_math = math,
             reversible,
+            metaid = get_optional_string(re, :SBase_getMetaId),
             notes = get_notes(re),
             annotation = get_annotation(re),
         )

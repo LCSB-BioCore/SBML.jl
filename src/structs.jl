@@ -217,6 +217,7 @@ Base.@kwdef struct Reaction
     gene_product_association::Maybe{GeneProductAssociation} = nothing
     kinetic_math::Maybe{Math} = nothing
     reversible::Bool
+    metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
 end
