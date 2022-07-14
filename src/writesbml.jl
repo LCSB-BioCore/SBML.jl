@@ -6,58 +6,60 @@ const WRITESBML_PKG_DEFAULT_LEVEL = 3
 const WRITESBML_PKG_DEFAULT_VERSION = 1
 const WRITESBML_PKG_DEFAULT_PKGVERSION = 2
 
-## Get pointers for some SBML data structures
 
-function set_gene_product_association_ptr!(
-    gene_product_association_ptr::VPtr,
+function create_gene_product_association(
     gpr::GPARef,
-)::VPtr
-    gpref_ptr = ccall(
-        sbml(:GeneProductAssociation_createGeneProductRef),
-        VPtr,
-        (VPtr,),
-        gene_product_association_ptr,
-    )
+    ptr::VPtr,
+    ::Symbol,
+    ::Symbol,
+    add_ref::Symbol)
+    ref_ptr = ccall(sbml(add_ref), VPtr, (VPtr,), ptr)
     ccall(
         sbml(:GeneProductRef_setGeneProduct),
         Cint,
         (VPtr, Cstring),
-        gpref_ptr,
+        ref_ptr,
         gpr.gene_product,
     )
-    return nothing
+    return ref_ptr
 end
 
-function set_gene_product_association_ptr!(
-    gene_product_association_ptr::VPtr,
-    gpa::GPAAnd,
-)::VPtr
-    gpa_ptr = ccall(
-        sbml(:GeneProductAssociation_createAnd),
-        VPtr,
-        (VPtr,),
-        gene_product_association_ptr,
-    )
-    for term in gpa.terms
-        set_gene_product_association_ptr!(gpa_ptr, term)
+function create_gene_product_association(
+    gpr::GPAOr,
+    ptr::VPtr,
+    add_or::Symbol,
+    ::Symbol,
+    ::Symbol)
+    or_ptr = ccall(sbml(add_or), VPtr, (VPtr,), ptr)
+    for term in gpr.terms
+        create_gene_product_association(
+            term,
+            or_ptr,
+            :FbcOr_createOr,
+            :FbcOr_createAnd,
+            :FbcOr_createGeneProductRef,
+        )
     end
-    return nothing
+    return or_ptr
 end
 
-function set_gene_product_association_ptr!(
-    gene_product_association_ptr::VPtr,
-    gpo::GPAOr,
-)::VPtr
-    gpo_ptr = ccall(
-        sbml(:GeneProductAssociation_createOr),
-        VPtr,
-        (VPtr,),
-        gene_product_association_ptr,
-    )
-    for term in gpo.terms
-        set_gene_product_association_ptr!(gpo_ptr, term)
+function create_gene_product_association(
+    gpr::GPAAnd,
+    ptr::VPtr,
+    ::Symbol,
+    add_and::Symbol,
+    ::Symbol)
+    and_ptr = ccall(sbml(add_and), VPtr, (VPtr,), ptr)
+    for term in gpr.terms
+        create_gene_product_association(
+            term,
+            and_ptr,
+            :FbcAnd_createOr,
+            :FbcAnd_createAnd,
+            :FbcAnd_createGeneProductRef,
+        )
     end
-    return nothing
+    return and_ptr
 end
 
 function get_rule_ptr(r::AlgebraicRule)::VPtr
@@ -368,6 +370,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Add reactions
     for (id, reaction) in mdl.reactions
         reaction_ptr = ccall(sbml(:Model_createReaction), VPtr, (VPtr,), model)
+        reaction_fbc_ptr = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), reaction_ptr, "fbc")
         ccall(sbml(:Reaction_setId), Cint, (VPtr, Cstring), reaction_ptr, id)
         ccall(
             sbml(:Reaction_setReversible),
@@ -452,8 +455,6 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             )
         end
         if !isnothing(reaction.lower_bound) || !isnothing(reaction.upper_bound)
-            reaction_fbc_ptr =
-                ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), reaction_ptr, "fbc")
             isnothing(reaction.lower_bound) || ccall(
                 sbml(:FbcReactionPlugin_setLowerFluxBound),
                 Cint,
@@ -468,24 +469,29 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 reaction_fbc_ptr,
                 reaction.upper_bound,
             )
-            if !isnothing(reaction.gene_product_association)
-                gene_product_association_ptr = ccall(
-                    sbml(:GeneProductAssociation_create),
-                    VPtr,
-                    (Cuint, Cuint, Cuint),
-                    WRITESBML_PKG_DEFAULT_LEVEL,
-                    WRITESBML_PKG_DEFAULT_VERSION,
-                    WRITESBML_PKG_DEFAULT_PKGVERSION,
-                )
-                set_gene_product_association_ptr!(gene_product_association_ptr, reaction.gene_product_association)
-                ccall(
-                    sbml(:FbcReactionPlugin_setGeneProductAssociation),
-                    Cint,
-                    (VPtr, VPtr),
-                    reaction_fbc_ptr,
-                    gene_product_association_ptr,
-                )
-            end
+        end
+        if !isnothing(reaction.gene_product_association)
+            # TODO this needs a libsbml fix
+            reaction_gpa_ptr = ccall(
+                sbml(:_ZN17FbcReactionPlugin28createGeneProductAssociationEv),
+                VPtr,
+                (VPtr,),
+                reaction_fbc_ptr,
+            )
+
+            # the dispatch is a bit complicated in this case, we need to
+            # remember the type of the structure that we're working on (that
+            # sets the part of the symbol before `_`), and the type of the
+            # association we're creating sets the part behind `_`. So let's
+            # just tabulate and lag it through the recursion.
+
+            create_gene_product_association(
+                reaction.gene_product_association,
+                reaction_gpa_ptr,
+                :GeneProductAssociation_createOr,
+                :GeneProductAssociation_createAnd,
+                :GeneProductAssociation_createGeneProductRef,
+            )
         end
         isnothing(reaction.notes) || ccall(
             sbml(:SBase_setNotesString),
