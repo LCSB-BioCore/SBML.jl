@@ -13,6 +13,7 @@ const NON_ANNOTATED_TYPES = Union{
     SBML.Trigger,
     SBML.Objective,
     SBML.Event,
+    SBML.GeneProductAssociation,
 }
 function Base.:(==)(a::T, b::T) where {T<:NON_ANNOTATED_TYPES}
     return getproperties(a) == getproperties(b)
