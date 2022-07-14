@@ -389,7 +389,6 @@ function get_model(mdl::VPtr)::SBML.Model
             for j = 1:ccall(sbml(:KineticLaw_getNumParameters), Cuint, (VPtr,), kl)
                 p = ccall(sbml(:KineticLaw_getParameter), VPtr, (VPtr, Cuint), kl, j - 1)
                 id, v = get_parameter(p)
-                parameters[id] = v
                 kinetic_parameters[id] = v
             end
 
