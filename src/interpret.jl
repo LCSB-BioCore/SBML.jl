@@ -16,7 +16,7 @@ sbmlNeq(a, b) = !isequal(a, b)
 sbmlLog(x) = sbmlLog(10, x)
 sbmlLog(base, x) = log(base, x)
 
-sbmlPower(x, y) = IfElse.ifelse(y < 0, x^float(y), x^y)  # Todo @mirek: perhaps this needs a method float(y::SBML.MathVal)?
+sbmlPower(x, y) = x^float(y)
 sbmlRoot(x) = sqrt(x)
 sbmlRoot(power, x) = x^(1 / power)
 
