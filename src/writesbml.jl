@@ -12,7 +12,8 @@ function create_gene_product_association(
     ptr::VPtr,
     ::Symbol,
     ::Symbol,
-    add_ref::Symbol)
+    add_ref::Symbol,
+)
     ref_ptr = ccall(sbml(add_ref), VPtr, (VPtr,), ptr)
     ccall(
         sbml(:GeneProductRef_setGeneProduct),
@@ -29,7 +30,8 @@ function create_gene_product_association(
     ptr::VPtr,
     add_or::Symbol,
     ::Symbol,
-    ::Symbol)
+    ::Symbol,
+)
     or_ptr = ccall(sbml(add_or), VPtr, (VPtr,), ptr)
     for term in gpr.terms
         create_gene_product_association(
@@ -48,7 +50,8 @@ function create_gene_product_association(
     ptr::VPtr,
     ::Symbol,
     add_and::Symbol,
-    ::Symbol)
+    ::Symbol,
+)
     and_ptr = ccall(sbml(add_and), VPtr, (VPtr,), ptr)
     for term in gpr.terms
         create_gene_product_association(
@@ -370,7 +373,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Add reactions
     for (id, reaction) in mdl.reactions
         reaction_ptr = ccall(sbml(:Model_createReaction), VPtr, (VPtr,), model)
-        reaction_fbc_ptr = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), reaction_ptr, "fbc")
+        reaction_fbc_ptr =
+            ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), reaction_ptr, "fbc")
         ccall(sbml(:Reaction_setId), Cint, (VPtr, Cstring), reaction_ptr, id)
         ccall(
             sbml(:Reaction_setReversible),

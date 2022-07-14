@@ -400,8 +400,16 @@ function get_model(mdl::VPtr)::SBML.Model
 
         re_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), re, "fbc")
         if re_fbc != C_NULL
-            lower_bound = get_optional_string(re_fbc, :FbcReactionPlugin_isSetLowerFluxBound, :FbcReactionPlugin_getLowerFluxBound)
-            upper_bound = get_optional_string(re_fbc, :FbcReactionPlugin_isSetUpperFluxBound, :FbcReactionPlugin_getUpperFluxBound)
+            lower_bound = get_optional_string(
+                re_fbc,
+                :FbcReactionPlugin_isSetLowerFluxBound,
+                :FbcReactionPlugin_getLowerFluxBound,
+            )
+            upper_bound = get_optional_string(
+                re_fbc,
+                :FbcReactionPlugin_isSetUpperFluxBound,
+                :FbcReactionPlugin_getUpperFluxBound,
+            )
         end
 
         # extract stoichiometry
