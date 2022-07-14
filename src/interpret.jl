@@ -16,6 +16,7 @@ sbmlNeq(a, b) = !isequal(a, b)
 sbmlLog(x) = sbmlLog(10, x)
 sbmlLog(base, x) = log(base, x)
 
+sbmlPower(x, y) = x^float(y)
 sbmlRoot(x) = sqrt(x)
 sbmlRoot(power, x) = x^(1 / power)
 
@@ -71,7 +72,7 @@ const default_function_mapping = Dict{String,Any}(
     "not" => !,
     "or" => |,
     "piecewise" => sbmlPiecewise,
-    "power" => ^,
+    "power" => sbmlPower,
     "rateOf" => sbmlRateOf,
     "root" => sbmlRoot,
     "sech" => sech,
@@ -93,8 +94,13 @@ $(TYPEDSIGNATURES)
 A dictionary of default constants filled in place of SBML Math constants in the
 function conversion.
 """
-const default_constants =
-    Dict{String,Any}("true" => true, "false" => false, "pi" => pi, "e" => exp(1))
+const default_constants = Dict{String,Any}(
+    "true" => true,
+    "false" => false,
+    "pi" => pi,
+    "e" => exp(1),
+    "exponentiale" => exp(1),
+)
 
 """
 $(TYPEDSIGNATURES)
