@@ -475,9 +475,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             )
         end
         if !isnothing(reaction.gene_product_association)
-            # TODO this needs a libsbml fix
             reaction_gpa_ptr = ccall(
-                sbml(:_ZN17FbcReactionPlugin28createGeneProductAssociationEv),
+                sbml(:FbcReactionPlugin_createGeneProductAssociation),
                 VPtr,
                 (VPtr,),
                 reaction_fbc_ptr,
