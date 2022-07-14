@@ -35,6 +35,20 @@ end
 """
 $(TYPEDSIGNATURES)
 
+Like [`get_string`](@ref), but returns `nothing` instead of throwing an
+exception. Also returns values only if `fn_test` returns true.
+"""
+function get_optional_string(x::VPtr, fn_test, fn_sym)::Maybe{String}
+    if ccall(sbml(fn_test), Cint, (VPtr,), x) == 0
+        return nothing
+    else
+        get_optional_string(x, fn_sym)
+    end
+end
+
+"""
+$(TYPEDSIGNATURES)
+
 Helper for getting out boolean flags.
 """
 function get_optional_bool(x::VPtr, is_sym, get_sym)::Maybe{Bool}
@@ -386,8 +400,8 @@ function get_model(mdl::VPtr)::SBML.Model
 
         re_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), re, "fbc")
         if re_fbc != C_NULL
-            lower_bound = get_optional_string(re_fbc, :FbcReactionPlugin_getLowerFluxBound)
-            upper_bound = get_optional_string(re_fbc, :FbcReactionPlugin_getUpperFluxBound)
+            lower_bound = get_optional_string(re_fbc, :FbcReactionPlugin_isSetLowerFluxBound, :FbcReactionPlugin_getLowerFluxBound)
+            upper_bound = get_optional_string(re_fbc, :FbcReactionPlugin_isSetUpperFluxBound, :FbcReactionPlugin_getUpperFluxBound)
         end
 
         # extract stoichiometry
