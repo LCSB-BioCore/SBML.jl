@@ -94,8 +94,13 @@ $(TYPEDSIGNATURES)
 A dictionary of default constants filled in place of SBML Math constants in the
 function conversion.
 """
-const default_constants =
-    Dict{String,Any}("true" => true, "false" => false, "pi" => pi, "e" => exp(1), "exponentiale" => exp(1))
+const default_constants = Dict{String,Any}(
+    "true" => true,
+    "false" => false,
+    "pi" => pi,
+    "e" => exp(1),
+    "exponentiale" => exp(1),
+)
 
 """
 $(TYPEDSIGNATURES)
