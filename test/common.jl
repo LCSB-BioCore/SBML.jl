@@ -20,7 +20,7 @@ end
 
 # Types for which we want `==` to be `==` for all fields except for the `annotation` field,
 # for which we only check that both fields are either nothing or non-nothing.
-const ANNOTATED_TYPES = Union{SBML.FunctionDefinition,SBML.GeneProduct,SBML.Species}
+const ANNOTATED_TYPES = Union{SBML.FunctionDefinition,SBML.GeneProduct,SBML.Species,SBML.Reaction}
 function Base.:(==)(a::T, b::T) where {T<:ANNOTATED_TYPES}
     nta = getproperties(a)
     ntb = getproperties(b)

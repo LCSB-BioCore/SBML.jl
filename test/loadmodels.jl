@@ -432,7 +432,7 @@ end
         @test model.initial_assignments == round_trip_model.initial_assignments
         @test model.rules == round_trip_model.rules
         @test model.constraints == round_trip_model.constraints
-        # TODO: @test model.reactions == round_trip_model.reactions
+        @test model.reactions == round_trip_model.reactions
         @test model.objectives == round_trip_model.objectives
         @test model.active_objective == round_trip_model.active_objective
         @test model.gene_products == round_trip_model.gene_products
