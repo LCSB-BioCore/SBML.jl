@@ -1,6 +1,6 @@
 
 """
-    set_level_and_version(level, version, report_severities = ["Fatal", "Error"])
+$(TYPEDSIGNATURES)
 
 A converter to pass into [`readSBML`](@ref) that enforces certain SBML level
 and version.  `report_severities` switches on and off reporting of certain
@@ -22,7 +22,7 @@ set_level_and_version(level, version, report_severities = ["Fatal", "Error"]) =
     )
 
 """
-    libsbml_convert(conversion_options::Vector{Pair{String, Dict{String, String}}}, report_severities = ["Fatal", "Error"])
+$(TYPEDSIGNATURES)
 
 A converter that runs the SBML conversion routine, with specified conversion
 options. The argument is a vector of pairs to allow specifying the order of
@@ -61,7 +61,7 @@ libsbml_convert(
     end
 
 """
-    libsbml_convert(converter::String, report_severities = ["Fatal", "Error"]; kwargs...)
+$(TYPEDSIGNATURES)
 
 Quickly construct a single run of a `libsbml` converter from keyword arguments.
 `report_severities` switches on and off reporting of certain errors; see the
@@ -79,7 +79,7 @@ libsbml_convert(converter::String, report_severities = ["Fatal", "Error"]; kwarg
     )
 
 """
-    convert_simplify_math
+$(TYPEDSIGNATURES)
 
 Shortcut for [`libsbml_convert`](@ref) that expands functions, local
 parameters, and initial assignments in the SBML document.

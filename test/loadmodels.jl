@@ -36,6 +36,15 @@ sbmlfiles = [
         3,
         fill(Inf, 3),
     ),
+    # a cool model with assignmentRule for a compartment
+    (
+        joinpath(@__DIR__, "data", "sbml00140.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00140/00140-sbml-l3v2.xml",
+        "43f0151c4f414b610b46bb62033fdcc177f4ac5cc39f3fe8b208e2e335c8d847",
+        3,
+        1,
+        fill(Inf, 1),
+    ),
     # another model from SBML suite, with initial concentrations
     (
         joinpath(@__DIR__, "data", "sbml00374.xml"),
@@ -286,16 +295,25 @@ end
         SBML.extensive_kinetic_math(m, m.reactions["reaction1"].kinetic_math).args[1].args[2]
     @test subterm.fn == "/"
     @test subterm.args[1] == SBML.MathIdent("S1")
-    @test isapprox(subterm.args[2].val, 1.0)
+    @test subterm.args[2] == SBML.MathIdent("C")
+
+    m = readSBML(joinpath(@__DIR__, "data", "sbml00140.xml"))
+
+    subterm = SBML.extensive_kinetic_math(m, m.reactions["reaction1"].kinetic_math).args[2]
+    @test subterm.fn == "/"
+    @test subterm.args[1] == SBML.MathIdent("S1")
+    @test subterm.args[2] == SBML.MathIdent("compartment")
 end
 
 @testset "logBase and root math functions" begin
     m = readSBML(joinpath(@__DIR__, "data", "sbml01565.xml"))
 
-    @test convert(Num, m.reactions["J23"].kinetic_math) == 0.0
+    if TEST_SYMBOLICS
+        @test interpret_as_num(m.reactions["J23"].kinetic_math) == 0.0
 
-    @variables S29 S29b
-    @test isequal(convert(Num, m.reactions["J29"].kinetic_math), 2.0 * S29 * S29b)
+        @variables S29 S29b
+        @test isequal(interpret_as_num(m.reactions["J29"].kinetic_math), 2.0 * S29 * S29b)
+    end
 end
 
 @testset "rationals in math" begin
@@ -358,6 +376,7 @@ end
     @test m.substance_units == "substance"
     @test m.time_units == "second"
     @test m.volume_units == "volume"
+    @test m.active_objective == ""
 
     m = readSBML(joinpath(@__DIR__, "data", "00975-sbml-l3v2.xml"))
     @test m.name == "case00975"
@@ -369,6 +388,7 @@ end
     @test isnothing(m.substance_units)
     @test isnothing(m.time_units)
     @test isnothing(m.volume_units)
+    @test m.active_objective == ""
 end
 
 @testset "names of objects" begin
@@ -377,10 +397,60 @@ end
     @test m.species["M_nh4_c"].name == "Ammonium"
     @test m.gene_products["G_b1241"].name == "adhE"
     @test m.reactions["R_PFK"].name == "Phosphofructokinase"
+    @test m.active_objective == "obj"
 end
 
 @testset "constantness" begin
     m = readSBML(joinpath(@__DIR__, "data", "00975-sbml-l3v2.xml"))
     @test m.species["S1"].constant == false
     @test m.parameters["S1conv"].constant == true
+end
+
+@testset "writeSBML" begin
+    model = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
+    expected = read(joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"), String)
+    # Remove carriage returns, if any
+    expected = replace(expected, '\r' => "")
+    @test @test_logs(writeSBML(model)) == expected
+    mktemp() do filename, _
+        @test_logs(writeSBML(model, filename))
+        content = read(filename, String)
+        # Remove carriage returns, if any
+        content = replace(content, '\r' => "")
+        @test content == expected
+    end
+
+    # Make sure that the model we read from the written out file is consistent
+    # with the original model.
+    @testset "Round-trip - $(basename(file))" for file in first.(sbmlfiles)
+        model = readSBML(file)
+        round_trip_model = readSBMLFromString(@test_logs(writeSBML(model)))
+        @test model.parameters == round_trip_model.parameters
+        @test model.units == round_trip_model.units
+        @test model.compartments == round_trip_model.compartments
+        @test model.species == round_trip_model.species
+        @test model.initial_assignments == round_trip_model.initial_assignments
+        @test model.rules == round_trip_model.rules
+        @test model.constraints == round_trip_model.constraints
+        @test model.reactions == round_trip_model.reactions
+        @test model.objectives == round_trip_model.objectives
+        @test model.active_objective == round_trip_model.active_objective
+        @test model.gene_products == round_trip_model.gene_products
+        @test model.function_definitions == round_trip_model.function_definitions
+        @test model.events == round_trip_model.events
+        @test model.name == round_trip_model.name
+        @test model.id == round_trip_model.id
+        @test model.metaid == round_trip_model.metaid
+        @test model.conversion_factor == round_trip_model.conversion_factor
+        @test model.area_units == round_trip_model.area_units
+        @test model.extent_units == round_trip_model.extent_units
+        @test model.length_units == round_trip_model.length_units
+        @test model.substance_units == round_trip_model.substance_units
+        @test model.time_units == round_trip_model.time_units
+        @test model.volume_units == round_trip_model.volume_units
+        @test model.notes == round_trip_model.notes
+        # We can't compare the two strings verbatim because `writeSBML` may write some
+        # elements of the annotation in a slightly different order.
+        @test isnothing(model.annotation) == isnothing(round_trip_model.annotation)
+    end
 end

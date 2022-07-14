@@ -1,6 +1,6 @@
 
 """
-    function SBML.Version()
+$(TYPEDSIGNATURES)
 
 Get the version of the used SBML library in Julia version format.
 """

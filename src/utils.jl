@@ -1,5 +1,38 @@
+# Enum OperationReturnValues_t defined in
+# `src/sbml/common/operationReturnValues.h`
+const OPERATION_RETURN_VALUES = Dict(
+    0 => "LIBSBML_OPERATION_SUCCESS",
+    -1 => "LIBSBML_INDEX_EXCEEDS_SIZE",
+    -2 => "LIBSBML_UNEXPECTED_ATTRIBUTE",
+    -3 => "LIBSBML_OPERATION_FAILED",
+    -4 => "LIBSBML_INVALID_ATTRIBUTE_VALUE",
+    -5 => "LIBSBML_INVALID_OBJECT",
+    -6 => "LIBSBML_DUPLICATE_OBJECT_ID",
+    -7 => "LIBSBML_LEVEL_MISMATCH",
+    -8 => "LIBSBML_VERSION_MISMATCH",
+    -9 => "LIBSBML_INVALID_XML_OPERATION",
+    -10 => "LIBSBML_NAMESPACES_MISMATCH",
+    -11 => "LIBSBML_DUPLICATE_ANNOTATION_NS",
+    -12 => "LIBSBML_ANNOTATION_NAME_NOT_FOUND",
+    -13 => "LIBSBML_ANNOTATION_NS_NOT_FOUND",
+    -14 => "LIBSBML_MISSING_METAID",
+    -15 => "LIBSBML_DEPRECATED_ATTRIBUTE",
+    -16 => "LIBSBML_USE_ID_ATTRIBUTE_FUNCTION",
+    -20 => "LIBSBML_PKG_VERSION_MISMATCH",
+    -21 => "LIBSBML_PKG_UNKNOWN",
+    -22 => "LIBSBML_PKG_UNKNOWN_VERSION",
+    -23 => "LIBSBML_PKG_DISABLED",
+    -24 => "LIBSBML_PKG_CONFLICTED_VERSION",
+    -25 => "LIBSBML_PKG_CONFLICT",
+    -30 => "LIBSBML_CONV_INVALID_TARGET_NAMESPACE",
+    -31 => "LIBSBML_CONV_PKG_CONVERSION_NOT_AVAILABLE",
+    -32 => "LIBSBML_CONV_INVALID_SRC_DOCUMENT",
+    -33 => "LIBSBML_CONV_CONVERSION_NOT_AVAILABLE",
+    -34 => "LIBSBML_CONV_PKG_CONSIDERED_UNKNOWN",
+)
+
 """
-    function stoichiometry_matrix(m::SBML.Model)
+$(TYPEDSIGNATURES)
 
 Extract the vector of species (aka metabolite) identifiers, vector of reaction
 identifiers, and a sparse stoichiometry matrix (of type `SparseMatrixCSC` from
@@ -46,7 +79,7 @@ function stoichiometry_matrix(m::SBML.Model)
 end
 
 """
-    flux_bounds(m::SBML.Model)::NTuple{2, Vector{Tuple{Float64,String}}}
+$(TYPEDSIGNATURES)
 
 Extract the vectors of lower and upper bounds of reaction rates from the model,
 in the same order as `keys(m.reactions)`.  All bounds are accompanied with the
@@ -87,24 +120,66 @@ function flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}}
 end
 
 """
-    flux_objective(m::SBML.Model)::Vector{Float64}
+$(TYPEDSIGNATURES)
 
-Extract the vector of objective coefficients of each reaction, in the same
-order as `keys(m.reactions)`.
+Get the specified FBC maximization objective from a model, as a vector in the
+same order as `keys(m.reactions)`.
 """
-function flux_objective(m::SBML.Model)::Vector{Float64}
-    # As with bounds, this sometimes needs to be gathered from 2 places (maybe
-    # even more). FBC-specified OC gets a priority.
-    function get_oc(rid::String)
-        kinetic_oc =
-            get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing)
-        mayfirst(get(m.objective, rid, nothing), maylift(p -> p.value, kinetic_oc), 0.0)
-    end
-    get_oc.(keys(m.reactions))
+function fbc_flux_objective(m::Model, oid::String)
+
+    obj = m.objectives[oid]
+    coef = obj.type == "maximize" ? 1.0 : -1.0
+
+    [
+        maylift(o -> o * coef, get(obj.flux_objectives, rid, 0.0)) for
+        rid in keys(m.reactions)
+    ]
 end
 
 """
-    mayfirst(args::Maybe{T}...)::Maybe{T} where T
+$(TYPEDSIGNATURES)
+
+Get a kinetic-parameter-specified flux objective from the model, as a vector in
+the same order as `keys(m.reactions)`.
+"""
+function kinetic_flux_objective(m::Model)
+    mayfirst.(
+        (
+            maylift(
+                p -> p.value,
+                get(m.reactions[rid].kinetic_parameters, "OBJECTIVE_COEFFICIENT", nothing),
+            ) for rid in keys(m.reactions)
+        ),
+        0.0,
+    )
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Collect a single maximization objective from FBC, and from kinetic parameters
+if FBC is not available. Fails if there is more than 1 FBC objective.
+
+Provided for simplicity and compatibility with earlier versions of SBML.jl.
+"""
+function flux_objective(m::Model)::Vector{Float64}
+    oids = keys(m.objectives)
+    if length(oids) == 1
+        fbc_flux_objective(m, first(oids))
+    elseif length(oids) == 0
+        kinetic_flux_objective(m)
+    else
+        throw(
+            DomainError(
+                oids,
+                "Ambiguous objective choice in flux_objective. Use fbc_flux_objective to select a single objective.",
+            ),
+        )
+    end
+end
+
+"""
+$(TYPEDSIGNATURES)
 
 Helper to get the first non-`nothing` value from the arguments.
 """
@@ -118,7 +193,7 @@ function mayfirst(args...)
 end
 
 """
-    maylift(f, args::Maybe...)
+$(TYPEDSIGNATURES)
 
 Helper to lift a function to work on [`Maybe`](@ref), returning `nothing`
 whenever there's a `nothing` in args.
@@ -126,19 +201,21 @@ whenever there's a `nothing` in args.
 maylift(f, args::Maybe...) = any(isnothing, args) ? nothing : f(args...)
 
 """
-    get_compartment_size(m::SBML.Model, compartment; default = nothing)
+$(TYPEDSIGNATURES)
 
 A helper for easily getting out a defaulted compartment size.
 """
 get_compartment_size(m::SBML.Model, compartment; default = nothing) =
-    mayfirst(maylift(x -> x.size, get(m.compartments, compartment, nothing)), default)
+    let c = get(m.compartments, compartment, nothing)
+        mayfirst(
+            maylift(x -> x.size, c),
+            maylift(x -> x.spatial_dimensions == 0 ? 1.0 : nothing, c),
+            default,
+        )
+    end
 
 """
-    initial_amounts(
-        m::SBML.Model;
-        convert_concentrations = false,
-        compartment_size = comp -> get_compartment_size(m, comp),
-    )
+$(TYPEDSIGNATURES)
 
 Return initial amounts for each species as a generator of pairs
 `species_name => initial_amount`; the amount is set to `nothing` if not
@@ -183,11 +260,7 @@ initial_amounts(
 )
 
 """
-    initial_concentrations(
-        m::SBML.Model;
-        convert_amounts = false,
-        compartment_size = comp -> get_compartment_size(m, comp),
-    )
+$(TYPEDSIGNATURES)
 
 Return initial concentrations of the species in the model. Refer to work-alike
 [`initial_amounts`](@ref) for details.
@@ -205,54 +278,87 @@ initial_concentrations(
     ) for (k, s) in m.species
 )
 
+"""
+    isfreein(id::String, expr::SBML.Math)
+
+Determine if `id` is used and not bound (aka. free) in `expr`.
+"""
+isfreein(id::String, expr::SBML.Math) = interpret_math(
+    expr,
+    map_apply = (x, rec) -> any(rec.(x.args)),
+    map_const = _ -> false,
+    map_ident = x -> x.id == id,
+    map_lambda = (x, rec) -> id in x.args ? false : rec(x.body),
+    map_time = _ -> false,
+    map_value = _ -> false,
+)
 
 """
-    function extensive_kinetic_math(
-        m::SBML.Model,
-        formula::SBML.Math;
-        handle_empty_compartment_size = (id::String) -> throw(
-            DomainError(
-                "Non-substance-only-unit reference to species `\$id' in an unsized compartment `\$(m.species[id].compartment)'",
-            ),
-        ),
+    isboundbyrules(
+        id::String,
+        m::SBML.Model
     )
+
+Determine if an identifier seems defined or used by any Rules in the model.
+"""
+seemsdefined(id::String, m::SBML.Model) =
+    any(r.id == id for r in m.rules if r isa AssignmentRule) ||
+    any(r.id == id for r in m.rules if r isa RateRule) ||
+    any(isfreein(id, r.math) for r in m.rules if r isa AlgebraicRule)
+
+"""
+$(TYPEDSIGNATURES)
 
 Convert a SBML math `formula` to "extensive" kinetic laws, where the references
 to species that are marked as not having only substance units are converted
-from amounts to concentrations.
-
-If the data is missing, you can supply a function that adds them. A common way
-to handle errors is to assume that unsized compartments have volume 1.0 (of
-whatever units), you can specify that behavior by supplying
-`handle_empty_compartment_size = _ -> 1.0`.
-
-Handling of units in the conversion process is ignored in this version.
+from amounts to concentrations. Compartment sizes are referenced by compartment
+identifiers. A compartment with no obvious definition available in the model
+(as detected by [`seemsdefined`](@ref)) is either defaulted as size-less (i.e.,
+size is 1.0) in case it does not have spatial dimensions, or reported as
+erroneous.
 """
-function extensive_kinetic_math(
-    m::SBML.Model,
-    formula::SBML.Math;
-    handle_empty_compartment_size = (id::String) -> throw(
-        DomainError(
-            "Non-substance-only-unit reference to species `$id' in an unsized compartment `$(m.species[id].compartment)'",
-        ),
-    ),
-)
-    conv(x::SBML.MathIdent) = begin
+extensive_kinetic_math(m::SBML.Model, formula::SBML.Math) = interpret_math(
+    formula,
+    map_apply = (x, rec) -> SBML.MathApply(x.fn, rec.(x.args)),
+    map_const = identity,
+    map_ident = (x::SBML.MathIdent) -> begin
         haskey(m.species, x.id) || return x
         sp = m.species[x.id]
         sp.only_substance_units && return x
-        sz = m.compartments[sp.compartment].size
-        isnothing(sz) && (sz = handle_empty_compartment_size(x.id))
-        SBML.MathApply("/", [x, SBML.MathVal(sz)])
-    end
-    conv(x::SBML.MathApply) = SBML.MathApply(x.fn, conv.(x.args))
-    conv(x::SBML.Math) = x
-
-    conv(formula)
-end
+        if isnothing(m.compartments[sp.compartment].size) &&
+           !seemsdefined(sp.compartment, m)
+            if m.compartments[sp.compartment].spatial_dimensions == 0
+                # If the comparment ID doesn't seem directly defined anywhere
+                # and it is a zero-dimensional unsized compartment, just avoid
+                # any sizing questions.
+                return x
+            else
+                # In case the compartment is expected to be defined, complain.
+                throw(
+                    DomainError(
+                        sp.compartment,
+                        "compartment size is insufficiently defined",
+                    ),
+                )
+            end
+        else
+            # Now we are sure that the model either has the compartment with
+            # constant size, or the definition is easily reachable. So just use
+            # the compartment ID as a variable to compute the concentration (or
+            # area-centration etc, with different dimensionalities) by dividing
+            # it.
+            return SBML.MathApply("/", [x, SBML.MathIdent(sp.compartment)])
+        end
+    end,
+    map_lambda = (x, _) -> error(
+        ErrorException("converting lambdas to extensive kinetic math is not supported"),
+    ),
+    map_time = identity,
+    map_value = identity,
+)
 
 """
-    get_error_messages(doc::VPtr, error::Exception, report_severities)
+$(TYPEDSIGNATURES)
 
 Show the error messages reported by SBML in the `doc` document and throw the
 `error` if they are more than 1.
@@ -285,12 +391,7 @@ function get_error_messages(doc::VPtr, error::Exception, report_severities)
 end
 
 """
-    check_errors(
-        success::Integer,
-        doc::VPtr,
-        error::Exception,
-        report_severities = ["Fatal", "Error"],
-    )
+$(TYPEDSIGNATURES)
 
 If success is a 0-valued `Integer` (a logical `false`), then call
 [`get_error_messages`](@ref) to show the error messages reported by SBML in the
@@ -305,6 +406,12 @@ check_errors(
     report_severities = ["Fatal", "Error"],
 ) = Bool(success) || get_error_messages(doc, error, report_severities)
 
+"""
+$(TYPEDSIGNATURES)
+
+Pretty-printer for a SBML model.
+Avoids flushing too much stuff to terminal by accident.
+"""
 function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
     print(
         io,
@@ -318,10 +425,3 @@ function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
         " parameters.",
     )
 end
-
-# Define equality `==` methods for some of our custom types.
-Base.:(==)(a::MathApply, b::MathApply) = a.fn == b.fn && a.args == b.args
-Base.:(==)(a::AlgebraicRule, b::AlgebraicRule) = a.math == b.math
-Base.:(==)(a::T, b::T) where {T<:Union{AssignmentRule,RateRule}} =
-    a.id == b.id && a.math == b.math
-Base.:(==)(a::Constraint, b::Constraint) = a.math == b.math && a.message == b.message

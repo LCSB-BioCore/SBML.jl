@@ -44,9 +44,17 @@ const UNITFUL_KIND_STRING = Dict(
 
 
 """
-    unitful(u::UnitPart)
+$(TYPEDSIGNATURES)
 
-Converts an [`UnitPart`](@ref) to a corresponding Unitful unit.
+Converts an SBML unit definition (i.e., its vector of [`UnitPart`](@ref)s) to a
+corresponding Unitful unit.
+"""
+unitful(u::UnitDefinition) = unitful(u.unit_parts)
+
+"""
+$(TYPEDSIGNATURES)
+
+Converts a [`UnitPart`](@ref) to a corresponding Unitful unit.
 
 The conversion is done according to the formula from
 [SBML L3v2 core manual release 2](http://sbml.org/Special/specifications/sbml-level-3/version-2/core/release-2/sbml-level-3-version-2-release-2-core.pdf)(section 4.4.2).
@@ -55,15 +63,15 @@ unitful(u::UnitPart) =
     (u.multiplier * UNITFUL_KIND_STRING[u.kind] * exp10(u.scale))^u.exponent
 
 """
-    unitful(units::Vector{UnitPart})
+$(TYPEDSIGNATURES)
 
-Converts a SBML unit (i.e., a vector of [`UnitPart`](@ref)s) to a corresponding
+Converts an SBML unit (i.e., a vector of [`UnitPart`](@ref)s) to a corresponding
 Unitful unit.
 """
 unitful(u::Vector{UnitPart}) = prod(unitful.(u))
 
 """
-    unitful(m::Model, val::Tuple{Float64,String})
+$(TYPEDSIGNATURES)
 
 Computes a properly unitful value from a value-unit pair stored in the model
 `m`.
@@ -71,7 +79,7 @@ Computes a properly unitful value from a value-unit pair stored in the model
 unitful(m::Model, val::Tuple{Float64,String}) = unitful(m.units[val[2]]) * val[1]
 
 """
-    unitful(m::Model, val::Tuple{Float64, String}, default_unit::Number)
+$(TYPEDSIGNATURES)
 
 Overload of [`unitful`](@ref) that uses the `default_unit` if the unit is not
 found in the model.
@@ -86,10 +94,37 @@ unitful(m::Model, val::Tuple{Float64,String}, default_unit::Number) =
     mayfirst(maylift(unitful, get(m.units, val[2], nothing)), default_unit) * val[1]
 
 """
-    unitful(m::Model, val::Tuple{Float64, String}, default_unit::String)
+$(TYPEDSIGNATURES)
 
 Overload of [`unitful`](@ref) that allows specification of the `default_unit` by
 string ID.
 """
 unitful(m::Model, val::Tuple{Float64,String}, default_unit::String) =
     unitful(m, val, unitful(m.units[default_unit]))
+
+function unit_definition(id::String, units::UnitDefinition)::VPtr
+    unit_definition = ccall(
+        sbml(:UnitDefinition_create),
+        VPtr,
+        (Cint, Cint),
+        WRITESBML_DEFAULT_LEVEL,
+        WRITESBML_DEFAULT_VERSION,
+    )
+    ccall(sbml(:UnitDefinition_setId), Cint, (VPtr, Cstring), unit_definition, id)
+    isnothing(units.name) || ccall(
+        sbml(:UnitDefinition_setName),
+        Cint,
+        (VPtr, Cstring),
+        unit_definition,
+        units.name,
+    )
+    for unit in units.unit_parts
+        unit_ptr = ccall(sbml(:UnitDefinition_createUnit), VPtr, (VPtr,), unit_definition)
+        unit_kind = ccall(sbml(:UnitKind_forName), Cint, (Cstring,), unit.kind)
+        ccall(sbml(:Unit_setKind), Cint, (VPtr, Cint), unit_ptr, unit_kind)
+        ccall(sbml(:Unit_setScale), Cint, (VPtr, Cint), unit_ptr, unit.scale)
+        ccall(sbml(:Unit_setExponent), Cint, (VPtr, Cint), unit_ptr, unit.exponent)
+        ccall(sbml(:Unit_setMultiplier), Cint, (VPtr, Cdouble), unit_ptr, unit.multiplier)
+    end
+    return unit_definition
+end
