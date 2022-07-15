@@ -302,8 +302,8 @@ isfreein(id::String, expr::SBML.Math) = interpret_math(
 Determine if an identifier seems defined or used by any Rules in the model.
 """
 seemsdefined(id::String, m::SBML.Model) =
-    any(r.id == id for r in m.rules if r isa AssignmentRule) ||
-    any(r.id == id for r in m.rules if r isa RateRule) ||
+    any(r.variable == id for r in m.rules if r isa AssignmentRule) ||
+    any(r.variable == id for r in m.rules if r isa RateRule) ||
     any(isfreein(id, r.math) for r in m.rules if r isa AlgebraicRule)
 
 """
