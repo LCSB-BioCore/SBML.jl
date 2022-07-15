@@ -445,7 +445,6 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             kinetic_law_ptr =
                 ccall(sbml(:Reaction_createKineticLaw), VPtr, (VPtr,), reaction_ptr)
             for (id, parameter) in reaction.kinetic_parameters
-                error()
                 parameter_ptr =
                     ccall(sbml(:KineticLaw_createParameter), VPtr, (VPtr,), kinetic_law_ptr)
                 set_parameter_ptr!(parameter_ptr, id, parameter)
