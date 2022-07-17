@@ -406,8 +406,25 @@ end
     @test m.parameters["S1conv"].constant == true
 end
 
+function fix_constant!(model::SBML.Model)
+    # We only write SBML L3v2. If a model is L2 or less, the `constant`
+    # attributes may be missing (which is true for some models). We add the
+    # main problematic ones (in speciesReferences) here, to make sure the
+    # round trip has a chance to finish.
+    _clean(sr::SBML.SpeciesReference) = SBML.SpeciesReference(
+        species = sr.species,
+        stoichiometry = sr.stoichiometry,
+        constant = isnothing(sr.constant) ? true : sr.constant,
+    )
+    for (_, r) in model.reactions
+        r.reactants .= map(_clean, r.reactants)
+        r.products .= map(_clean, r.products)
+    end
+end
+
 @testset "writeSBML" begin
     model = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
+    fix_constant!(model)
     expected = read(joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"), String)
     # Remove carriage returns, if any
     expected = replace(expected, '\r' => "")
@@ -424,6 +441,7 @@ end
     # with the original model.
     @testset "Round-trip - $(basename(file))" for file in first.(sbmlfiles)
         model = readSBML(file)
+        fix_constant!(model)
         round_trip_model = readSBMLFromString(@test_logs(writeSBML(model)))
         @test model.parameters == round_trip_model.parameters
         @test model.units == round_trip_model.units

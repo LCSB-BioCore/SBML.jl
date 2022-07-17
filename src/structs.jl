@@ -199,6 +199,20 @@ end
 """
 $(TYPEDEF)
 
+SBML SpeciesReference.
+
+# Fields
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct SpeciesReference
+    species::String
+    stoichiometry::Maybe{Float64} = nothing
+    constant::Maybe{Bool} = nothing
+end
+
+"""
+$(TYPEDEF)
+
 Reaction with stoichiometry that assigns reactants and products their relative
 consumption/production rates, lower/upper bounds (in tuples `lb` and `ub`, with
 unit names), and objective coefficient (`oc`). Also may contains `notes` and
@@ -209,8 +223,8 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef struct Reaction
     name::Maybe{String} = nothing
-    reactants::Dict{String,Float64} = Dict()
-    products::Dict{String,Float64} = Dict()
+    reactants::Vector{SpeciesReference} = []
+    products::Vector{SpeciesReference} = []
     kinetic_parameters::Dict{String,Parameter} = Dict()
     lower_bound::Maybe{String} = nothing
     upper_bound::Maybe{String} = nothing

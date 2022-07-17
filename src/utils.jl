@@ -64,15 +64,15 @@ function stoichiometry_matrix(m::SBML.Model)
 
     for (rid, r) in m.reactions
         ridx = col_idx[rid]
-        for (sid, stoi) in r.reactants
-            push!(SI, row_idx[sid])
+        for sr in r.reactants
+            push!(SI, row_idx[sr.species])
             push!(RI, ridx)
-            push!(SV, -stoi)
+            push!(SV, -sr.stoichiometry)
         end
-        for (sid, stoi) in r.products
-            push!(SI, row_idx[sid])
+        for sr in r.products
+            push!(SI, row_idx[sr.species])
             push!(RI, ridx)
-            push!(SV, stoi)
+            push!(SV, sr.stoichiometry)
         end
     end
     return rows, cols, SparseArrays.sparse(SI, RI, SV, length(rows), length(cols))

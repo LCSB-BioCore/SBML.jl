@@ -411,14 +411,29 @@ function get_model(mdl::VPtr)::SBML.Model
             )
         end
 
-        # extract stoichiometry
-        reactants = Dict{String,Float64}()
-        products = Dict{String,Float64}()
+        # extract species references
+        reactants = SpeciesReference[]
+        products = SpeciesReference[]
 
         add_stoi(sr, coll) = begin
-            s = get_string(sr, :SpeciesReference_getSpecies)
-            coll[s] =
-                ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr)
+            stoichiometry =
+                if ccall(sbml(:SpeciesReference_isSetStoichiometry), Cint, (VPtr,), sr) != 0
+                    ccall(sbml(:SpeciesReference_getStoichiometry), Cdouble, (VPtr,), sr)
+                end
+
+            constant =
+                if ccall(sbml(:SpeciesReference_isSetConstant), Cint, (VPtr,), sr) != 0
+                    ccall(sbml(:SpeciesReference_getConstant), Cint, (VPtr,), sr) != 0
+                end
+
+            push!(
+                coll,
+                SpeciesReference(
+                    species = get_string(sr, :SpeciesReference_getSpecies);
+                    stoichiometry,
+                    constant,
+                ),
+            )
         end
 
         for j = 1:ccall(sbml(:Reaction_getNumReactants), Cuint, (VPtr,), re)

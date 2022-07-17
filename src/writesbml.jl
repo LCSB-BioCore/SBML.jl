@@ -390,56 +390,34 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             reaction_ptr,
             reaction.name,
         )
-        for (species, stoichiometry) in reaction.reactants
-            reactant_ptr =
-                ccall(sbml(:Reaction_createReactant), VPtr, (VPtr,), reaction_ptr)
-            ccall(
-                sbml(:SpeciesReference_setSpecies),
-                Cint,
-                (VPtr, Cstring),
-                reactant_ptr,
-                species,
-            )
-            ccall(
-                sbml(:SpeciesReference_setStoichiometry),
-                Cint,
-                (VPtr, Cdouble),
-                reactant_ptr,
-                stoichiometry,
-            )
-            # Assume constant reactant for the time being
-            ccall(
-                sbml(:SpeciesReference_setConstant),
-                Cint,
-                (VPtr, Cint),
-                reactant_ptr,
-                true,
-            )
-        end
-        for (species, stoichiometry) in reaction.products
-            product_ptr = ccall(sbml(:Reaction_createProduct), VPtr, (VPtr,), reaction_ptr)
-            ccall(
-                sbml(:SpeciesReference_setSpecies),
-                Cint,
-                (VPtr, Cstring),
-                product_ptr,
-                species,
-            )
-            ccall(
-                sbml(:SpeciesReference_setStoichiometry),
-                Cint,
-                (VPtr, Cdouble),
-                product_ptr,
-                stoichiometry,
-            )
-            # Assume constant product for the time being
-            ccall(
-                sbml(:SpeciesReference_setConstant),
-                Cint,
-                (VPtr, Cint),
-                product_ptr,
-                true,
-            )
+        for (sr_create, srs) in [
+            :Reaction_createReactant => reaction.reactants,
+            :Reaction_createProduct => reaction.products,
+        ]
+            for sr in srs
+                reactant_ptr = ccall(sbml(sr_create), VPtr, (VPtr,), reaction_ptr)
+                ccall(
+                    sbml(:SpeciesReference_setSpecies),
+                    Cint,
+                    (VPtr, Cstring),
+                    reactant_ptr,
+                    sr.species,
+                )
+                isnothing(sr.stoichiometry) || ccall(
+                    sbml(:SpeciesReference_setStoichiometry),
+                    Cint,
+                    (VPtr, Cdouble),
+                    reactant_ptr,
+                    sr.stoichiometry,
+                )
+                isnothing(sr.constant) || ccall(
+                    sbml(:SpeciesReference_setConstant),
+                    Cint,
+                    (VPtr, Cint),
+                    reactant_ptr,
+                    sr.constant,
+                )
+            end
         end
         if !isempty(reaction.kinetic_parameters) || !isnothing(reaction.kinetic_math)
             kinetic_law_ptr =
