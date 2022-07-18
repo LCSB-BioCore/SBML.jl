@@ -101,30 +101,3 @@ string ID.
 """
 unitful(m::Model, val::Tuple{Float64,String}, default_unit::String) =
     unitful(m, val, unitful(m.units[default_unit]))
-
-function unit_definition(id::String, units::UnitDefinition)::VPtr
-    unit_definition = ccall(
-        sbml(:UnitDefinition_create),
-        VPtr,
-        (Cint, Cint),
-        WRITESBML_DEFAULT_LEVEL,
-        WRITESBML_DEFAULT_VERSION,
-    )
-    ccall(sbml(:UnitDefinition_setId), Cint, (VPtr, Cstring), unit_definition, id)
-    isnothing(units.name) || ccall(
-        sbml(:UnitDefinition_setName),
-        Cint,
-        (VPtr, Cstring),
-        unit_definition,
-        units.name,
-    )
-    for unit in units.unit_parts
-        unit_ptr = ccall(sbml(:UnitDefinition_createUnit), VPtr, (VPtr,), unit_definition)
-        unit_kind = ccall(sbml(:UnitKind_forName), Cint, (Cstring,), unit.kind)
-        ccall(sbml(:Unit_setKind), Cint, (VPtr, Cint), unit_ptr, unit_kind)
-        ccall(sbml(:Unit_setScale), Cint, (VPtr, Cint), unit_ptr, unit.scale)
-        ccall(sbml(:Unit_setExponent), Cint, (VPtr, Cint), unit_ptr, unit.exponent)
-        ccall(sbml(:Unit_setMultiplier), Cint, (VPtr, Cdouble), unit_ptr, unit.multiplier)
-    end
-    return unit_definition
-end
