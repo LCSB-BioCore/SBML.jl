@@ -18,14 +18,18 @@
 
     test = SBML.MathConst("exponentiale")
     @test isequal(SBML.interpret_math(test), exp(1))
-    
-    test = SBML.MathApply("gt", SBML.Math[SBML.MathVal(2), SBML.MathVal(1), SBML.MathVal(0)])
+
+    test =
+        SBML.MathApply("gt", SBML.Math[SBML.MathVal(2), SBML.MathVal(1), SBML.MathVal(0)])
     @test SBML.interpret_math(test)
-    test = SBML.MathApply("gt", SBML.Math[SBML.MathVal(2), SBML.MathVal(1), SBML.MathVal(2)])
+    test =
+        SBML.MathApply("gt", SBML.Math[SBML.MathVal(2), SBML.MathVal(1), SBML.MathVal(2)])
     @test !SBML.interpret_math(test)
-    
-    test = SBML.MathApply("neq", SBML.Math[SBML.MathVal(2), SBML.MathVal(1), SBML.MathVal(0)])
+
+    test =
+        SBML.MathApply("neq", SBML.Math[SBML.MathVal(2), SBML.MathVal(1), SBML.MathVal(0)])
     @test SBML.interpret_math(test)
-    test = SBML.MathApply("gt", SBML.Math[SBML.MathVal(2), SBML.MathVal(1), SBML.MathVal(1)])
+    test =
+        SBML.MathApply("gt", SBML.Math[SBML.MathVal(2), SBML.MathVal(1), SBML.MathVal(1)])
     @test !SBML.interpret_math(test)
 end
