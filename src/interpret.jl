@@ -12,12 +12,8 @@ function sbmlPiecewise(args...)
 end
 
 sbmlNeq(a, b) = !isequal(a, b)
-sbmlRelational(fun) = begin
-    function f(x...)
-        all(map(i -> fun(x[i], x[i+1]), 1:length(x)-1))
-    end
-    f
-end
+sbmlRelational(op) =
+    (x...) -> all(map(op, x[begin:end-1], x[begin+1:end]))
 
 sbmlLog(x) = sbmlLog(10, x)
 sbmlLog(base, x) = log(base, x)
