@@ -12,6 +12,7 @@ function sbmlPiecewise(args...)
 end
 
 sbmlNeq(a, b) = !isequal(a, b)
+sbmlRelational(op) = (x...) -> all(map(op, x[begin:end-1], x[begin+1:end]))
 
 sbmlLog(x) = sbmlLog(10, x)
 sbmlLog(base, x) = log(base, x)
@@ -58,17 +59,17 @@ const default_function_mapping = Dict{String,Any}(
     "coth" => coth,
     "csc" => csc,
     "csch" => csch,
-    "eq" => isequal,
+    "eq" => sbmlRelational(isequal),
     "exp" => exp,
     "factorial" => factorial,
     "floor" => floor,
-    "geq" => >=,
-    "gt" => >,
-    "leq" => <=,
+    "geq" => sbmlRelational(>=),
+    "gt" => sbmlRelational(>),
+    "leq" => sbmlRelational(<=),
     "ln" => log,
     "log" => sbmlLog,
-    "lt" => <,
-    "neq" => sbmlNeq,
+    "lt" => sbmlRelational(<),
+    "neq" => sbmlRelational(sbmlNeq),
     "not" => !,
     "or" => |,
     "piecewise" => sbmlPiecewise,
