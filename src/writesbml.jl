@@ -86,7 +86,7 @@ function add_rule(model::VPtr, r::Union{AssignmentRule,RateRule})
     ccall(sbml(:Rule_setMath), Cint, (VPtr, VPtr), rule_ptr, get_astnode_ptr(r.math))
 end
 
-function add_unit_definition(model::VPtr, id::String, units::UnitDefinition)::VPtr
+function add_unit_definition(model::VPtr, id::String, units::UnitDefinition)
     unit_definition = ccall(sbml(:Model_createUnitDefinition), VPtr, (VPtr,), model)
     ccall(sbml(:UnitDefinition_setId), Cint, (VPtr, Cstring), unit_definition, id)
     isnothing(units.name) || ccall(
