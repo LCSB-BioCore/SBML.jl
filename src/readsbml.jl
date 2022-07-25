@@ -429,6 +429,11 @@ function get_model(mdl::VPtr)::SBML.Model
             push!(
                 coll,
                 SpeciesReference(
+                    id = get_optional_string(
+                        sr,
+                        :SpeciesReference_isSetId,
+                        :SpeciesReference_getId,
+                    ),
                     species = get_string(sr, :SpeciesReference_getSpecies);
                     stoichiometry,
                     constant,

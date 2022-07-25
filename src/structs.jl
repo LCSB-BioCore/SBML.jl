@@ -205,6 +205,7 @@ SBML SpeciesReference.
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct SpeciesReference
+    id::Maybe{String} = nothing
     species::String
     stoichiometry::Maybe{Float64} = nothing
     constant::Maybe{Bool} = nothing

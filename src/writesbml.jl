@@ -403,6 +403,13 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                     reactant_ptr,
                     sr.species,
                 )
+                isnothing(sr.id) || ccall(
+                    sbml(:SpeciesReference_setId),
+                    Cint,
+                    (VPtr, Cstring),
+                    reactant_ptr,
+                    sr.id,
+                )
                 isnothing(sr.stoichiometry) || ccall(
                     sbml(:SpeciesReference_setStoichiometry),
                     Cint,
