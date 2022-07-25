@@ -67,12 +67,12 @@ function stoichiometry_matrix(m::SBML.Model)
         for sr in r.reactants
             push!(SI, row_idx[sr.species])
             push!(RI, ridx)
-            push!(SV, -sr.stoichiometry)
+            push!(SV, isnothing(sr.stoichiometry) ? -1.0 : -sr.stoichiometry)
         end
         for sr in r.products
             push!(SI, row_idx[sr.species])
             push!(RI, ridx)
-            push!(SV, sr.stoichiometry)
+            push!(SV, isnothing(sr.stoichiometry) ? 1.0 : sr.stoichiometry)
         end
     end
     return rows, cols, SparseArrays.sparse(SI, RI, SV, length(rows), length(cols))
