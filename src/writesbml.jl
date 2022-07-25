@@ -65,14 +65,8 @@ function create_gene_product_association(
     return and_ptr
 end
 
-function get_rule_ptr(r::AlgebraicRule)::VPtr
-    algebraicrule_ptr = ccall(
-        sbml(:AlgebraicRule_create),
-        VPtr,
-        (Cuint, Cuint),
-        WRITESBML_DEFAULT_LEVEL,
-        WRITESBML_DEFAULT_VERSION,
-    )
+function add_rule(model::VPtr, r::AlgebraicRule)
+    algebraicrule_ptr = ccall(sbml(:Model_createAlgebraicRule), VPtr, (VPtr,), model)
     ccall(
         sbml(:AlgebraicRule_setMath),
         Cint,
@@ -80,30 +74,36 @@ function get_rule_ptr(r::AlgebraicRule)::VPtr
         algebraicrule_ptr,
         get_astnode_ptr(r.math),
     )
-    return algebraicrule_ptr
 end
 
-function get_rule_ptr(r::Union{AssignmentRule,RateRule})::VPtr
+function add_rule(model::VPtr, r::Union{AssignmentRule,RateRule})
     rule_ptr = if r isa AssignmentRule
-        ccall(
-            sbml(:Rule_createAssignment),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
+        ccall(sbml(:Model_createAssignmentRule), VPtr, (VPtr,), model)
     else
-        ccall(
-            sbml(:Rule_createRate),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
+        ccall(sbml(:Model_createRateRule), VPtr, (VPtr,), model)
     end
     ccall(sbml(:Rule_setVariable), Cint, (VPtr, Cstring), rule_ptr, r.variable)
     ccall(sbml(:Rule_setMath), Cint, (VPtr, VPtr), rule_ptr, get_astnode_ptr(r.math))
-    return rule_ptr
+end
+
+function add_unit_definition(model::VPtr, id::String, units::UnitDefinition)
+    unit_definition = ccall(sbml(:Model_createUnitDefinition), VPtr, (VPtr,), model)
+    ccall(sbml(:UnitDefinition_setId), Cint, (VPtr, Cstring), unit_definition, id)
+    isnothing(units.name) || ccall(
+        sbml(:UnitDefinition_setName),
+        Cint,
+        (VPtr, Cstring),
+        unit_definition,
+        units.name,
+    )
+    for unit in units.unit_parts
+        unit_ptr = ccall(sbml(:UnitDefinition_createUnit), VPtr, (VPtr,), unit_definition)
+        unit_kind = ccall(sbml(:UnitKind_forName), Cint, (Cstring,), unit.kind)
+        ccall(sbml(:Unit_setKind), Cint, (VPtr, Cint), unit_ptr, unit_kind)
+        ccall(sbml(:Unit_setScale), Cint, (VPtr, Cint), unit_ptr, unit.scale)
+        ccall(sbml(:Unit_setExponent), Cint, (VPtr, Cint), unit_ptr, unit.exponent)
+        ccall(sbml(:Unit_setMultiplier), Cint, (VPtr, Cdouble), unit_ptr, unit.multiplier)
+    end
 end
 
 function set_parameter_ptr!(parameter_ptr::VPtr, id::String, parameter::Parameter)::VPtr
@@ -139,17 +139,6 @@ function set_parameter_ptr!(parameter_ptr::VPtr, id::String, parameter::Paramete
     return parameter_ptr
 end
 
-function get_parameter_ptr(id::String, parameter::Parameter)::VPtr
-    parameter_ptr = ccall(
-        sbml(:Parameter_create),
-        VPtr,
-        (Cuint, Cuint),
-        WRITESBML_DEFAULT_LEVEL,
-        WRITESBML_DEFAULT_VERSION,
-    )
-    return set_parameter_ptr!(parameter_ptr, id, parameter)
-end
-
 ## Write the model
 
 function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
@@ -177,26 +166,12 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add units
     for (name, units) in mdl.units
-        res = ccall(
-            sbml(:Model_addUnitDefinition),
-            Cint,
-            (VPtr, VPtr),
-            model,
-            unit_definition(name, units),
-        )
-        !iszero(res) &&
-            @warn "Failed to add unit \"$(name)\": $(OPERATION_RETURN_VALUES[res])"
+        add_unit_definition(model, name, units)
     end
 
     # Add compartments
     for (id, compartment) in mdl.compartments
-        compartment_ptr = ccall(
-            sbml(:Compartment_create),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
+        compartment_ptr = ccall(sbml(:Model_createCompartment), VPtr, (VPtr,), model)
         ccall(sbml(:Compartment_setId), Cint, (VPtr, Cstring), compartment_ptr, id)
         isnothing(compartment.name) || ccall(
             sbml(:Compartment_setName),
@@ -247,9 +222,6 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             compartment_ptr,
             compartment.annotation,
         )
-        res = ccall(sbml(:Model_addCompartment), Cint, (VPtr, VPtr), model, compartment_ptr)
-        !iszero(res) &&
-            @warn "Failed to add compartment \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
     # Add gene products
@@ -257,14 +229,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         isempty(mdl.gene_products) ||
         ccall(sbml(:FbcModelPlugin_setStrict), Cint, (VPtr, Cint), fbc_plugin, true)
     for (id, gene_product) in mdl.gene_products
-        geneproduct_ptr = ccall(
-            sbml(:GeneProduct_create),
-            VPtr,
-            (Cuint, Cuint, Cuint),
-            WRITESBML_PKG_DEFAULT_LEVEL,
-            WRITESBML_PKG_DEFAULT_VERSION,
-            WRITESBML_PKG_DEFAULT_PKGVERSION,
-        )
+        geneproduct_ptr =
+            ccall(sbml(:FbcModelPlugin_createGeneProduct), VPtr, (VPtr,), fbc_plugin)
         ccall(sbml(:GeneProduct_setId), Cint, (VPtr, Cstring), geneproduct_ptr, id)
         ccall(
             sbml(:GeneProduct_setLabel),
@@ -301,26 +267,12 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             geneproduct_ptr,
             gene_product.annotation,
         )
-        res = ccall(
-            sbml(:FbcModelPlugin_addGeneProduct),
-            Cint,
-            (VPtr, VPtr),
-            fbc_plugin,
-            geneproduct_ptr,
-        )
-        !iszero(res) &&
-            @warn "Failed to add gene product \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
     # Add initial assignments
     for (symbol, math) in mdl.initial_assignments
-        initialassignment_ptr = ccall(
-            sbml(:InitialAssignment_create),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
+        initialassignment_ptr =
+            ccall(sbml(:Model_createInitialAssignment), VPtr, (VPtr,), model)
         ccall(
             sbml(:InitialAssignment_setSymbol),
             Cint,
@@ -335,26 +287,11 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             initialassignment_ptr,
             get_astnode_ptr(math),
         )
-        res = ccall(
-            sbml(:Model_addInitialAssignment),
-            Cint,
-            (VPtr, VPtr),
-            model,
-            initialassignment_ptr,
-        )
-        !iszero(res) &&
-            @warn "Failed to add initial assignment \"$(symbol)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
     # Add constraints
     for constraint in mdl.constraints
-        constraint_ptr = ccall(
-            sbml(:Constraint_create),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
+        constraint_ptr = ccall(sbml(:Model_createConstraint), VPtr, (VPtr,), model)
         # Note: this probably incorrect because our `Constraint` lost the XML namespace of the
         # message, also we don't have an easy way to test this because no test file uses constraints.
         message = ccall(sbml(:XMLNode_createTextNode), VPtr, (Cstring,), constraint.message)
@@ -366,8 +303,6 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             constraint_ptr,
             get_astnode_ptr(constraint.math),
         )
-        res = ccall(sbml(:Model_addConstraint), Cint, (VPtr, VPtr), model, constraint_ptr)
-        !iszero(res) && @warn "Failed to add constrain: $(OPERATION_RETURN_VALUES[res])"
     end
 
     # Add reactions
@@ -523,14 +458,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         isempty(mdl.objectives) ||
         ccall(sbml(:FbcModelPlugin_setStrict), Cint, (VPtr, Cint), fbc_plugin, true)
     for (id, objective) in mdl.objectives
-        objective_ptr = ccall(
-            sbml(:Objective_create),
-            VPtr,
-            (Cuint, Cuint, Cuint),
-            WRITESBML_PKG_DEFAULT_LEVEL,
-            WRITESBML_PKG_DEFAULT_VERSION,
-            WRITESBML_PKG_DEFAULT_PKGVERSION,
-        )
+        objective_ptr =
+            ccall(sbml(:FbcModelPlugin_createObjective), VPtr, (VPtr,), fbc_plugin)
         ccall(sbml(:Objective_setId), Cint, (VPtr, Cstring), objective_ptr, id)
         ccall(
             sbml(:Objective_setType),
@@ -540,14 +469,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             objective.type,
         )
         for (reaction, coefficient) in objective.flux_objectives
-            fluxobjective_ptr = ccall(
-                sbml(:FluxObjective_create),
-                VPtr,
-                (Cuint, Cuint, Cuint),
-                WRITESBML_PKG_DEFAULT_LEVEL,
-                WRITESBML_PKG_DEFAULT_VERSION,
-                WRITESBML_PKG_DEFAULT_PKGVERSION,
-            )
+            fluxobjective_ptr =
+                ccall(sbml(:Objective_createFluxObjective), VPtr, (VPtr,), objective_ptr)
             ccall(
                 sbml(:FluxObjective_setReaction),
                 Cint,
@@ -562,25 +485,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 fluxobjective_ptr,
                 coefficient,
             )
-            res = ccall(
-                sbml(:Objective_addFluxObjective),
-                Cint,
-                (VPtr, VPtr),
-                objective_ptr,
-                fluxobjective_ptr,
-            )
-            !iszero(res) &&
-                @warn "Failed to add flux objective \"$(reaction)\": $(OPERATION_RETURN_VALUES[res])"
         end
-        res = ccall(
-            sbml(:FbcModelPlugin_addObjective),
-            Cint,
-            (VPtr, VPtr),
-            fbc_plugin,
-            objective_ptr,
-        )
-        !iszero(res) &&
-            @warn "Failed to add objective \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
     fbc_plugin == C_NULL || ccall(
         sbml(:FbcModelPlugin_setActiveObjectiveId),
@@ -691,13 +596,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Add function definitions
     for (id, func_def) in mdl.function_definitions
-        functiondefinition_ptr = ccall(
-            sbml(:FunctionDefinition_create),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
+        functiondefinition_ptr =
+            ccall(sbml(:Model_createFunctionDefinition), VPtr, (VPtr,), model)
         ccall(
             sbml(:FunctionDefinition_setId),
             Cint,
@@ -733,33 +633,16 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             functiondefinition_ptr,
             func_def.annotation,
         )
-        res = ccall(
-            sbml(:Model_addFunctionDefinition),
-            Cint,
-            (VPtr, VPtr),
-            model,
-            functiondefinition_ptr,
-        )
-        !iszero(res) &&
-            @warn "Failed to add function definition \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
     # Add rules
     for rule in mdl.rules
-        rule_ptr = get_rule_ptr(rule)
-        res = ccall(sbml(:Model_addRule), Cint, (VPtr, VPtr), model, rule_ptr)
-        !iszero(res) && @warn "Failed to add rule: $(OPERATION_RETURN_VALUES[res])"
+        add_rule(model, rule)
     end
 
     # Add events
     for (id, event) in mdl.events
-        event_ptr = ccall(
-            sbml(:Event_create),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
+        event_ptr = ccall(sbml(:Model_createEvent), VPtr, (VPtr,), model)
         ccall(sbml(:Event_setId), Cint, (VPtr, Cstring), event_ptr, id)
         ccall(
             sbml(:Event_setUseValuesFromTriggerTime),
@@ -771,13 +654,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         isnothing(event.name) ||
             ccall(sbml(:Event_setName), Cint, (VPtr, Cstring), event_ptr, event.name)
         if !isnothing(event.trigger)
-            trigger_ptr = ccall(
-                sbml(:Trigger_create),
-                VPtr,
-                (Cuint, Cuint),
-                WRITESBML_DEFAULT_LEVEL,
-                WRITESBML_DEFAULT_VERSION,
-            )
+            trigger_ptr = ccall(sbml(:Event_createTrigger), VPtr, (VPtr,), event_ptr)
             ccall(
                 sbml(:Trigger_setPersistent),
                 Cint,
@@ -799,17 +676,11 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 trigger_ptr,
                 get_astnode_ptr(event.trigger.math),
             )
-            ccall(sbml(:Event_setTrigger), Cint, (VPtr, VPtr), event_ptr, trigger_ptr)
         end
         if !isnothing(event.event_assignments)
             for event_assignment in event.event_assignments
-                event_assignment_ptr = ccall(
-                    sbml(:EventAssignment_create),
-                    VPtr,
-                    (Cuint, Cuint),
-                    WRITESBML_DEFAULT_LEVEL,
-                    WRITESBML_DEFAULT_VERSION,
-                )
+                event_assignment_ptr =
+                    ccall(sbml(:Event_createEventAssignment), VPtr, (VPtr,), event_ptr)
                 ccall(
                     sbml(:EventAssignment_setVariable),
                     Cint,
@@ -824,18 +695,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                     event_assignment_ptr,
                     get_astnode_ptr(event_assignment.math),
                 )
-                ccall(
-                    sbml(:Event_addEventAssignment),
-                    Cint,
-                    (VPtr, VPtr),
-                    event_ptr,
-                    event_assignment_ptr,
-                )
             end
         end
-        res = ccall(sbml(:Model_addEvent), Cint, (VPtr, VPtr), model, event_ptr)
-        !iszero(res) &&
-            @warn "Failed to add event \"$(id)\": $(OPERATION_RETURN_VALUES[res])"
     end
 
     # Add conversion factor
