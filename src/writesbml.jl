@@ -104,66 +104,36 @@ function set_parameter_ptr!(parameter_ptr::VPtr, id::String, parameter::Paramete
     return parameter_ptr
 end
 
-"""
-$(TYPEDSIGNATURES)
-
-Helper for setting string values.
-"""
 function set_string!(ptr::VPtr, fn_sym::Symbol, x::Maybe{String})
     isnothing(x) ||
         ccall(sbml(fn_sym), Cint, (VPtr, Cstring), ptr, x) == 0 ||
         error("$fn_sym failed for value `$x' !")
 end
 
-"""
-$(TYPEDSIGNATURES)
-
-Helper for setting integer values.
-"""
 function set_int!(ptr::VPtr, fn_sym::Symbol, x::Maybe{I}) where {I<:Integer}
     isnothing(x) ||
         ccall(sbml(fn_sym), Cint, (VPtr, Cint), ptr, x) == 0 ||
         error("$fn_sym failed for value $x !")
 end
 
-"""
-$(TYPEDSIGNATURES)
-
-Helper for setting unsigned integer values.
-"""
 function set_uint!(ptr::VPtr, fn_sym::Symbol, x::Maybe{I}) where {I<:Integer}
     isnothing(x) ||
         ccall(sbml(fn_sym), Cint, (VPtr, Cuint), ptr, x) == 0 ||
         error("$fn_sym failed for value $x !")
 end
 
-"""
-$(TYPEDSIGNATURES)
-
-Helper for setting boolean values.
-"""
 function set_bool!(ptr::VPtr, fn_sym::Symbol, x::Maybe{Bool})
     isnothing(x) ||
         ccall(sbml(fn_sym), Cint, (VPtr, Cint), ptr, x) == 0 ||
         error("$fn_sym failed for value $x !")
 end
 
-"""
-$(TYPEDSIGNATURES)
-
-Helper for setting double values.
-"""
 function set_double!(ptr::VPtr, fn_sym::Symbol, x::Maybe{Float64})
     isnothing(x) ||
         ccall(sbml(fn_sym), Cint, (VPtr, Cdouble), ptr, x) == 0 ||
         error("$fn_sym failed for value $x !")
 end
 
-"""
-$(TYPEDSIGNATURES)
-
-Helper for writing SBO terms.
-"""
 set_sbo_term!(ptr, x) = set_string!(ptr, :SBase_setSBOTermID, x)
 
 ## Write the model
@@ -538,6 +508,13 @@ function _create_doc(mdl::Model)::VPtr
     return doc
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Write the SBML structure in `mdl` to a file `fn`.
+
+To write the XML to a string, use the other overload.
+"""
 function writeSBML(mdl::Model, fn::String)
     doc = _create_doc(mdl)
     model = try
@@ -550,6 +527,13 @@ function writeSBML(mdl::Model, fn::String)
     return nothing
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Convert the SBML structure in `mdl` into XML and return it in a string.
+
+To write directly to a file, use the other overload.
+"""
 function writeSBML(mdl::Model)::String
     doc = _create_doc(mdl)
     str = try
