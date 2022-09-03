@@ -110,13 +110,13 @@ function set_string!(ptr::VPtr, fn_sym::Symbol, x::Maybe{String})
         error("$fn_sym failed for value `$x' !")
 end
 
-function set_int!(ptr::VPtr, fn_sym::Symbol, x::Maybe{I}) where {I<:Integer}
+function set_int!(ptr::VPtr, fn_sym::Symbol, x::Maybe{<:Integer})
     isnothing(x) ||
         ccall(sbml(fn_sym), Cint, (VPtr, Cint), ptr, x) == 0 ||
         error("$fn_sym failed for value $x !")
 end
 
-function set_uint!(ptr::VPtr, fn_sym::Symbol, x::Maybe{I}) where {I<:Integer}
+function set_uint!(ptr::VPtr, fn_sym::Symbol, x::Maybe{<:Integer})
     isnothing(x) ||
         ccall(sbml(fn_sym), Cint, (VPtr, Cuint), ptr, x) == 0 ||
         error("$fn_sym failed for value $x !")
@@ -511,16 +511,16 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Write the SBML structure in `mdl` to a file `fn`.
+Write the SBML structure in `mdl` to a file `filename`.
 
-To write the XML to a string, use the other overload.
+To write the XML to a string, use `writeSBML(mdl::Model)`.
 """
-function writeSBML(mdl::Model, fn::String)
+function writeSBML(mdl::Model, filename::String)
     doc = _create_doc(mdl)
     model = try
         model_to_sbml!(doc, mdl)
-        res = ccall(sbml(:writeSBML), Cint, (VPtr, Cstring), doc, fn)
-        res == 1 || error("Writing the SBML file \"$(fn)\" failed")
+        res = ccall(sbml(:writeSBML), Cint, (VPtr, Cstring), doc, filename)
+        res == 1 || error("Writing the SBML file \"$(filename)\" failed")
     finally
         ccall(sbml(:SBMLDocument_free), Cvoid, (VPtr,), doc)
     end
@@ -532,7 +532,7 @@ $(TYPEDSIGNATURES)
 
 Convert the SBML structure in `mdl` into XML and return it in a string.
 
-To write directly to a file, use the other overload.
+To write directly to a file, use `writeSBML(mdl::Model, filename::String)`.
 """
 function writeSBML(mdl::Model)::String
     doc = _create_doc(mdl)
