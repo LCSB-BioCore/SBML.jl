@@ -110,7 +110,9 @@ $(TYPEDSIGNATURES)
 Helper for setting string values.
 """
 function set_string!(ptr::VPtr, fn_sym::Symbol, x::Maybe{String})
-    isnothing(x) || ccall(sbml(fn_sym), Cint, (VPtr, Cstring), ptr, x)
+    isnothing(x) ||
+        ccall(sbml(fn_sym), Cint, (VPtr, Cstring), ptr, x) == 0 ||
+        error("$fn_sym failed for value `$x' !")
 end
 
 """
@@ -119,7 +121,9 @@ $(TYPEDSIGNATURES)
 Helper for setting integer values.
 """
 function set_int!(ptr::VPtr, fn_sym::Symbol, x::Maybe{I}) where {I<:Integer}
-    isnothing(x) || ccall(sbml(fn_sym), Cint, (VPtr, Cint), ptr, x)
+    isnothing(x) ||
+        ccall(sbml(fn_sym), Cint, (VPtr, Cint), ptr, x) == 0 ||
+        error("$fn_sym failed for value $x !")
 end
 
 """
@@ -128,7 +132,9 @@ $(TYPEDSIGNATURES)
 Helper for setting unsigned integer values.
 """
 function set_uint!(ptr::VPtr, fn_sym::Symbol, x::Maybe{I}) where {I<:Integer}
-    isnothing(x) || ccall(sbml(fn_sym), Cint, (VPtr, Cuint), ptr, x)
+    isnothing(x) ||
+        ccall(sbml(fn_sym), Cint, (VPtr, Cuint), ptr, x) == 0 ||
+        error("$fn_sym failed for value $x !")
 end
 
 """
@@ -137,7 +143,9 @@ $(TYPEDSIGNATURES)
 Helper for setting boolean values.
 """
 function set_bool!(ptr::VPtr, fn_sym::Symbol, x::Maybe{Bool})
-    isnothing(x) || ccall(sbml(fn_sym), Cint, (VPtr, Cint), ptr, x)
+    isnothing(x) ||
+        ccall(sbml(fn_sym), Cint, (VPtr, Cint), ptr, x) == 0 ||
+        error("$fn_sym failed for value $x !")
 end
 
 """
@@ -146,7 +154,9 @@ $(TYPEDSIGNATURES)
 Helper for setting double values.
 """
 function set_double!(ptr::VPtr, fn_sym::Symbol, x::Maybe{Float64})
-    isnothing(x) || ccall(sbml(fn_sym), Cint, (VPtr, Cdouble), ptr, x)
+    isnothing(x) ||
+        ccall(sbml(fn_sym), Cint, (VPtr, Cdouble), ptr, x) == 0 ||
+        error("$fn_sym failed for value $x !")
 end
 
 """
@@ -193,7 +203,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         set_uint!(
             compartment_ptr,
             :Compartment_setSpatialDimensions,
-            UInt(compartment.spatial_dimensions),
+            compartment.spatial_dimensions,
         )
         set_double!(compartment_ptr, :Compartment_setSize, compartment.size)
         set_string!(compartment_ptr, :Compartment_setUnits, compartment.units)
@@ -229,7 +239,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             (VPtr, VPtr),
             initialassignment_ptr,
             get_astnode_ptr(math),
-        )
+        ) == 0 || error("setting initial assignment math failed!")
     end
 
     # Add constraints
@@ -245,7 +255,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             (VPtr, VPtr),
             constraint_ptr,
             get_astnode_ptr(constraint.math),
-        )
+        ) == 0 || error("setting constraint math failed!")
     end
 
     # Add reactions
@@ -280,13 +290,15 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                     ccall(sbml(:KineticLaw_createParameter), VPtr, (VPtr,), kinetic_law_ptr)
                 set_parameter_ptr!(parameter_ptr, id, parameter)
             end
-            isnothing(reaction.kinetic_math) || ccall(
-                sbml(:KineticLaw_setMath),
-                Cint,
-                (VPtr, VPtr),
-                kinetic_law_ptr,
-                get_astnode_ptr(reaction.kinetic_math),
-            )
+            isnothing(reaction.kinetic_math) ||
+                ccall(
+                    sbml(:KineticLaw_setMath),
+                    Cint,
+                    (VPtr, VPtr),
+                    kinetic_law_ptr,
+                    get_astnode_ptr(reaction.kinetic_math),
+                ) == 0 ||
+                error("setting kinetic law math failed!")
         end
         if !isnothing(reaction.lower_bound) || !isnothing(reaction.upper_bound)
             set_string!(
@@ -341,7 +353,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             fluxobjective_ptr =
                 ccall(sbml(:Objective_createFluxObjective), VPtr, (VPtr,), objective_ptr)
             set_string!(fluxobjective_ptr, :FluxObjective_setReaction, reaction)
-            set_string!(fluxobjective_ptr, :FluxObjective_setCoefficient, coefficient)
+            set_double!(fluxobjective_ptr, :FluxObjective_setCoefficient, coefficient)
         end
     end
 
@@ -362,8 +374,12 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         species_fbc_ptr =
             ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), species_ptr, "fbc")
         if species_fbc_ptr != C_NULL
-            set_string!(species_ptr, :FbcSpeciesPlugin_setChemicalFormula, species.formula)
-            set_int!(species_ptr, :FbcSpeciesPlugin_setCharge, species.charge)
+            set_string!(
+                species_fbc_ptr,
+                :FbcSpeciesPlugin_setChemicalFormula,
+                species.formula,
+            )
+            set_int!(species_fbc_ptr, :FbcSpeciesPlugin_setCharge, species.charge)
         end
         set_double!(species_ptr, :Species_setInitialAmount, species.initial_amount)
         set_double!(
@@ -389,13 +405,15 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             ccall(sbml(:Model_createFunctionDefinition), VPtr, (VPtr,), model)
         set_string!(functiondefinition_ptr, :FunctionDefinition_setId, id)
         set_string!(functiondefinition_ptr, :FunctionDefinition_setName, func_def.name)
-        isnothing(func_def.body) || ccall(
-            sbml(:FunctionDefinition_setMath),
-            Cint,
-            (VPtr, VPtr),
-            functiondefinition_ptr,
-            get_astnode_ptr(func_def.body),
-        )
+        isnothing(func_def.body) ||
+            ccall(
+                sbml(:FunctionDefinition_setMath),
+                Cint,
+                (VPtr, VPtr),
+                functiondefinition_ptr,
+                get_astnode_ptr(func_def.body),
+            ) == 0 ||
+            error("setting function definition math failed!")
         set_string!(functiondefinition_ptr, :SBase_setNotesString, func_def.notes)
         set_string!(functiondefinition_ptr, :SBase_setAnnotationString, func_def.annotation)
     end
@@ -419,13 +437,15 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             trigger_ptr = ccall(sbml(:Event_createTrigger), VPtr, (VPtr,), event_ptr)
             set_bool!(trigger_ptr, :Trigger_setPersistent, event.trigger.persistent)
             set_bool!(trigger_ptr, :Trigger_setInitialValue, event.trigger.initial_value)
-            isnothing(event.trigger.math) || ccall(
-                sbml(:Trigger_setMath),
-                Cint,
-                (VPtr, VPtr),
-                trigger_ptr,
-                get_astnode_ptr(event.trigger.math),
-            )
+            isnothing(event.trigger.math) ||
+                ccall(
+                    sbml(:Trigger_setMath),
+                    Cint,
+                    (VPtr, VPtr),
+                    trigger_ptr,
+                    get_astnode_ptr(event.trigger.math),
+                ) == 0 ||
+                error("setting trigger math failed!")
         end
         if !isnothing(event.event_assignments)
             for event_assignment in event.event_assignments
@@ -436,13 +456,15 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                     :EventAssignment_setVariable,
                     event_assignment.variable,
                 )
-                isnothing(event_assignment.math) || ccall(
-                    sbml(:EventAssignment_setMath),
-                    Cint,
-                    (VPtr, VPtr),
-                    event_assignment_ptr,
-                    get_astnode_ptr(event_assignment.math),
-                )
+                isnothing(event_assignment.math) ||
+                    ccall(
+                        sbml(:EventAssignment_setMath),
+                        Cint,
+                        (VPtr, VPtr),
+                        event_assignment_ptr,
+                        get_astnode_ptr(event_assignment.math),
+                    ) == 0 ||
+                    error("setting event assignment math failed!")
             end
         end
     end

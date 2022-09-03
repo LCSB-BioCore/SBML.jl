@@ -425,7 +425,7 @@ Base.@kwdef struct Model
     constraints::Vector{Constraint} = Constraint[]
     reactions::Dict{String,Reaction} = Dict()
     objectives::Dict{String,Objective} = Dict()
-    active_objective::String = ""
+    active_objective::Maybe{String} = nothing
     gene_products::Dict{String,GeneProduct} = Dict()
     function_definitions::Dict{String,FunctionDefinition} = Dict()
     events::Dict{String,Event} = Dict()
