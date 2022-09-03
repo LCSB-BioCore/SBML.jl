@@ -388,7 +388,7 @@ end
     @test isnothing(m.substance_units)
     @test isnothing(m.time_units)
     @test isnothing(m.volume_units)
-    @test m.active_objective == nothing
+    @test isnothing(m.active_objective)
 end
 
 @testset "names of objects" begin
