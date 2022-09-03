@@ -85,6 +85,13 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
     end
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Shortcut for retrieving SBO term IDs (as strings).
+"""
+get_sbo_term(x::VPtr) = get_optional_string(x, :SBase_getSBOTermID)
+
 function get_string_from_xmlnode(xmlnode::VPtr)::String
     if ccall(sbml(:XMLNode_isText), Bool, (VPtr,), xmlnode)
         str_ptr = ccall(sbml(:XMLNode_getCharacters), Cstring, (VPtr,), xmlnode)
@@ -226,6 +233,7 @@ get_parameter(p::VPtr)::Pair{String,Parameter} =
         value = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
         units = get_optional_string(p, :Parameter_getUnits),
         constant = get_optional_bool(p, :Parameter_isSetConstant, :Parameter_getConstant),
+        sbo = get_sbo_term(p),
     )
 
 """
@@ -294,6 +302,7 @@ function get_model(mdl::VPtr)::SBML.Model
             units = get_optional_string(co, :Compartment_getUnits),
             notes = get_notes(co),
             annotation = get_annotation(co),
+            sbo = get_sbo_term(co),
         )
     end
 
@@ -346,6 +355,7 @@ function get_model(mdl::VPtr)::SBML.Model
             metaid = get_optional_string(sp, :SBase_getMetaId),
             notes = get_notes(sp),
             annotation = get_annotation(sp),
+            sbo = get_sbo_term(sp),
         )
     end
 
@@ -484,6 +494,7 @@ function get_model(mdl::VPtr)::SBML.Model
             metaid = get_optional_string(re, :SBase_getMetaId),
             notes = get_notes(re),
             annotation = get_annotation(re),
+            sbo = get_sbo_term(re),
         )
     end
 
@@ -508,6 +519,7 @@ function get_model(mdl::VPtr)::SBML.Model
                     metaid = get_optional_string(gp, :SBase_getMetaId),
                     notes = get_notes(gp),
                     annotation = get_annotation(gp),
+                    sbo = get_sbo_term(gp),
                 )
             end
         end

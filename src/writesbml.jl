@@ -136,8 +136,25 @@ function set_parameter_ptr!(parameter_ptr::VPtr, id::String, parameter::Paramete
         parameter_ptr,
         Cint(parameter.constant),
     )
+    set_sbo_term!(parameter_ptr, parameter.sbo)
     return parameter_ptr
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Helper for setting string values.
+"""
+function set_string!(ptr::VPtr, fn_sym::Symbol, s::Maybe{String})
+    isnothing(s) || ccall(sbml(fn_sym), Cint, (VPtr, Cstring), ptr, s)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Helper for writing SBO terms.
+"""
+set_sbo_term!(ptr, s) = set_string!(ptr, :SBase_setSBOTermID, s)
 
 ## Write the model
 
@@ -222,6 +239,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             compartment_ptr,
             compartment.annotation,
         )
+        set_sbo_term!(compartment_ptr, compartment.sbo)
     end
 
     # Add gene products
@@ -267,6 +285,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             geneproduct_ptr,
             gene_product.annotation,
         )
+        set_sbo_term!(geneproduct_ptr, gene_product.sbo)
     end
 
     # Add initial assignments
@@ -436,6 +455,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             reaction_ptr,
             reaction.annotation,
         )
+        set_sbo_term!(reaction_ptr, reaction.sbo)
     end
 
     # Add objectives
@@ -577,6 +597,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             species_ptr,
             species.annotation,
         )
+        set_sbo_term!(species_ptr, species.sbo)
     end
 
     # Add function definitions

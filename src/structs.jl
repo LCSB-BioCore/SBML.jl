@@ -176,6 +176,7 @@ Base.@kwdef struct Parameter
     value::Maybe{Float64} = nothing
     units::Maybe{String} = nothing
     constant::Maybe{Bool} = nothing
+    sbo::Maybe{String} = nothing
 end
 
 """
@@ -194,6 +195,7 @@ Base.@kwdef struct Compartment
     units::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
 end
 
 """
@@ -235,6 +237,7 @@ Base.@kwdef struct Reaction
     metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
 end
 
 """
@@ -318,6 +321,7 @@ Base.@kwdef struct Species
     metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
 end
 
 """
@@ -334,6 +338,7 @@ Base.@kwdef struct GeneProduct
     metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
 end
 
 """
