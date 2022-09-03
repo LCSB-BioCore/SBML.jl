@@ -395,8 +395,12 @@ end
     m = readSBML(joinpath(@__DIR__, "data", "e_coli_core.xml"))
     @test m.compartments["e"].name == "extracellular space"
     @test m.species["M_nh4_c"].name == "Ammonium"
+    @test m.species["M_nh4_c"].sbo == "SBO:0000247"
     @test m.gene_products["G_b1241"].name == "adhE"
+    @test m.gene_products["G_b1241"].sbo == "SBO:0000243"
     @test m.reactions["R_PFK"].name == "Phosphofructokinase"
+    @test m.reactions["R_PFK"].sbo == "SBO:0000176"
+    @test m.parameters["cobra_default_ub"].sbo == "SBO:0000626"
     @test m.active_objective == "obj"
 end
 
