@@ -176,6 +176,7 @@ Base.@kwdef struct Parameter
     value::Maybe{Float64} = nothing
     units::Maybe{String} = nothing
     constant::Maybe{Bool} = nothing
+    sbo::Maybe{String} = nothing
 end
 
 """
@@ -194,6 +195,7 @@ Base.@kwdef struct Compartment
     units::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
 end
 
 """
@@ -235,6 +237,7 @@ Base.@kwdef struct Reaction
     metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
 end
 
 """
@@ -318,6 +321,7 @@ Base.@kwdef struct Species
     metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
 end
 
 """
@@ -334,6 +338,7 @@ Base.@kwdef struct GeneProduct
     metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
 end
 
 """
@@ -420,7 +425,7 @@ Base.@kwdef struct Model
     constraints::Vector{Constraint} = Constraint[]
     reactions::Dict{String,Reaction} = Dict()
     objectives::Dict{String,Objective} = Dict()
-    active_objective::String = ""
+    active_objective::Maybe{String} = nothing
     gene_products::Dict{String,GeneProduct} = Dict()
     function_definitions::Dict{String,FunctionDefinition} = Dict()
     events::Dict{String,Event} = Dict()

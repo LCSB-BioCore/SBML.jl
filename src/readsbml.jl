@@ -5,7 +5,7 @@ C-call the SBML function `fn_sym` with a single parameter `x`, interpret the
 result as a string and return it, or throw exception in case the pointer is
 NULL.
 """
-function get_string(x::VPtr, fn_sym)::String
+function get_string(x::VPtr, fn_sym::Symbol)::String
     str = ccall(sbml(fn_sym), Cstring, (VPtr,), x)
     if str != C_NULL
         return unsafe_string(str)
@@ -23,7 +23,7 @@ exception.
 This is used to get notes and annotations and several other things (see
 `get_notes`, `get_annotations`)
 """
-function get_optional_string(x::VPtr, fn_sym)::Maybe{String}
+function get_optional_string(x::VPtr, fn_sym::Symbol)::Maybe{String}
     str = ccall(sbml(fn_sym), Cstring, (VPtr,), x)
     if str != C_NULL
         return unsafe_string(str)
@@ -38,7 +38,7 @@ $(TYPEDSIGNATURES)
 Like [`get_string`](@ref), but returns `nothing` instead of throwing an
 exception. Also returns values only if `fn_test` returns true.
 """
-function get_optional_string(x::VPtr, fn_test, fn_sym)::Maybe{String}
+function get_optional_string(x::VPtr, fn_test::Symbol, fn_sym::Symbol)::Maybe{String}
     if ccall(sbml(fn_test), Cint, (VPtr,), x) == 0
         return nothing
     else
@@ -51,7 +51,7 @@ $(TYPEDSIGNATURES)
 
 Helper for getting out boolean flags.
 """
-function get_optional_bool(x::VPtr, is_sym, get_sym)::Maybe{Bool}
+function get_optional_bool(x::VPtr, is_sym::Symbol, get_sym::Symbol)::Maybe{Bool}
     if ccall(sbml(is_sym), Cint, (VPtr,), x) != 0
         return ccall(sbml(get_sym), Cint, (VPtr,), x) != 0
     else
@@ -64,7 +64,7 @@ $(TYPEDSIGNATURES)
 
 Helper for getting out unsigned integers.
 """
-function get_optional_int(x::VPtr, is_sym, get_sym)::Maybe{Int}
+function get_optional_int(x::VPtr, is_sym::Symbol, get_sym::Symbol)::Maybe{Int}
     if ccall(sbml(is_sym), Cint, (VPtr,), x) != 0
         return ccall(sbml(get_sym), Cint, (VPtr,), x)
     else
@@ -77,7 +77,7 @@ $(TYPEDSIGNATURES)
 
 Helper for getting out C doubles aka Float64s.
 """
-function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
+function get_optional_double(x::VPtr, is_sym::Symbol, get_sym::Symbol)::Maybe{Float64}
     if ccall(sbml(is_sym), Cint, (VPtr,), x) != 0
         return ccall(sbml(get_sym), Cdouble, (VPtr,), x)
     else
@@ -85,6 +85,18 @@ function get_optional_double(x::VPtr, is_sym, get_sym)::Maybe{Float64}
     end
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Shortcut for retrieving SBO term IDs (as strings).
+"""
+get_sbo_term(x::VPtr) = get_optional_string(x, :SBase_getSBOTermID)
+
+"""
+$(TYPEDSIGNATURES)
+
+Helper for converting XML that is not represented by SBML structures to String.
+"""
 function get_string_from_xmlnode(xmlnode::VPtr)::String
     if ccall(sbml(:XMLNode_isText), Bool, (VPtr,), xmlnode)
         str_ptr = ccall(sbml(:XMLNode_getCharacters), Cstring, (VPtr,), xmlnode)
@@ -226,6 +238,7 @@ get_parameter(p::VPtr)::Pair{String,Parameter} =
         value = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
         units = get_optional_string(p, :Parameter_getUnits),
         constant = get_optional_bool(p, :Parameter_isSetConstant, :Parameter_getConstant),
+        sbo = get_sbo_term(p),
     )
 
 """
@@ -294,6 +307,7 @@ function get_model(mdl::VPtr)::SBML.Model
             units = get_optional_string(co, :Compartment_getUnits),
             notes = get_notes(co),
             annotation = get_annotation(co),
+            sbo = get_sbo_term(co),
         )
     end
 
@@ -346,13 +360,14 @@ function get_model(mdl::VPtr)::SBML.Model
             metaid = get_optional_string(sp, :SBase_getMetaId),
             notes = get_notes(sp),
             annotation = get_annotation(sp),
+            sbo = get_sbo_term(sp),
         )
     end
 
     # parse out the flux objectives (these are complementary to the objectives
     # that appear in the reactions, see comments lower)
     objectives = Dict{String,Objective}()
-    active_objective = ""
+    active_objective = nothing
     if mdl_fbc != C_NULL
         for i = 1:ccall(sbml(:FbcModelPlugin_getNumObjectives), Cuint, (VPtr,), mdl_fbc)
             flux_objectives = Dict{String,Float64}()
@@ -371,7 +386,11 @@ function get_model(mdl::VPtr)::SBML.Model
             end
             objectives[get_string(o, :Objective_getId)] = Objective(type, flux_objectives)
         end
-        active_objective = get_string(mdl_fbc, :FbcModelPlugin_getActiveObjectiveId)
+        ao = get_string(mdl_fbc, :FbcModelPlugin_getActiveObjectiveId)
+        if ao != ""
+            # libsbml does not expose isSet* and unset* methods for the active objective
+            active_objective = ao
+        end
     end
 
     # reactions!
@@ -484,6 +503,7 @@ function get_model(mdl::VPtr)::SBML.Model
             metaid = get_optional_string(re, :SBase_getMetaId),
             notes = get_notes(re),
             annotation = get_annotation(re),
+            sbo = get_sbo_term(re),
         )
     end
 
@@ -508,6 +528,7 @@ function get_model(mdl::VPtr)::SBML.Model
                     metaid = get_optional_string(gp, :SBase_getMetaId),
                     notes = get_notes(gp),
                     annotation = get_annotation(gp),
+                    sbo = get_sbo_term(gp),
                 )
             end
         end

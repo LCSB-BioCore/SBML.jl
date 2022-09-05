@@ -22,16 +22,11 @@ Modules = [SBML]
 Pages = ["SBML.jl"]
 ```
 
-## Loading and versioning
+## Loading, writing and versioning
 
 ```@autodocs
 Modules = [SBML]
-Pages = ["readsbml.jl"]
-```
-
-```@autodocs
-Modules = [SBML]
-Pages = ["version.jl"]
+Pages = ["readsbml.jl", "writesbml.jl", "version.jl"]
 ```
 
 ## `libsbml` representation converters
