@@ -27,7 +27,10 @@ const interpret_as_num(x::SBML.Math) = SBML.interpret_math(
         "piecewise",
         SBML.Math[
             SBML.MathVal(123),
-            SBML.MathApply("lt", SBML.Math[SBML.MathVal(1), SBML.MathVal(0)]),
+            SBML.MathApply(
+                "lt",
+                SBML.Math[SBML.MathVal(2), SBML.MathVal(1), SBML.MathVal(0)],
+            ),
             SBML.MathVal(456),
         ],
     )
