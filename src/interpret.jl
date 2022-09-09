@@ -12,7 +12,11 @@ function sbmlPiecewise(args...)
 end
 
 sbmlNeq(a, b) = !isequal(a, b)
-sbmlRelational(op) = (x...) -> all(map(op, x[begin:end-1], x[begin+1:end]))
+function sbmlRelational(op)
+    _iter(x,y) = op(x,y)
+    _iter(x,y,args...) = IfElse.ifelse(op(x,y), _iter(y,args...), Num(false))
+    _iter
+end
 
 sbmlLog(x) = sbmlLog(10, x)
 sbmlLog(base, x) = log(base, x)
