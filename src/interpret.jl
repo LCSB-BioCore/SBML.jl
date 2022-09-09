@@ -13,8 +13,8 @@ end
 
 sbmlNeq(a, b) = !isequal(a, b)
 function sbmlRelational(op)
-    _iter(x,y) = op(x,y)
-    _iter(x,y,args...) = IfElse.ifelse(op(x,y), _iter(y,args...), op(x,y))
+    _iter(x, y) = op(x, y)
+    _iter(x, y, args...) = IfElse.ifelse(op(x, y), _iter(y, args...), op(x, y))
     _iter
 end
 
