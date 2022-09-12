@@ -139,7 +139,7 @@ end
 """
 $(TYPEDEF)
 
-A special value representing the avogadro constant (which is a special named
+A special value representing the Avogadro constant (which is a special named
 value in SBML).
 
 # Fields
