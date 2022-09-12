@@ -134,6 +134,15 @@ sbmlfiles = [
         3,
         fill(Inf, 3),
     ),
+    # has the Avogadro "constant"
+    (
+        joinpath(@__DIR__, "data", "01323-sbml-l3v2.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/release/cases/semantic/01323/01323-sbml-l3v2.xml",
+        "9d9121b4f1f38f827a81a884c106c8ade6a8db29e148611c76e515775923a7fc",
+        0,
+        0,
+        [],
+    ),
 ]
 
 @testset "Loading of models from various sources - $(reader)" for reader in (
