@@ -95,6 +95,13 @@ const inv_math_funcs = Dict(val => key for (key, val) in math_funcs)
 const all_inv_function_mappings =
     merge(inv_relational_opers, inv_math_opers, inv_logical_opers, inv_math_funcs)
 
+# This is for checking the "special case" named values as defined by SBML.
+# The constants are the values of the enums AST_NAME_* in
+# `libsbml/src/sbml/math/ASTNodeType.h`. These need to be kept up to date with
+# the library (otherwise this breaks).
+get_ast_type_id(::Type{MathAvogadro}) = 261
+get_ast_type_id(::Type{MathTime}) = 262
+
 """
 $(TYPEDSIGNATURES)
 
@@ -103,12 +110,12 @@ pointer to `ASTNode_t`.
 """
 function parse_math(ast::VPtr)::Math
     if ast_is(ast, :ASTNode_isName)
-        if ccall(sbml(:ASTNode_getType), Cint, (VPtr,), ast) == 262
-            # This is a special case checking for the value of "simulation
-            # time" as defined by SBML. The constant `262` is the value of the
-            # enum AST_NAME_TIME in `libsbml/src/sbml/math/ASTNodeType.h`,
-            # needs to be kept up to date with the library (otherwise this
-            # breaks).
+        type = ccall(sbml(:ASTNode_getType), Cint, (VPtr,), ast)
+        if type == get_ast_type_id(MathAvogadro)
+            # this should be synonymous with calling ASTNode_isAvogadro()
+            return MathAvogadro(get_string(ast, :ASTNode_getName))
+        elseif type == get_ast_type_id(MathTime)
+            # unfortunately there's no ASTNode_isTime() at the moment.
             return MathTime(get_string(ast, :ASTNode_getName))
         else
             return MathIdent(get_string(ast, :ASTNode_getName))
@@ -155,12 +162,10 @@ end
 
 ## Inverse of `parse_math`: create `ASTNode_t` pointers from `Math` objects.
 
-function get_astnode_ptr(m::MathTime)::VPtr
+function get_astnode_ptr(m::Union{MathTime,MathAvogadro})::VPtr
     astnode = ccall(sbml(:ASTNode_create), VPtr, ())
     ccall(sbml(:ASTNode_setName), Cint, (VPtr, Cstring), astnode, m.id)
-    # Same comment as in `parse_math`: this constant must be kept in-sync with
-    # the value of `AST_NAME_TIME` in `libsbml/src/sbml/math/ASTNodeType.h`.
-    ccall(sbml(:ASTNode_setType), Cint, (VPtr, Cuint), astnode, 262)
+    ccall(sbml(:ASTNode_setType), Cint, (VPtr, Cuint), astnode, get_ast_type_id(typeof(m)))
     ccall(sbml(:ASTNode_canonicalize), Cint, (VPtr,), astnode)
     return astnode
 end

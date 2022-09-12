@@ -139,6 +139,19 @@ end
 """
 $(TYPEDEF)
 
+A special value representing the Avogadro constant (which is a special named
+value in SBML).
+
+# Fields
+$(TYPEDFIELDS)
+"""
+struct MathAvogadro <: Math
+    id::String
+end
+
+"""
+$(TYPEDEF)
+
 Function application ("call by name", no tricks allowed) in mathematical expression
 
 # Fields

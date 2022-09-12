@@ -105,6 +105,7 @@ const default_constants = Dict{String,Any}(
     "pi" => pi,
     "e" => exp(1),
     "exponentiale" => exp(1),
+    "avogadro" => 6.02214076e23,
 )
 
 """
@@ -130,6 +131,7 @@ function interpret_math(
     map_lambda = (x::SBML.MathLambda, interpret::Function) ->
         throw(ErrorException("lambda function mapping not defined")),
     map_time = (x::SBML.MathTime) -> throw(ErrorException("time mapping not defined")),
+    map_avogadro = (x::SBML.MathAvogadro) -> default_constants["avogadro"],
     map_value = (x::SBML.MathVal) -> x.val,
 )
     interpret(x::SBML.MathApply) = map_apply(x, interpret)
@@ -137,6 +139,7 @@ function interpret_math(
     interpret(x::SBML.MathIdent) = map_ident(x)
     interpret(x::SBML.MathLambda) = map_lambda(x, interpret)
     interpret(x::SBML.MathTime) = map_time(x)
+    interpret(x::SBML.MathAvogadro) = map_avogadro(x)
     interpret(x::SBML.MathVal) = map_value(x)
 
     interpret(x)
