@@ -131,7 +131,7 @@ function interpret_math(
     map_lambda = (x::SBML.MathLambda, interpret::Function) ->
         throw(ErrorException("lambda function mapping not defined")),
     map_time = (x::SBML.MathTime) -> throw(ErrorException("time mapping not defined")),
-    map_avogadro = (x::SBML.MathAvogadro) -> default_constants["avogadro"],
+    map_avogadro = (x::SBML.MathAvogadro) -> map_ident(SBML.MathIdent(x.id)),
     map_value = (x::SBML.MathVal) -> x.val,
 )
     interpret(x::SBML.MathApply) = map_apply(x, interpret)

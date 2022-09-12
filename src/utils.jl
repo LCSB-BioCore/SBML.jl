@@ -290,6 +290,7 @@ isfreein(id::String, expr::SBML.Math) = interpret_math(
     map_ident = x -> x.id == id,
     map_lambda = (x, rec) -> id in x.args ? false : rec(x.body),
     map_time = _ -> false,
+    map_avogadro = _ -> false,
     map_value = _ -> false,
 )
 
@@ -354,6 +355,7 @@ extensive_kinetic_math(m::SBML.Model, formula::SBML.Math) = interpret_math(
         ErrorException("converting lambdas to extensive kinetic math is not supported"),
     ),
     map_time = identity,
+    map_avogadro = identity,
     map_value = identity,
 )
 
