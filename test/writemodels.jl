@@ -59,9 +59,13 @@ end
         model = readSBML(file)
         fix_constant!(model)
         remove_some_annotation_strings!(model)
-        round_trip_model = readSBMLFromString(@test_logs(writeSBML(model)))
         # This is useful for debugging:
-        writeSBML(model, file*"-debug.xml")
+        # writeSBML(model, file*"-debug.xml")
+        round_trip_model = readSBMLFromString(@test_logs(writeSBML(model)))
+
+        # re-read the unmodified model, fix constantness and compare again
+        model = readSBML(file)
+        fix_constant!(model)
         @test model.parameters == round_trip_model.parameters
         @test model.units == round_trip_model.units
         @test model.compartments == round_trip_model.compartments
