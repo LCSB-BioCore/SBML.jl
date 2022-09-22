@@ -28,6 +28,7 @@ include("common.jl")
 
     include("ecoli_flux.jl")
     include("loadmodels.jl")
+    include("writemodels.jl") # depends on `sbmlfiles` from loadmodels.jl
     include("loaddynamicmodels.jl")
     include("interpret.jl")
 end

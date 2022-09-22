@@ -97,8 +97,10 @@ end
 function set_parameter_ptr!(parameter_ptr::VPtr, id::String, parameter::Parameter)::VPtr
     set_string!(parameter_ptr, :Parameter_setId, id)
     set_string!(parameter_ptr, :Parameter_setName, parameter.name)
+    set_string!(parameter_ptr, :SBase_setMetaId, parameter.metaid)
     set_double!(parameter_ptr, :Parameter_setValue, parameter.value)
     set_string!(parameter_ptr, :Parameter_setUnits, parameter.units)
+    add_cvterms!(parameter_ptr, parameter.cv_terms)
     set_bool!(parameter_ptr, :Parameter_setConstant, parameter.constant)
     set_sbo_term!(parameter_ptr, parameter.sbo)
     return parameter_ptr
@@ -136,6 +138,54 @@ end
 
 set_sbo_term!(ptr, x) = set_string!(ptr, :SBase_setSBOTermID, x)
 
+add_cvterms!(ptr, x) = add_cvterm!.(Ref(ptr), x)
+
+function add_cvterm!(ptr::VPtr, x::CVTerm, add = :SBase_addCVTerm)
+    qt = !isnothing(x.biological_qualifier) ? 1 : !isnothing(x.model_qualifier) ? 0 : 2
+    # unfortunately the API is missing `createCVTerm` or a similar method.
+    cvt = ccall(sbml(:CVTerm_createWithQualifierType), VPtr, (Cint,), qt)
+
+    isnothing(x.biological_qualifier) ||
+        ccall(
+            sbml(:CVTerm_setBiologicalQualifierType),
+            Cint,
+            (VPtr, Cint),
+            cvt,
+            ccall(
+                sbml(:BiolQualifierType_fromString),
+                Cint,
+                (Cstring,),
+                x.biological_qualifier,
+            ),
+        ) == 0 ||
+        error("setting biological qualifier failed!")
+    isnothing(x.model_qualifier) ||
+        ccall(
+            sbml(:CVTerm_setModelQualifierType),
+            Cint,
+            (VPtr, Cint),
+            cvt,
+            ccall(
+                sbml(:ModelQualifierType_fromString),
+                Cint,
+                (Cstring,),
+                x.model_qualifier,
+            ),
+        ) == 0 ||
+        error("setting model qualifier failed!")
+
+    for res in x.resource_uris
+        set_string!(cvt, :CVTerm_addResource, res)
+    end
+
+    for nested in x.nested_cvterms
+        add_cvterm!(cvt, nested, :CVTerm_addNestedCVTerm)
+    end
+
+    ccall(sbml(add), Cint, (VPtr, VPtr), ptr, cvt) == 0 || error("Adding a CVTerm failed!")
+    ccall(sbml(:CVTerm_free), Cvoid, (VPtr,), cvt)
+end
+
 ## Write the model
 
 function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
@@ -169,6 +219,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         compartment_ptr = ccall(sbml(:Model_createCompartment), VPtr, (VPtr,), model)
         set_string!(compartment_ptr, :Compartment_setId, id)
         set_string!(compartment_ptr, :Compartment_setName, compartment.name)
+        set_string!(compartment_ptr, :SBase_setMetaId, compartment.metaid)
         set_bool!(compartment_ptr, :Compartment_setConstant, compartment.constant)
         set_uint!(
             compartment_ptr,
@@ -177,6 +228,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         )
         set_double!(compartment_ptr, :Compartment_setSize, compartment.size)
         set_string!(compartment_ptr, :Compartment_setUnits, compartment.units)
+        add_cvterms!(compartment_ptr, compartment.cv_terms)
         set_string!(compartment_ptr, :SBase_setNotesString, compartment.notes)
         set_string!(compartment_ptr, :SBase_setAnnotationString, compartment.annotation)
         set_sbo_term!(compartment_ptr, compartment.sbo)
@@ -193,6 +245,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         set_string!(geneproduct_ptr, :GeneProduct_setLabel, gene_product.label)
         set_string!(geneproduct_ptr, :GeneProduct_setName, gene_product.name)
         set_string!(geneproduct_ptr, :SBase_setMetaId, gene_product.metaid)
+        add_cvterms!(geneproduct_ptr, gene_product.cv_terms)
         set_string!(geneproduct_ptr, :SBase_setNotesString, gene_product.notes)
         set_string!(geneproduct_ptr, :SBase_setAnnotationString, gene_product.annotation)
         set_sbo_term!(geneproduct_ptr, gene_product.sbo)
@@ -305,6 +358,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             )
         end
         set_string!(reaction_ptr, :SBase_setMetaId, reaction.metaid)
+        add_cvterms!(reaction_ptr, reaction.cv_terms)
         set_string!(reaction_ptr, :SBase_setNotesString, reaction.notes)
         set_string!(reaction_ptr, :SBase_setAnnotationString, reaction.annotation)
         set_sbo_term!(reaction_ptr, reaction.sbo)
@@ -338,6 +392,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         species_ptr = ccall(sbml(:Model_createSpecies), VPtr, (VPtr,), model)
         set_string!(species_ptr, :Species_setId, id)
         set_string!(species_ptr, :SBase_setMetaId, species.metaid)
+        add_cvterms!(species_ptr, species.cv_terms)
         set_string!(species_ptr, :Species_setName, species.name)
         set_string!(species_ptr, :Species_setCompartment, species.compartment)
         set_bool!(species_ptr, :Species_setBoundaryCondition, species.boundary_condition)

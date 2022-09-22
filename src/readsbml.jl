@@ -95,6 +95,55 @@ get_sbo_term(x::VPtr) = get_optional_string(x, :SBase_getSBOTermID)
 """
 $(TYPEDSIGNATURES)
 
+Shortcut for retrieving SBO term IDs (as strings).
+"""
+get_cv_terms(x::VPtr) = CVTerm[
+    get_cv_term(ccall(sbml(:SBase_getCVTerm), VPtr, (VPtr, Cuint), x, i - 1)) for
+    i = 1:ccall(sbml(:SBase_getNumCVTerms), Cuint, (VPtr,), x)
+]
+
+function get_cv_term(cvt::VPtr)
+    qual_type = ccall(sbml(:CVTerm_getQualifierType), Cint, (VPtr,), cvt)
+
+    return CVTerm(
+        biological_qualifier = qual_type == 1 ?
+                               Symbol(
+            unsafe_string(
+                ccall(
+                    sbml(:BiolQualifierType_toString),
+                    Cstring,
+                    (Cint,),
+                    ccall(sbml(:CVTerm_getBiologicalQualifierType), Cint, (VPtr,), cvt),
+                ),
+            ),
+        ) : nothing,
+        model_qualifier = qual_type == 0 ?
+                          Symbol(
+            unsafe_string(
+                ccall(
+                    sbml(:ModelQualifierType_toString),
+                    Cstring,
+                    (Cint,),
+                    ccall(sbml(:CVTerm_getModelQualifierType), Cint, (VPtr,), cvt),
+                ),
+            ),
+        ) : nothing,
+        resource_uris = String[
+            unsafe_string(
+                ccall(sbml(:CVTerm_getResourceURI), Cstring, (VPtr, Cuint), cvt, j - 1),
+            ) for j = 1:ccall(sbml(:CVTerm_getNumResources), Cuint, (VPtr,), cvt)
+        ],
+        nested_cvterms = CVTerm[
+            get_cv_term(
+                ccall(sbml(:CVTerm_getNestedCVTerm), VPtr, (VPtr, Cuint), x, j - 1),
+            ) for j = 1:ccall(sbml(:CVTerm_getNumNestedCVTerms), Cuint, (VPtr,), cvt)
+        ],
+    )
+end
+
+"""
+$(TYPEDSIGNATURES)
+
 Helper for converting XML that is not represented by SBML structures to String.
 """
 function get_string_from_xmlnode(xmlnode::VPtr)::String
@@ -238,7 +287,9 @@ get_parameter(p::VPtr)::Pair{String,Parameter} =
         value = get_optional_double(p, :Parameter_isSetValue, :Parameter_getValue),
         units = get_optional_string(p, :Parameter_getUnits),
         constant = get_optional_bool(p, :Parameter_isSetConstant, :Parameter_getConstant),
+        metaid = get_optional_string(p, :SBase_getMetaId),
         sbo = get_sbo_term(p),
+        cv_terms = get_cv_terms(p),
     )
 
 """
@@ -305,9 +356,11 @@ function get_model(mdl::VPtr)::SBML.Model
             ),
             size = get_optional_double(co, :Compartment_isSetSize, :Compartment_getSize),
             units = get_optional_string(co, :Compartment_getUnits),
+            metaid = get_optional_string(co, :SBase_getMetaId),
             notes = get_notes(co),
             annotation = get_annotation(co),
             sbo = get_sbo_term(co),
+            cv_terms = get_cv_terms(co),
         )
     end
 
@@ -361,6 +414,7 @@ function get_model(mdl::VPtr)::SBML.Model
             notes = get_notes(sp),
             annotation = get_annotation(sp),
             sbo = get_sbo_term(sp),
+            cv_terms = get_cv_terms(sp),
         )
     end
 
@@ -504,6 +558,7 @@ function get_model(mdl::VPtr)::SBML.Model
             notes = get_notes(re),
             annotation = get_annotation(re),
             sbo = get_sbo_term(re),
+            cv_terms = get_cv_terms(re),
         )
     end
 
@@ -529,6 +584,7 @@ function get_model(mdl::VPtr)::SBML.Model
                     notes = get_notes(gp),
                     annotation = get_annotation(gp),
                     sbo = get_sbo_term(gp),
+                    cv_terms = get_cv_terms(gp),
                 )
             end
         end
