@@ -29,7 +29,7 @@ const ANNOTATED_TYPES = Union{
     SBML.Parameter,
     SBML.Reaction,
     SBML.Species,
-    }
+}
 function Base.:(==)(a::T, b::T) where {T<:ANNOTATED_TYPES}
     nta = getproperties(a)
     ntb = getproperties(b)

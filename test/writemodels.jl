@@ -17,21 +17,21 @@ end
 
 function remove_some_annotation_strings!(model::SBML.Model)
     gps = collect(keys(model.gene_products))
-    for gp = gps
+    for gp in gps
         g = model.gene_products[gp]
         if isempty(g.cv_terms)
             # prevent comparison trouble (empty cvterms create empty annotation
             # instead of "empty XML" annotation frame)
             continue
         end
-        model.gene_products[gp]=SBML.GeneProduct(
-            label=g.label,
-            name=g.name,
-            metaid=g.metaid,
-            notes=g.notes,
+        model.gene_products[gp] = SBML.GeneProduct(
+            label = g.label,
+            name = g.name,
+            metaid = g.metaid,
+            notes = g.notes,
             #no annotation here
-            sbo=g.sbo,
-            cv_terms=g.cv_terms,
+            sbo = g.sbo,
+            cv_terms = g.cv_terms,
         )
     end
 end
