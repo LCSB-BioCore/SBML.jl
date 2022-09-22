@@ -235,7 +235,7 @@ Extract the value of SBML `Parameter_t`.
 get_parameter(p::VPtr)::Pair{String,Parameter} =
     get_string(p, :Parameter_getId) => Parameter(
         name = get_optional_string(p, :Parameter_getName),
-        value = ccall(sbml(:Parameter_getValue), Cdouble, (VPtr,), p),
+        value = get_optional_double(p, :Parameter_isSetValue, :Parameter_getValue),
         units = get_optional_string(p, :Parameter_getUnits),
         constant = get_optional_bool(p, :Parameter_isSetConstant, :Parameter_getConstant),
         sbo = get_sbo_term(p),
