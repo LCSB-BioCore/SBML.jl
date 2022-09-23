@@ -400,15 +400,98 @@ end
     @test isnothing(m.active_objective)
 end
 
-@testset "names of objects" begin
+@testset "names and identifiers of objects" begin
     m = readSBML(joinpath(@__DIR__, "data", "e_coli_core.xml"))
     @test m.compartments["e"].name == "extracellular space"
     @test m.species["M_nh4_c"].name == "Ammonium"
     @test m.species["M_nh4_c"].sbo == "SBO:0000247"
+    @test length(m.species["M_nh4_c"].cv_terms) == 1
+    @test m.species["M_nh4_c"].cv_terms[1].biological_qualifier == :is
+    @test issetequal(
+        [
+            "http://identifiers.org/bigg.metabolite/nh4",
+            "http://identifiers.org/biocyc/META:AMMONIA",
+            "http://identifiers.org/biocyc/META:AMMONIUM",
+            "http://identifiers.org/chebi/CHEBI:13405",
+            "http://identifiers.org/chebi/CHEBI:13406",
+            "http://identifiers.org/chebi/CHEBI:13407",
+            "http://identifiers.org/chebi/CHEBI:135980",
+            "http://identifiers.org/chebi/CHEBI:13771",
+            "http://identifiers.org/chebi/CHEBI:16134",
+            "http://identifiers.org/chebi/CHEBI:22533",
+            "http://identifiers.org/chebi/CHEBI:22534",
+            "http://identifiers.org/chebi/CHEBI:28938",
+            "http://identifiers.org/chebi/CHEBI:29337",
+            "http://identifiers.org/chebi/CHEBI:29340",
+            "http://identifiers.org/chebi/CHEBI:44269",
+            "http://identifiers.org/chebi/CHEBI:44284",
+            "http://identifiers.org/chebi/CHEBI:44404",
+            "http://identifiers.org/chebi/CHEBI:49783",
+            "http://identifiers.org/chebi/CHEBI:7434",
+            "http://identifiers.org/chebi/CHEBI:7435",
+            "http://identifiers.org/envipath/32de3cf4-e3e6-4168-956e-32fa5ddb0ce1/compound/41e4c903-407f-49f7-bf6b-0a94d39fa3a7",
+            "http://identifiers.org/envipath/5882df9c-dae1-4d80-a40e-db4724271456/compound/27a89bdf-42f7-478f-91d8-e39881581096",
+            "http://identifiers.org/envipath/650babc9-9d68-4b73-9332-11972ca26f7b/compound/96667bd9-aeae-4e8f-89d3-100d0396af05",
+            "http://identifiers.org/hmdb/HMDB00051",
+            "http://identifiers.org/hmdb/HMDB41827",
+            "http://identifiers.org/inchi_key/QGZKDVFQNNGYKY-UHFFFAOYSA-O",
+            "http://identifiers.org/kegg.compound/C00014",
+            "http://identifiers.org/kegg.compound/C01342",
+            "http://identifiers.org/kegg.drug/D02915",
+            "http://identifiers.org/kegg.drug/D02916",
+            "http://identifiers.org/metanetx.chemical/MNXM15",
+            "http://identifiers.org/reactome.compound/1132163",
+            "http://identifiers.org/reactome.compound/113561",
+            "http://identifiers.org/reactome.compound/140912",
+            "http://identifiers.org/reactome.compound/2022135",
+            "http://identifiers.org/reactome.compound/29382",
+            "http://identifiers.org/reactome.compound/31633",
+            "http://identifiers.org/reactome.compound/389843",
+            "http://identifiers.org/reactome.compound/5693978",
+            "http://identifiers.org/reactome.compound/76230",
+            "http://identifiers.org/sabiork/1268",
+            "http://identifiers.org/sabiork/43",
+            "http://identifiers.org/seed.compound/cpd00013",
+            "http://identifiers.org/seed.compound/cpd19013",
+        ],
+        m.species["M_nh4_c"].cv_terms[1].resource_uris,
+    )
     @test m.gene_products["G_b1241"].name == "adhE"
     @test m.gene_products["G_b1241"].sbo == "SBO:0000243"
+    @test length(m.gene_products["G_b1241"].cv_terms) == 1
+    @test m.gene_products["G_b1241"].cv_terms[1].biological_qualifier == :is
+    @test issetequal(
+        [
+            "http://identifiers.org/asap/ABE-0004164",
+            "http://identifiers.org/ecogene/EG10031",
+            "http://identifiers.org/ncbigene/945837",
+            "http://identifiers.org/ncbigi/16129202",
+            "http://identifiers.org/refseq_locus_tag/b1241",
+            "http://identifiers.org/refseq_name/adhE",
+            "http://identifiers.org/refseq_synonym/adhC",
+            "http://identifiers.org/refseq_synonym/ana",
+            "http://identifiers.org/refseq_synonym/ECK1235",
+            "http://identifiers.org/refseq_synonym/JW1228",
+            "http://identifiers.org/uniprot/P0A9Q7",
+        ],
+        m.gene_products["G_b1241"].cv_terms[1].resource_uris,
+    )
     @test m.reactions["R_PFK"].name == "Phosphofructokinase"
     @test m.reactions["R_PFK"].sbo == "SBO:0000176"
+    @test length(m.reactions["R_PFK"].cv_terms) == 1
+    @test m.reactions["R_PFK"].cv_terms[1].biological_qualifier == :is
+    @test issetequal(
+        [
+            "http://identifiers.org/bigg.reaction/PFK",
+            "http://identifiers.org/ec-code/2.7.1.11",
+            "http://identifiers.org/metanetx.reaction/MNXR102507",
+            "http://identifiers.org/rhea/16109",
+            "http://identifiers.org/rhea/16110",
+            "http://identifiers.org/rhea/16111",
+            "http://identifiers.org/rhea/16112",
+        ],
+        m.reactions["R_PFK"].cv_terms[1].resource_uris,
+    )
     @test m.parameters["cobra_default_ub"].sbo == "SBO:0000626"
     @test m.active_objective == "obj"
 end
