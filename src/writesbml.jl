@@ -452,7 +452,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     for (id, event) in mdl.events
         event_ptr = ccall(sbml(:Model_createEvent), VPtr, (VPtr,), model)
         set_string!(event_ptr, :Event_setId, id)
-        set_int!(
+        set_bool!(
             event_ptr,
             :Event_setUseValuesFromTriggerTime,
             event.use_values_from_trigger_time,

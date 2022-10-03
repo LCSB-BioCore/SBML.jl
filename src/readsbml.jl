@@ -659,7 +659,7 @@ function get_model(mdl::VPtr)::SBML.Model
                     Cint,
                     (VPtr,),
                     ev,
-                ),
+                ) != 0,
                 name = get_optional_string(ev, :Event_getName),
                 trigger,
                 event_assignments,
