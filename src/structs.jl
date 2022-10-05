@@ -435,7 +435,7 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Event
-    use_values_from_trigger_time::Cint
+    use_values_from_trigger_time::Bool
     name::Maybe{String} = nothing
     trigger::Maybe{Trigger} = nothing
     event_assignments::Maybe{Vector{EventAssignment}} = nothing
