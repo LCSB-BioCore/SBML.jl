@@ -2,7 +2,7 @@
 
 | Build status | Documentation | Stats |
 |:---:|:---:|:---:|
-| ![CI status](https://github.com/LCSB-BioCore/SBML.jl/workflows/CI/badge.svg?branch=master) | [![stable documentation](https://img.shields.io/badge/docs-stable-blue)](https://lcsb-biocore.github.io/SBML.jl/stable) [![dev documentation](https://img.shields.io/badge/docs-dev-cyan)](https://lcsb-biocore.github.io/SBML.jl/dev) | [![SBML Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/SBML)](https://pkgs.genieframework.com?packages=SBML) |
+| ![CI status](https://github.com/LCSB-BioCore/SBML.jl/workflows/CI/badge.svg?branch=master) [![codecov](https://codecov.io/gh/LCSB-BioCore/SBML.jl/branch/master/graph/badge.svg?token=eJehiv1yWs)](https://codecov.io/gh/LCSB-BioCore/SBML.jl) | [![stable documentation](https://img.shields.io/badge/docs-stable-blue)](https://lcsb-biocore.github.io/SBML.jl/stable) [![dev documentation](https://img.shields.io/badge/docs-dev-cyan)](https://lcsb-biocore.github.io/SBML.jl/dev) | [![SBML Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/SBML)](https://pkgs.genieframework.com?packages=SBML) |
 
 
 This is a simple wrap of some of the libSBML functionality, mainly the model loading for purposes of COBRA analysis methods and exploration of ODE system and reaction dynamics.
