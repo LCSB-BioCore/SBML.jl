@@ -339,6 +339,20 @@ end
         end,
     )
 
+    test_math = readSBML(
+        joinpath(@__DIR__, "data", "sbml00878.xml"),
+        doc -> begin
+            set_level_and_version(3, 1)(doc)
+            convert_promote_expand(doc)
+        end,
+        ).initial_assignments["S2"]
+            
+    @test test_math.fn == "*"
+    @test test_math.args[1].fn == "*"
+    @test test_math.args[1].args[1].id == "p1"
+    @test test_math.args[1].args[2].id == "S1"
+    @test test_math.args[2].id == "time"
+
     test_math =
         readSBML(
             joinpath(@__DIR__, "data", "sbml01565.xml"),
