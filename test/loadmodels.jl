@@ -343,7 +343,7 @@ end
         joinpath(@__DIR__, "data", "sbml00878.xml"),
         doc -> begin
             set_level_and_version(3, 1)(doc)
-            convert_promote_expand(doc)
+            convert_promotelocals_expandfuns(doc)
         end,
     ).initial_assignments["S2"]
 
