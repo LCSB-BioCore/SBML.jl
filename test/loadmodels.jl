@@ -349,7 +349,7 @@ end
     )
 
     test_math = readSBML(
-        joinpath(@__DIR__, "data", "sbml00878.xml"),
+        joinpath(@__DIR__, "data", "00878-sbml-l3v2.xml"),
         doc -> begin
             set_level_and_version(3, 1)(doc)
             convert_promotelocals_expandfuns(doc)
