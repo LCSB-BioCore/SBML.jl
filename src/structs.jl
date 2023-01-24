@@ -175,6 +175,24 @@ struct MathLambda <: Math
     body::Math
 end
 
+
+
+"""
+$(TYPEDEF)
+
+Representation of a SBML CVTerm, usually carrying Model or Biological
+qualifier, a list of resources, and possibly nested CV terms.
+
+# Fields
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct CVTerm
+    biological_qualifier::Maybe{Symbol} = nothing
+    model_qualifier::Maybe{Symbol} = nothing
+    resource_uris::Vector{String} = []
+    nested_cvterms::Vector{CVTerm} = []
+end
+
 """
 $(TYPEDEF)
 
@@ -189,7 +207,9 @@ Base.@kwdef struct Parameter
     value::Maybe{Float64} = nothing
     units::Maybe{String} = nothing
     constant::Maybe{Bool} = nothing
+    metaid::Maybe{String} = nothing
     sbo::Maybe{String} = nothing
+    cv_terms::Vector{CVTerm} = []
 end
 
 """
@@ -206,9 +226,11 @@ Base.@kwdef struct Compartment
     spatial_dimensions::Maybe{Int} = nothing
     size::Maybe{Float64} = nothing
     units::Maybe{String} = nothing
+    metaid::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
     sbo::Maybe{String} = nothing
+    cv_terms::Vector{CVTerm} = []
 end
 
 """
@@ -251,6 +273,7 @@ Base.@kwdef struct Reaction
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
     sbo::Maybe{String} = nothing
+    cv_terms::Vector{CVTerm} = []
 end
 
 """
@@ -335,6 +358,7 @@ Base.@kwdef struct Species
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
     sbo::Maybe{String} = nothing
+    cv_terms::Vector{CVTerm} = []
 end
 
 """
@@ -352,6 +376,7 @@ Base.@kwdef struct GeneProduct
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
     sbo::Maybe{String} = nothing
+    cv_terms::Vector{CVTerm} = []
 end
 
 """
@@ -410,7 +435,7 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 Base.@kwdef struct Event
-    use_values_from_trigger_time::Cint
+    use_values_from_trigger_time::Bool
     name::Maybe{String} = nothing
     trigger::Maybe{Trigger} = nothing
     event_assignments::Maybe{Vector{EventAssignment}} = nothing

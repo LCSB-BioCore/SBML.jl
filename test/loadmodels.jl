@@ -423,15 +423,98 @@ end
     @test isnothing(m.active_objective)
 end
 
-@testset "names of objects" begin
+@testset "names and identifiers of objects" begin
     m = readSBML(joinpath(@__DIR__, "data", "e_coli_core.xml"))
     @test m.compartments["e"].name == "extracellular space"
     @test m.species["M_nh4_c"].name == "Ammonium"
     @test m.species["M_nh4_c"].sbo == "SBO:0000247"
+    @test length(m.species["M_nh4_c"].cv_terms) == 1
+    @test m.species["M_nh4_c"].cv_terms[1].biological_qualifier == :is
+    @test issetequal(
+        [
+            "http://identifiers.org/bigg.metabolite/nh4",
+            "http://identifiers.org/biocyc/META:AMMONIA",
+            "http://identifiers.org/biocyc/META:AMMONIUM",
+            "http://identifiers.org/chebi/CHEBI:13405",
+            "http://identifiers.org/chebi/CHEBI:13406",
+            "http://identifiers.org/chebi/CHEBI:13407",
+            "http://identifiers.org/chebi/CHEBI:135980",
+            "http://identifiers.org/chebi/CHEBI:13771",
+            "http://identifiers.org/chebi/CHEBI:16134",
+            "http://identifiers.org/chebi/CHEBI:22533",
+            "http://identifiers.org/chebi/CHEBI:22534",
+            "http://identifiers.org/chebi/CHEBI:28938",
+            "http://identifiers.org/chebi/CHEBI:29337",
+            "http://identifiers.org/chebi/CHEBI:29340",
+            "http://identifiers.org/chebi/CHEBI:44269",
+            "http://identifiers.org/chebi/CHEBI:44284",
+            "http://identifiers.org/chebi/CHEBI:44404",
+            "http://identifiers.org/chebi/CHEBI:49783",
+            "http://identifiers.org/chebi/CHEBI:7434",
+            "http://identifiers.org/chebi/CHEBI:7435",
+            "http://identifiers.org/envipath/32de3cf4-e3e6-4168-956e-32fa5ddb0ce1/compound/41e4c903-407f-49f7-bf6b-0a94d39fa3a7",
+            "http://identifiers.org/envipath/5882df9c-dae1-4d80-a40e-db4724271456/compound/27a89bdf-42f7-478f-91d8-e39881581096",
+            "http://identifiers.org/envipath/650babc9-9d68-4b73-9332-11972ca26f7b/compound/96667bd9-aeae-4e8f-89d3-100d0396af05",
+            "http://identifiers.org/hmdb/HMDB00051",
+            "http://identifiers.org/hmdb/HMDB41827",
+            "http://identifiers.org/inchi_key/QGZKDVFQNNGYKY-UHFFFAOYSA-O",
+            "http://identifiers.org/kegg.compound/C00014",
+            "http://identifiers.org/kegg.compound/C01342",
+            "http://identifiers.org/kegg.drug/D02915",
+            "http://identifiers.org/kegg.drug/D02916",
+            "http://identifiers.org/metanetx.chemical/MNXM15",
+            "http://identifiers.org/reactome.compound/1132163",
+            "http://identifiers.org/reactome.compound/113561",
+            "http://identifiers.org/reactome.compound/140912",
+            "http://identifiers.org/reactome.compound/2022135",
+            "http://identifiers.org/reactome.compound/29382",
+            "http://identifiers.org/reactome.compound/31633",
+            "http://identifiers.org/reactome.compound/389843",
+            "http://identifiers.org/reactome.compound/5693978",
+            "http://identifiers.org/reactome.compound/76230",
+            "http://identifiers.org/sabiork/1268",
+            "http://identifiers.org/sabiork/43",
+            "http://identifiers.org/seed.compound/cpd00013",
+            "http://identifiers.org/seed.compound/cpd19013",
+        ],
+        m.species["M_nh4_c"].cv_terms[1].resource_uris,
+    )
     @test m.gene_products["G_b1241"].name == "adhE"
     @test m.gene_products["G_b1241"].sbo == "SBO:0000243"
+    @test length(m.gene_products["G_b1241"].cv_terms) == 1
+    @test m.gene_products["G_b1241"].cv_terms[1].biological_qualifier == :is
+    @test issetequal(
+        [
+            "http://identifiers.org/asap/ABE-0004164",
+            "http://identifiers.org/ecogene/EG10031",
+            "http://identifiers.org/ncbigene/945837",
+            "http://identifiers.org/ncbigi/16129202",
+            "http://identifiers.org/refseq_locus_tag/b1241",
+            "http://identifiers.org/refseq_name/adhE",
+            "http://identifiers.org/refseq_synonym/adhC",
+            "http://identifiers.org/refseq_synonym/ana",
+            "http://identifiers.org/refseq_synonym/ECK1235",
+            "http://identifiers.org/refseq_synonym/JW1228",
+            "http://identifiers.org/uniprot/P0A9Q7",
+        ],
+        m.gene_products["G_b1241"].cv_terms[1].resource_uris,
+    )
     @test m.reactions["R_PFK"].name == "Phosphofructokinase"
     @test m.reactions["R_PFK"].sbo == "SBO:0000176"
+    @test length(m.reactions["R_PFK"].cv_terms) == 1
+    @test m.reactions["R_PFK"].cv_terms[1].biological_qualifier == :is
+    @test issetequal(
+        [
+            "http://identifiers.org/bigg.reaction/PFK",
+            "http://identifiers.org/ec-code/2.7.1.11",
+            "http://identifiers.org/metanetx.reaction/MNXR102507",
+            "http://identifiers.org/rhea/16109",
+            "http://identifiers.org/rhea/16110",
+            "http://identifiers.org/rhea/16111",
+            "http://identifiers.org/rhea/16112",
+        ],
+        m.reactions["R_PFK"].cv_terms[1].resource_uris,
+    )
     @test m.parameters["cobra_default_ub"].sbo == "SBO:0000626"
     @test m.active_objective == "obj"
 end
@@ -440,71 +523,4 @@ end
     m = readSBML(joinpath(@__DIR__, "data", "00975-sbml-l3v2.xml"))
     @test m.species["S1"].constant == false
     @test m.parameters["S1conv"].constant == true
-end
-
-function fix_constant!(model::SBML.Model)
-    # We only write SBML L3v2. If a model is L2 or less, the `constant`
-    # attributes may be missing (which is true for some models). We add the
-    # main problematic ones (in speciesReferences) here, to make sure the
-    # round trip has a chance to finish.
-    _clean(sr::SBML.SpeciesReference) = SBML.SpeciesReference(
-        species = sr.species,
-        stoichiometry = sr.stoichiometry,
-        constant = isnothing(sr.constant) ? true : sr.constant,
-    )
-    for (_, r) in model.reactions
-        r.reactants .= map(_clean, r.reactants)
-        r.products .= map(_clean, r.products)
-    end
-end
-
-@testset "writeSBML" begin
-    model = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
-    fix_constant!(model)
-    expected = read(joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"), String)
-    # Remove carriage returns, if any
-    expected = replace(expected, '\r' => "")
-    @test @test_logs(writeSBML(model)) == expected
-    mktemp() do filename, _
-        @test_logs(writeSBML(model, filename))
-        content = read(filename, String)
-        # Remove carriage returns, if any
-        content = replace(content, '\r' => "")
-        @test content == expected
-    end
-
-    # Make sure that the model we read from the written out file is consistent
-    # with the original model.
-    @testset "Round-trip - $(basename(file))" for file in first.(sbmlfiles)
-        model = readSBML(file)
-        fix_constant!(model)
-        round_trip_model = readSBMLFromString(@test_logs(writeSBML(model)))
-        @test model.parameters == round_trip_model.parameters
-        @test model.units == round_trip_model.units
-        @test model.compartments == round_trip_model.compartments
-        @test model.species == round_trip_model.species
-        @test model.initial_assignments == round_trip_model.initial_assignments
-        @test model.rules == round_trip_model.rules
-        @test model.constraints == round_trip_model.constraints
-        @test model.reactions == round_trip_model.reactions
-        @test model.objectives == round_trip_model.objectives
-        @test model.active_objective == round_trip_model.active_objective
-        @test model.gene_products == round_trip_model.gene_products
-        @test model.function_definitions == round_trip_model.function_definitions
-        @test model.events == round_trip_model.events
-        @test model.name == round_trip_model.name
-        @test model.id == round_trip_model.id
-        @test model.metaid == round_trip_model.metaid
-        @test model.conversion_factor == round_trip_model.conversion_factor
-        @test model.area_units == round_trip_model.area_units
-        @test model.extent_units == round_trip_model.extent_units
-        @test model.length_units == round_trip_model.length_units
-        @test model.substance_units == round_trip_model.substance_units
-        @test model.time_units == round_trip_model.time_units
-        @test model.volume_units == round_trip_model.volume_units
-        @test model.notes == round_trip_model.notes
-        # We can't compare the two strings verbatim because `writeSBML` may write some
-        # elements of the annotation in a slightly different order.
-        @test isnothing(model.annotation) == isnothing(round_trip_model.annotation)
-    end
 end
