@@ -143,6 +143,15 @@ sbmlfiles = [
         0,
         [],
     ),
+    # contains initialAssignment
+    (
+        joinpath(@__DIR__, "data", "00878-sbml-l3v2.xml"),
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/release/cases/semantic/00878/00878-sbml-l3v2.xml",
+        "5f70555d27469a2fdc63dedcd8d02d50b6f4f1c760802cbb5e7bb17363c2e931",
+        2,
+        1,
+        fill(Inf, 1),
+    ),
 ]
 
 @testset "Loading of models from various sources - $(reader)" for reader in (
@@ -338,6 +347,20 @@ end
             convert_simplify_math(doc)
         end,
     )
+
+    test_math = readSBML(
+        joinpath(@__DIR__, "data", "00878-sbml-l3v2.xml"),
+        doc -> begin
+            set_level_and_version(3, 1)(doc)
+            convert_promotelocals_expandfuns(doc)
+        end,
+    ).initial_assignments["S2"]
+
+    @test test_math.fn == "*"
+    @test test_math.args[1].fn == "*"
+    @test test_math.args[1].args[1].id == "p1"
+    @test test_math.args[1].args[2].id == "S1"
+    @test test_math.args[2].id == "time"
 
     test_math =
         readSBML(

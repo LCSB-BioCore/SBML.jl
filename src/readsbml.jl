@@ -204,8 +204,8 @@ Read the SBML from a XML file in `fn` and return the contained `SBML.Model`.
 The `sbml_conversion` is a function that does an in-place modification of the
 single parameter, which is the C pointer to the loaded SBML document (C type
 `SBMLDocument*`). Several functions for doing that are prepared, including
-[`set_level_and_version`](@ref), [`libsbml_convert`](@ref), and
-[`convert_simplify_math`](@ref).
+[`set_level_and_version`](@ref), [`libsbml_convert`](@ref),
+[`convert_simplify_math`](@ref) and [`convert_promotelocals_expandfuns`](@ref).
 
 `report_severities` switches on and off reporting of certain errors; see the
 documentation of [`get_error_messages`](@ref) for details.

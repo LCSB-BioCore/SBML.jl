@@ -87,3 +87,14 @@ parameters, and initial assignments in the SBML document.
 const convert_simplify_math = libsbml_convert(
     ["promoteLocalParameters", "expandFunctionDefinitions", "expandInitialAssignments"] .=> Ref(Dict{String,String}()),
 )
+
+"""
+$(TYPEDSIGNATURES)
+
+Shortcut for [`libsbml_convert`](@ref) that expands functions and local
+parameters in the SBML document.
+"""
+const convert_promotelocals_expandfuns = libsbml_convert(
+    ["promoteLocalParameters", "expandFunctionDefinitions"] .=>
+        Ref(Dict{String,String}()),
+)
