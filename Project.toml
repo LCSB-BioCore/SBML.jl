@@ -5,7 +5,9 @@ version = "1.4.0"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 IfElse = "615f187c-cbe4-4ef1-ba3b-2fcf58d6d173"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 SBML_jll = "bb12108a-f4ef-5f88-8ef3-0b33ff7017f1"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
