@@ -1,5 +1,5 @@
 
-using Test, SHA, SparseArrays, Downloads, JSON3
+using Test, SHA, SparseArrays, Downloads
 using SBML
 using SBML: Model, Reaction, Species
 using Unitful

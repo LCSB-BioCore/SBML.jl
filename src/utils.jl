@@ -458,16 +458,3 @@ end
 function readSBMLTestCase(case; level=3, version=2, conv_f=default_convert_function(level, version))
     readSBMLFromURL(test_suite_url(case; level, version); conv_f)
 end
-
-biomodel_files_url(model_id) = "https://www.ebi.ac.uk/biomodels/model/files/$(model_id)"
-
-function biomodel_url(id)
-    j = JSON3.read(string_from_url(biomodel_files_url(id); headers=["accept" => "application/json"]))
-    haskey(j, "errorMessage") && error(repr(j))
-    fn = replace(body.main[1]["name"], " " => "+")
-    "https://www.ebi.ac.uk/biomodels/model/download/$(id)?filename=$(fn)"
-end
-
-function readSBMLBioModel(id; conv_f=DEFAULT_CONVERT_FUNCTION)
-    readSBMLFromURL(biomodel_url(id); conv_f)
-end
