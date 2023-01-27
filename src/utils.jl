@@ -427,3 +427,39 @@ function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
         " parameters.",
     )
 end
+
+function string_from_url(url; headers = [])
+    io = IOBuffer()
+    Downloads.download(url, io; headers)
+    String(take!(io))
+end
+
+function test_suite_url(case; level = 3, version = 2)
+    case_str = lpad(string(case), 5, '0')
+    "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/release/cases/semantic/$case_str/$case_str-sbml-l$(level)v$(version).xml"
+end
+
+DEFAULT_CONVERT_FUNCTION = doc -> begin
+    set_level_and_version(3, 2)(doc)
+    convert_promotelocals_expandfuns(doc)
+end
+
+function default_convert_function(level, version)
+    doc -> begin
+        set_level_and_version(level, version)(doc)
+        convert_promotelocals_expandfuns(doc)
+    end
+end
+
+function readSBMLFromURL(url; conv_f = DEFAULT_CONVERT_FUNCTION)
+    SBML.readSBMLFromString(string_from_url(url), conv_f)
+end
+
+function readSBMLTestCase(
+    case;
+    level = 3,
+    version = 2,
+    conv_f = default_convert_function(level, version),
+)
+    readSBMLFromURL(test_suite_url(case; level, version); conv_f)
+end

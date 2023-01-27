@@ -31,4 +31,5 @@ include("common.jl")
     include("writemodels.jl") # depends on `sbmlfiles` from loadmodels.jl
     include("loaddynamicmodels.jl")
     include("interpret.jl")
+    include("downloads.jl")
 end

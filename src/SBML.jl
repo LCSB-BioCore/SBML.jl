@@ -9,6 +9,7 @@ using DocStringExtensions
 using IfElse
 using SparseArrays
 using Unitful
+using Downloads
 
 include("types.jl")
 include("structs.jl")
