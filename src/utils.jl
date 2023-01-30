@@ -414,7 +414,8 @@ check_errors(
     doc::VPtr,
     error::Exception,
     report_severities = ["Fatal", "Error"],
-) = Bool(success) || get_error_messages(doc, error, report_severities)
+    throw_severities = ["Fatal", "Error"],
+) = Bool(success) || get_error_messages(doc, error, report_severities, throw_severities)
 
 """
 $(TYPEDSIGNATURES)
