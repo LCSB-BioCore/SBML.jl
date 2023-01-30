@@ -173,6 +173,7 @@ function _readSBML(
     fn::String,
     sbml_conversion,
     report_severities,
+    throw_severities,
 )::SBML.Model
     doc = ccall(sbml(symbol), VPtr, (Cstring,), fn)
     try
@@ -180,6 +181,7 @@ function _readSBML(
             doc,
             AssertionError("Opening SBML document has reported errors"),
             report_severities,
+            throw_severities,
         )
 
         sbml_conversion(doc)
@@ -207,8 +209,9 @@ single parameter, which is the C pointer to the loaded SBML document (C type
 [`set_level_and_version`](@ref), [`libsbml_convert`](@ref),
 [`convert_simplify_math`](@ref) and [`convert_promotelocals_expandfuns`](@ref).
 
-`report_severities` switches on and off reporting of certain errors; see the
-documentation of [`get_error_messages`](@ref) for details.
+`report_severities` and `throw_severities` switch on and off reporting of
+certain errors; see the documentation of [`get_error_messages`](@ref) for
+details.
 
 To read from a string instead of a file, use [`readSBMLFromString`](@ref).
 
@@ -223,10 +226,11 @@ end)
 function readSBML(
     fn::String,
     sbml_conversion = document -> nothing;
-    report_severities = ["Fatal", "Error"],
+    report_severities = ["Error"],
+    throw_severities = ["Fatal"],
 )::SBML.Model
     isfile(fn) || throw(AssertionError("$(fn) is not a file"))
-    _readSBML(:readSBML, fn, sbml_conversion, report_severities)
+    _readSBML(:readSBML, fn, sbml_conversion, report_severities, throw_severities)
 end
 
 """
@@ -240,9 +244,15 @@ used to read from a file instead of a string.
 readSBMLFromString(
     str::AbstractString,
     sbml_conversion = document -> nothing;
-    report_severities = ["Fatal", "Error"],
-)::SBML.Model =
-    _readSBML(:readSBMLFromString, String(str), sbml_conversion, report_severities)
+    report_severities = ["Error"],
+    throw_severities = ["Fatal"],
+)::SBML.Model = _readSBML(
+    :readSBMLFromString,
+    String(str),
+    sbml_conversion,
+    report_severities,
+    throw_severities,
+)
 
 get_notes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString)
 get_annotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)
