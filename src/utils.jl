@@ -367,26 +367,34 @@ Show the error messages reported by SBML in the `doc` document and throw the
 
 `report_severities` switches the reporting of certain error types defined by
 libsbml; you can choose from `["Fatal", "Error", "Warning", "Informational"]`.
+
+`throw_severities` selects errors on which the functions throws the `error`.
 """
-function get_error_messages(doc::VPtr, error::Exception, report_severities)
+function get_error_messages(
+    doc::VPtr,
+    error::Exception,
+    report_severities,
+    throw_severities,
+)
     n_errs = ccall(sbml(:SBMLDocument_getNumErrors), Cuint, (VPtr,), doc)
     do_throw = false
     for i = 1:n_errs
         err = ccall(sbml(:SBMLDocument_getError), VPtr, (VPtr, Cuint), doc, i - 1)
         msg = string(strip(get_string(err, :XMLError_getMessage)))
         sev = string(strip(get_string(err, :XMLError_getSeverityAsString)))
+
         # keywords from `libsbml/src/sbml/xml/XMLError.cpp` xmlSeverityStringTable:
         if sev == "Fatal"
             sev in report_severities && @error "SBML reported fatal error: $(msg)"
-            do_throw = true
         elseif sev == "Error"
             sev in report_severities && @error "SBML reported error: $(msg)"
-            do_throw = true
         elseif sev == "Warning"
             sev in report_severities && @warn "SBML reported warning: $(msg)"
         elseif sev == "Informational"
             sev in report_severities && @info "SBML reported: $(msg)"
         end
+
+        sev in throw_severities && (do_throw = true)
     end
     do_throw && throw(error)
     nothing
@@ -406,7 +414,8 @@ check_errors(
     doc::VPtr,
     error::Exception,
     report_severities = ["Fatal", "Error"],
-) = Bool(success) || get_error_messages(doc, error, report_severities)
+    throw_severities = ["Fatal", "Error"],
+) = Bool(success) || get_error_messages(doc, error, report_severities, throw_severities)
 
 """
 $(TYPEDSIGNATURES)
