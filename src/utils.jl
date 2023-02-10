@@ -437,38 +437,16 @@ function Base.show(io::IO, ::MIME"text/plain", m::SBML.Model)
     )
 end
 
-function string_from_url(url; headers = [])
-    io = IOBuffer()
-    Downloads.download(url, io; headers)
-    String(take!(io))
-end
+"""
+$(TYPEDSIGNATURES)
 
-function test_suite_url(case; level = 3, version = 2)
-    case_str = lpad(string(case), 5, '0')
-    "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/release/cases/semantic/$case_str/$case_str-sbml-l$(level)v$(version).xml"
-end
-
-DEFAULT_CONVERT_FUNCTION = doc -> begin
-    set_level_and_version(3, 2)(doc)
-    convert_promotelocals_expandfuns(doc)
-end
-
-function default_convert_function(level, version)
-    doc -> begin
-        set_level_and_version(level, version)(doc)
-        convert_promotelocals_expandfuns(doc)
+Get the URL of a SBML test case file in the `sbmlteam/sbml-test-suite` GitHub
+repository. The URL can be downloaded using `Downloads.download` or any other
+function. Preferably, users should implement a download cache and verify the
+consistency of the downloaded files before using them.
+"""
+test_suite_url(case::Int; ref = "release", level = 3, version = 2) =
+    let
+        case_str = lpad(string(case), 5, '0')
+        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/$ref/cases/semantic/$case_str/$case_str-sbml-l$(level)v$(version).xml"
     end
-end
-
-function readSBMLFromURL(url; conv_f = DEFAULT_CONVERT_FUNCTION)
-    SBML.readSBMLFromString(string_from_url(url), conv_f)
-end
-
-function readSBMLTestCase(
-    case;
-    level = 3,
-    version = 2,
-    conv_f = default_convert_function(level, version),
-)
-    readSBMLFromURL(test_suite_url(case; level, version); conv_f)
-end

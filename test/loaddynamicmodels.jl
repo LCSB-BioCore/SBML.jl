@@ -8,7 +8,7 @@ sbmlfiles = [
     # sbml_test_suite case 00001
     (
         joinpath(@__DIR__, "data", "00001-sbml-l3v2.xml"),
-        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00001/00001-sbml-l3v2.xml",
+        SBML.test_suite_url(1, level = 3, version = 2),
         "3e9a8bfe27343459d7a1e462fc3fd4eb2b01dc7b32af1db06a98f366287da01a",
         x -> nothing,
         1,
@@ -18,7 +18,7 @@ sbmlfiles = [
     # case 00001 in older level and version
     (
         joinpath(@__DIR__, "data", "00001-sbml-l2v1.xml"),
-        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00001/00001-sbml-l2v1.xml",
+        SBML.test_suite_url(1, level = 2, version = 1),
         "71a145c58b08e475d76bdec644589b2a55b5c5c2fee218274c91677c0f30b508",
         SBML.set_level_and_version(3, 2),
         1,
@@ -28,7 +28,7 @@ sbmlfiles = [
     # case 00057 with localParameters
     (
         joinpath(@__DIR__, "data", "00057-sbml-l3v2.xml"),
-        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00057/00057-sbml-l3v2.xml",
+        SBML.test_suite_url(57, level = 3, version = 2),
         "3e84e19cebbb79eea879847f541b1d22db6eb239f1f070ef4609f04c77688659",
         SBML.libsbml_convert("promoteLocalParameters"),
         2,
@@ -41,7 +41,7 @@ sbmlfiles = [
     # case 00025 with functionDefinition
     (
         joinpath(@__DIR__, "data", "00025-sbml-l3v2.xml"),
-        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00025/00025-sbml-l3v2.xml",
+        SBML.test_suite_url(25, level = 3, version = 2),
         "d3231ae3858d9e5dca1b106aa7b106a0caee9e6967ef8413de6b9acde9171c3e",
         SBML.libsbml_convert("expandFunctionDefinitions"),
         1,
@@ -51,7 +51,7 @@ sbmlfiles = [
     # case 00036 with initialAssignment
     (
         joinpath(@__DIR__, "data", "00037-sbml-l3v2.xml"),
-        "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/master/cases/semantic/00037/00037-sbml-l3v2.xml",
+        SBML.test_suite_url(37, level = 3, version = 2),
         "074f0caeaf2cdc390967bfdf06d80ccad519c648df7f421dc4e9c69e71551dff",
         SBML.libsbml_convert("expandInitialAssignments"),
         2,
