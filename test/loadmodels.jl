@@ -373,8 +373,13 @@ end
 
     @test_logs (:warn,) (:warn,) (:warn,) (:warn,) readSBML(
         joinpath(@__DIR__, "data", "01234-sbml-l3v2.xml"),
-        doc ->
-            libsbml_convert("expandInitialAssignments", ["Fatal", "Error", "Warning"])(doc),
+        doc -> libsbml_convert(
+            "expandInitialAssignments",
+            report_severities = ["Fatal", "Error", "Warning"],
+            throw_severities = ["Fatal", "Error"],
+        )(
+            doc,
+        ),
     )
 end
 
