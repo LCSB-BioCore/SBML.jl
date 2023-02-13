@@ -6,7 +6,12 @@ A converter to pass into [`readSBML`](@ref) that enforces certain SBML level
 and version.  `report_severities` switches on and off reporting of certain
 errors; see the documentation of [`get_error_messages`](@ref) for details.
 """
-set_level_and_version(level, version, report_severities = ["Fatal", "Error"]) =
+set_level_and_version(
+    level,
+    version,
+    report_severities = ["Fatal", "Error"],
+    throw_severities = ["Fatal", "Error"],
+) =
     doc -> check_errors(
         ccall(
             sbml(:SBMLDocument_setLevelAndVersion),
@@ -19,6 +24,7 @@ set_level_and_version(level, version, report_severities = ["Fatal", "Error"]) =
         doc,
         ErrorException("Setting of level and version did not succeed"),
         report_severities,
+        throw_severities,
     )
 
 """
@@ -32,6 +38,7 @@ errors; see the documentation of [`get_error_messages`](@ref) for details.
 libsbml_convert(
     conversion_options::AbstractVector{<:Pair{String,<:AbstractDict{String,String}}},
     report_severities = ["Fatal", "Error"],
+    throw_severities = ["Fatal", "Error"],
 ) =
     doc -> begin
         for (converter, options) in conversion_options
@@ -56,6 +63,7 @@ libsbml_convert(
                 doc,
                 ErrorException("Conversion returned errors"),
                 report_severities,
+                throw_severities,
             )
         end
     end
@@ -72,11 +80,16 @@ documentation of [`get_error_messages`](@ref) for details.
 readSBML("example.xml", libsbml_convert("stripPackage", package="layout"))
 ```
 """
-libsbml_convert(converter::String, report_severities = ["Fatal", "Error"]; kwargs...) =
-    libsbml_convert(
-        [converter => Dict{String,String}(string(k) => string(v) for (k, v) in kwargs)],
-        report_severities,
-    )
+libsbml_convert(
+    converter::String;
+    report_severities = ["Fatal", "Error"],
+    throw_severities = ["Fatal", "Error"],
+    kwargs...,
+) = libsbml_convert(
+    [converter => Dict{String,String}(string(k) => string(v) for (k, v) in kwargs)],
+    report_severities,
+    throw_severities,
+)
 
 """
 $(TYPEDSIGNATURES)
