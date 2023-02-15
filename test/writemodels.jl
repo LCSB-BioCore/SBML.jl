@@ -93,5 +93,7 @@ end
         # We can't compare the two strings verbatim because `writeSBML` may write some
         # elements of the annotation in a slightly different order.
         @test isnothing(model.annotation) == isnothing(round_trip_model.annotation)
+        @test model.sbo == round_trip_model.sbo
+        @test model.cv_terms == round_trip_model.cv_terms
     end
 end
