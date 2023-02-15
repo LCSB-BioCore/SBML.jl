@@ -208,6 +208,8 @@ Base.@kwdef struct Parameter
     units::Maybe{String} = nothing
     constant::Maybe{Bool} = nothing
     metaid::Maybe{String} = nothing
+    notes::Maybe{String} = nothing
+    annotation::Maybe{String} = nothing
     sbo::Maybe{String} = nothing
     cv_terms::Vector{CVTerm} = []
 end
@@ -389,9 +391,12 @@ $(TYPEDFIELDS)
 """
 Base.@kwdef struct FunctionDefinition
     name::Maybe{String} = nothing
+    metaid::Maybe{String} = nothing
     body::Maybe{Math} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
+    cv_terms::Vector{CVTerm} = []
 end
 
 """
@@ -479,4 +484,6 @@ Base.@kwdef struct Model
     volume_units::Maybe{String} = nothing
     notes::Maybe{String} = nothing
     annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
+    cv_terms::Vector{CVTerm} = []
 end

@@ -102,6 +102,8 @@ function set_parameter_ptr!(parameter_ptr::VPtr, id::String, parameter::Paramete
     set_string!(parameter_ptr, :Parameter_setUnits, parameter.units)
     add_cvterms!(parameter_ptr, parameter.cv_terms)
     set_bool!(parameter_ptr, :Parameter_setConstant, parameter.constant)
+    set_string!(parameter_ptr, :SBase_setAnnotationString, parameter.annotation)
+    set_string!(parameter_ptr, :SBase_setNotesString, parameter.notes)
     set_sbo_term!(parameter_ptr, parameter.sbo)
     return parameter_ptr
 end
@@ -429,6 +431,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         functiondefinition_ptr =
             ccall(sbml(:Model_createFunctionDefinition), VPtr, (VPtr,), model)
         set_string!(functiondefinition_ptr, :FunctionDefinition_setId, id)
+        set_string!(functiondefinition_ptr, :SBase_setMetaId, func_def.metaid)
+        add_cvterms!(functiondefinition_ptr, func_def.cv_terms)
         set_string!(functiondefinition_ptr, :FunctionDefinition_setName, func_def.name)
         isnothing(func_def.body) ||
             ccall(
@@ -441,6 +445,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             error("setting function definition math failed!")
         set_string!(functiondefinition_ptr, :SBase_setNotesString, func_def.notes)
         set_string!(functiondefinition_ptr, :SBase_setAnnotationString, func_def.annotation)
+        set_sbo_term!(functiondefinition_ptr, func_def.sbo)
     end
 
     # Add rules
@@ -506,8 +511,10 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     set_string!(model, :Model_setVolumeUnits, mdl.volume_units)
 
     # Notes and annotations
+    add_cvterms!(model, mdl.cv_terms)
     set_string!(model, :SBase_setNotesString, mdl.notes)
     set_string!(model, :SBase_setAnnotationString, mdl.annotation)
+    set_sbo_term!(model, mdl.sbo)
 
     # We can finally return the model
     return model
