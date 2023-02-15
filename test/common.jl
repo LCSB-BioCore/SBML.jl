@@ -14,7 +14,6 @@ const NON_ANNOTATED_TYPES = Union{
     SBML.Objective,
     SBML.RateRule,
     SBML.Trigger,
-    SBML.UnitDefinition,
 }
 function Base.:(==)(a::T, b::T) where {T<:NON_ANNOTATED_TYPES}
     return getproperties(a) == getproperties(b)
@@ -26,9 +25,11 @@ const ANNOTATED_TYPES = Union{
     SBML.Compartment,
     SBML.FunctionDefinition,
     SBML.GeneProduct,
+    SBML.Model,
     SBML.Parameter,
     SBML.Reaction,
     SBML.Species,
+    SBML.UnitDefinition,
 }
 function Base.:(==)(a::T, b::T) where {T<:ANNOTATED_TYPES}
     nta = getproperties(a)

@@ -298,6 +298,8 @@ get_parameter(p::VPtr)::Pair{String,Parameter} =
         units = get_optional_string(p, :Parameter_getUnits),
         constant = get_optional_bool(p, :Parameter_isSetConstant, :Parameter_getConstant),
         metaid = get_optional_string(p, :SBase_getMetaId),
+        notes = get_notes(p),
+        annotation = get_annotation(p),
         sbo = get_sbo_term(p),
         cv_terms = get_cv_terms(p),
     )
@@ -611,9 +613,12 @@ function get_model(mdl::VPtr)::SBML.Model
         function_definitions[get_string(fd, :FunctionDefinition_getId)] =
             FunctionDefinition(
                 name = get_optional_string(fd, :FunctionDefinition_getName),
+                metaid = get_optional_string(fd, :SBase_getMetaId),
                 body = def,
                 notes = get_notes(fd),
                 annotation = get_annotation(fd),
+                sbo = get_sbo_term(fd),
+                cv_terms = get_cv_terms(fd),
             )
     end
 
@@ -744,5 +749,7 @@ function get_model(mdl::VPtr)::SBML.Model
         volume_units = get_optional_string(mdl, :Model_getVolumeUnits),
         notes = get_notes(mdl),
         annotation = get_annotation(mdl),
+        sbo = get_sbo_term(mdl),
+        cv_terms = get_cv_terms(mdl),
     )
 end

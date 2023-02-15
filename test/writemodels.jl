@@ -66,32 +66,6 @@ end
         # re-read the unmodified model, fix constantness and compare again
         model = readSBML(file)
         fix_constant!(model)
-        @test model.parameters == round_trip_model.parameters
-        @test model.units == round_trip_model.units
-        @test model.compartments == round_trip_model.compartments
-        @test model.species == round_trip_model.species
-        @test model.initial_assignments == round_trip_model.initial_assignments
-        @test model.rules == round_trip_model.rules
-        @test model.constraints == round_trip_model.constraints
-        @test model.reactions == round_trip_model.reactions
-        @test model.objectives == round_trip_model.objectives
-        @test model.active_objective == round_trip_model.active_objective
-        @test model.gene_products == round_trip_model.gene_products
-        @test model.function_definitions == round_trip_model.function_definitions
-        @test model.events == round_trip_model.events
-        @test model.name == round_trip_model.name
-        @test model.id == round_trip_model.id
-        @test model.metaid == round_trip_model.metaid
-        @test model.conversion_factor == round_trip_model.conversion_factor
-        @test model.area_units == round_trip_model.area_units
-        @test model.extent_units == round_trip_model.extent_units
-        @test model.length_units == round_trip_model.length_units
-        @test model.substance_units == round_trip_model.substance_units
-        @test model.time_units == round_trip_model.time_units
-        @test model.volume_units == round_trip_model.volume_units
-        @test model.notes == round_trip_model.notes
-        # We can't compare the two strings verbatim because `writeSBML` may write some
-        # elements of the annotation in a slightly different order.
-        @test isnothing(model.annotation) == isnothing(round_trip_model.annotation)
+        @test model == round_trip_model
     end
 end
