@@ -106,28 +106,24 @@ function get_cv_term(cvt::VPtr)
     qual_type = ccall(sbml(:CVTerm_getQualifierType), Cint, (VPtr,), cvt)
 
     return CVTerm(
-        biological_qualifier = qual_type == 1 ?
-                               Symbol(
-            unsafe_string(
-                ccall(
-                    sbml(:BiolQualifierType_toString),
-                    Cstring,
-                    (Cint,),
-                    ccall(sbml(:CVTerm_getBiologicalQualifierType), Cint, (VPtr,), cvt),
-                ),
-            ),
-        ) : nothing,
-        model_qualifier = qual_type == 0 ?
-                          Symbol(
-            unsafe_string(
-                ccall(
-                    sbml(:ModelQualifierType_toString),
-                    Cstring,
-                    (Cint,),
-                    ccall(sbml(:CVTerm_getModelQualifierType), Cint, (VPtr,), cvt),
-                ),
-            ),
-        ) : nothing,
+        biological_qualifier = qual_type != 1 ? nothing :
+                               let cstr = ccall(
+                sbml(:BiolQualifierType_toString),
+                Cstring,
+                (Cint,),
+                ccall(sbml(:CVTerm_getBiologicalQualifierType), Cint, (VPtr,), cvt),
+            )
+            cstr == C_NULL ? nothing : Symbol(unsafe_string(cstr))
+        end,
+        model_qualifier = qual_type != 0 ? nothing :
+                          let cstr = ccall(
+                sbml(:ModelQualifierType_toString),
+                Cstring,
+                (Cint,),
+                ccall(sbml(:CVTerm_getModelQualifierType), Cint, (VPtr,), cvt),
+            )
+            cstr == C_NULL ? nothing : Symbol(unsafe_string(cstr))
+        end,
         resource_uris = String[
             unsafe_string(
                 ccall(sbml(:CVTerm_getResourceURI), Cstring, (VPtr, Cuint), cvt, j - 1),
