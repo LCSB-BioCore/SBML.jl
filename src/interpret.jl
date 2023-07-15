@@ -21,7 +21,8 @@ end
 sbmlLog(x) = sbmlLog(10, x)
 sbmlLog(base, x) = log(base, x)
 
-sbmlPower(x, y) = x^float(y)
+sbmlPower(x, y::Int) = x^float(y)
+sbmlPower(x, y) = x^y
 sbmlRoot(x) = sqrt(x)
 sbmlRoot(power, x) = x^(1 / power)
 
