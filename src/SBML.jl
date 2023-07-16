@@ -6,7 +6,6 @@ module SBML
 using SBML_jll, Libdl
 
 using DocStringExtensions
-using IfElse
 using SparseArrays
 using Unitful
 
