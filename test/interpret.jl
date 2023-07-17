@@ -35,4 +35,5 @@
 
     @variables x
     @test isequal(SBML.sbmlPower(1, x.val), 1^x.val)
+    @test SBML.sbmlPower(Int(2), Int(-2)) == 0.25
 end
