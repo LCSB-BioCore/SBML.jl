@@ -32,4 +32,7 @@
     test =
         SBML.MathApply("gt", SBML.Math[SBML.MathVal(2), SBML.MathVal(1), SBML.MathVal(1)])
     @test !SBML.interpret_math(test)
+
+    @variables x
+    @test isequal(SBML.sbmlPower(1, x.val), 1^x.val)
 end
