@@ -7,7 +7,7 @@ function sbmlPiecewise(args...)
     elseif length(args) >= 3
         IfElse.ifelse(args[2], args[1], sbmlPiecewise(args[3:end]...))
     else
-        throw(DomainError(args, "malformed piecewise SBML function"))
+        IfElse.ifelse(args[2], args[1], NaN)
     end
 end
 
