@@ -58,6 +58,28 @@ sbmlfiles = [
         ("reaction1", SBML.MathApply("*", [SBML.MathApply("*", [compartment, k2]), S1])),
         ("S1", 0.01125),
     ),
+    # case 00928 with an ID-less event
+    (
+        joinpath(@__DIR__, "data", "00928-sbml-l3v2.xml"),
+        SBML.test_suite_url(928, level = 3, version = 2),
+        "d2a95aee820712696a2056bb09fd7d3befcd99e331809105e12ee081073a4985",
+        x -> nothing,
+        1,
+        (
+            "reaction1",
+            SBML.MathApply(
+                "*",
+                SBML.Math[
+                    SBML.MathApply(
+                        "*",
+                        SBML.Math[SBML.MathIdent("C"), SBML.MathIdent("k1")],
+                    ),
+                    SBML.MathIdent("S1"),
+                ],
+            ),
+        ),
+        ("S1", 0.0),
+    ),
 ]
 
 @testset "Loading of models from sbml_test_suite" begin

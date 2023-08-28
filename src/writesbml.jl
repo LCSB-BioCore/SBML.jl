@@ -456,7 +456,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Add events
     for (id, event) in mdl.events
         event_ptr = ccall(sbml(:Model_createEvent), VPtr, (VPtr,), model)
-        set_string!(event_ptr, :Event_setId, id)
+        isnothing(id) || set_string!(event_ptr, :Event_setId, id)
         set_bool!(
             event_ptr,
             :Event_setUseValuesFromTriggerTime,
