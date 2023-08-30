@@ -630,7 +630,7 @@ function get_model(mdl::VPtr)::SBML.Model
     end
 
     # events
-    events = Dict{String,Event}()
+    events = Pair{Maybe{String},Event}[]
     num_events = ccall(sbml(:Model_getNumEvents), Cuint, (VPtr,), mdl)
     for n = 0:(num_events-1)
         ev = ccall(sbml(:Model_getEvent), VPtr, (VPtr, Cuint), mdl, n)
@@ -663,8 +663,9 @@ function get_model(mdl::VPtr)::SBML.Model
             math = trig_math_ptr == C_NULL ? nothing : parse_math(trig_math_ptr),
         )
 
-        events[unsafe_string(ccall(sbml(:Event_getId), Cstring, (VPtr,), ev))] =
-            SBML.Event(;
+        push!(
+            events,
+            get_optional_string(ev, :Event_getId) => SBML.Event(;
                 use_values_from_trigger_time = ccall(
                     sbml(:Event_getUseValuesFromTriggerTime),
                     Cint,
@@ -674,7 +675,8 @@ function get_model(mdl::VPtr)::SBML.Model
                 name = get_optional_string(ev, :Event_getName),
                 trigger,
                 event_assignments,
-            )
+            ),
+        )
     end
 
     # Rules

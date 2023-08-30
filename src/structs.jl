@@ -471,7 +471,7 @@ Base.@kwdef struct Model
     active_objective::Maybe{String} = nothing
     gene_products::Dict{String,GeneProduct} = Dict()
     function_definitions::Dict{String,FunctionDefinition} = Dict()
-    events::Dict{String,Event} = Dict()
+    events::Vector{Pair{Maybe{String},Event}} = Pair{Maybe{String},Event}[]
     name::Maybe{String} = nothing
     id::Maybe{String} = nothing
     metaid::Maybe{String} = nothing
