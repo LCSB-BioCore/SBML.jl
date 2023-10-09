@@ -11,7 +11,6 @@ makedocs(
     authors = "The developers of SBML.jl",
     linkcheck = !("skiplinks" in ARGS),
     pages = ["Home" => "index.md", "Reference" => "functions.md"],
-    strict = [:missing_docs, :cross_references],
 )
 
 deploydocs(
