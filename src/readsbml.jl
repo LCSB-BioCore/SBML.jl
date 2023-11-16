@@ -412,9 +412,9 @@ function get_model(mdl::VPtr)::SBML.Model
                 ccall(sbml(:Species_getInitialConcentration), Cdouble, (VPtr,), sp)
             end,
             substance_units = get_optional_string(sp, :Species_getSubstanceUnits),
-	    conversion_factor = if (
+            conversion_factor = if (
                 ccall(sbml(:Species_getConversionFactor), Cstring, (VPtr,), sp) != C_NULL
-            )   
+            )
                 get_string(sp, :Species_getConversionFactor)
             end,
             only_substance_units = get_optional_bool(
