@@ -354,6 +354,7 @@ Base.@kwdef struct Species
     initial_amount::Maybe{Float64} = nothing
     initial_concentration::Maybe{Float64} = nothing
     substance_units::Maybe{String} = nothing
+    conversion_factor::Maybe{String} = nothing
     only_substance_units::Maybe{Bool} = nothing
     constant::Maybe{Bool} = nothing
     metaid::Maybe{String} = nothing

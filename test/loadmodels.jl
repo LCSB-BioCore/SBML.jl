@@ -134,6 +134,15 @@ sbmlfiles = [
         3,
         fill(Inf, 3),
     ),
+    # has conversionFactor species attribute
+    (
+        joinpath(@__DIR__, "data", "00976-sbml-l3v2.xml"),
+        SBML.test_suite_url(976, level = 3, version = 2),
+        "6cec83157cd81a585597c02f225e814a9ce2a1c9255a039b3083c97cfe02dd00",
+        2,
+        3,
+        fill(Inf, 3),
+    ),
     # has the Avogadro "constant"
     (
         joinpath(@__DIR__, "data", "01323-sbml-l3v2.xml"),
@@ -426,6 +435,9 @@ end
     @test isnothing(m.time_units)
     @test isnothing(m.volume_units)
     @test isnothing(m.active_objective)
+
+    m = readSBML(joinpath(@__DIR__, "data", "00976-sbml-l3v2.xml"))
+    @test m.species["S1"].conversion_factor == "S1conv"
 end
 
 @testset "names and identifiers of objects" begin
