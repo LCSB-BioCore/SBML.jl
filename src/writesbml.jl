@@ -415,6 +415,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             species.initial_concentration,
         )
         set_string!(species_ptr, :Species_setSubstanceUnits, species.substance_units)
+        set_string!(species_ptr, :Species_setConversionFactor, species.conversion_factor)
         set_bool!(
             species_ptr,
             :Species_setHasOnlySubstanceUnits,
