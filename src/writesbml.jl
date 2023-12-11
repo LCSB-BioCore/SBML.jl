@@ -567,8 +567,8 @@ function _create_doc(mdl::Model)::VPtr
     fbc_required =
         !isempty(mdl.objectives) ||
         !isempty(mdl.gene_products) ||
-        any(!isnothing, (sp.formula for (_, sp) in mdl.species)) ||
-        any(!isnothing, (sp.charge for (_, sp) in mdl.species))
+        any(!isnothing(sp.formula) for (_, sp) in mdl.species) ||
+        any(!isnothing(sp.charge) for (_, sp) in mdl.species)
 
     groups_required = !isempty(mdl.groups)
 
