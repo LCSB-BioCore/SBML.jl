@@ -1,10 +1,13 @@
 # Level/Version for the document
 const WRITESBML_DEFAULT_LEVEL = 3
 const WRITESBML_DEFAULT_VERSION = 2
-# Level/Version/Package version for the package
-const WRITESBML_PKG_DEFAULT_LEVEL = 3
-const WRITESBML_PKG_DEFAULT_VERSION = 1
-const WRITESBML_PKG_DEFAULT_PKGVERSION = 2
+# Level/Version/Package version for the packages
+const WRITESBML_FBC_DEFAULT_LEVEL = 3
+const WRITESBML_FBC_DEFAULT_VERSION = 1
+const WRITESBML_FBC_DEFAULT_PKGVERSION = 2
+const WRITESBML_GROUPS_DEFAULT_LEVEL = 3
+const WRITESBML_GROUPS_DEFAULT_VERSION = 1
+const WRITESBML_GROUPS_DEFAULT_PKGVERSION = 1
 
 
 function create_gene_product_association(
@@ -552,53 +555,107 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 end
 
 function _create_doc(mdl::Model)::VPtr
-    # TODO groups extension namespaces here
-    doc = if isempty(mdl.gene_products) && isempty(mdl.objectives) && isempty(mdl.species)
-        ccall(
-            sbml(:SBMLDocument_createWithLevelAndVersion),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
-    else
-        # Get fbc registry entry
-        sbmlext = ccall(sbml(:SBMLExtensionRegistry_getExtension), VPtr, (Cstring,), "fbc")
+    # Create a namespaces object
+    sbmlns = ccall(
+        sbml(:SBMLNamespaces_create),
+        VPtr,
+        (Cuint, Cuint),
+        WRITESBML_DEFAULT_LEVEL,
+        WRITESBML_DEFAULT_VERSION,
+    )
+
+    fbc_required =
+        !isempty(mdl.objectives) ||
+        !isempty(mdl.gene_products) ||
+        any(!isnothing, (sp.formula for (_, sp) in mdl.species)) ||
+        any(!isnothing, (sp.charge for (_, sp) in mdl.species))
+
+    groups_required = !isempty(mdl.groups)
+
+    # Test if we have FBC and add it if required
+    if fbc_required
+        # we have FBC features, let's add FBC.
+        fbc_ext = ccall(sbml(:SBMLExtensionRegistry_getExtension), VPtr, (Cstring,), "fbc")
+        fbc_ns = ccall(sbml(:XMLNamespaces_create), VPtr, ())
         # create the sbml namespaces object with fbc
-        fbc = ccall(sbml(:XMLNamespaces_create), VPtr, ())
-        # create the sbml namespaces object with fbc
-        uri = ccall(
+        fbc_uri = ccall(
             sbml(:SBMLExtension_getURI),
             Cstring,
             (VPtr, Cuint, Cuint, Cuint),
             sbmlext,
-            WRITESBML_PKG_DEFAULT_LEVEL,
-            WRITESBML_PKG_DEFAULT_VERSION,
-            WRITESBML_PKG_DEFAULT_PKGVERSION,
+            WRITESBML_FBC_DEFAULT_LEVEL,
+            WRITESBML_FBC_DEFAULT_VERSION,
+            WRITESBML_FBC_DEFAULT_PKGVERSION,
         )
-        ccall(sbml(:XMLNamespaces_add), Cint, (VPtr, Cstring, Cstring), fbc, uri, "fbc")
-        # Create SBML namespace with fbc package
-        sbmlns = ccall(
-            sbml(:SBMLNamespaces_create),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
-        ccall(sbml(:SBMLNamespaces_addPackageNamespaces), Cint, (VPtr, VPtr), sbmlns, fbc)
-        # Create document from SBML namespace
-        d = ccall(sbml(:SBMLDocument_createWithSBMLNamespaces), VPtr, (VPtr,), sbmlns)
-        # Do not require fbc package
         ccall(
-            sbml(:SBMLDocument_setPackageRequired),
+            sbml(:XMLNamespaces_add),
             Cint,
-            (VPtr, Cstring, Cint),
-            d,
+            (VPtr, Cstring, Cstring),
+            fbc_ns,
+            fbc_uri,
             "fbc",
-            false,
         )
-        d
+        ccall(
+            sbml(:SBMLNamespaces_addPackageNamespaces),
+            Cint,
+            (VPtr, VPtr),
+            sbmlns,
+            fbc_ns,
+        )
     end
+
+    # Again, test if we have groups and add it (this might deserve its own function now)
+    if groups_required
+        fbc_ext =
+            ccall(sbml(:SBMLExtensionRegistry_getExtension), VPtr, (Cstring,), "groups")
+        fbc_ns = ccall(sbml(:XMLNamespaces_create), VPtr, ())
+        # create the sbml namespaces object with fbc
+        fbc_uri = ccall(
+            sbml(:SBMLExtension_getURI),
+            Cstring,
+            (VPtr, Cuint, Cuint, Cuint),
+            sbmlext,
+            WRITESBML_GROUPS_DEFAULT_LEVEL,
+            WRITESBML_GROUPS_DEFAULT_VERSION,
+            WRITESBML_GROUPS_DEFAULT_PKGVERSION,
+        )
+        ccall(
+            sbml(:XMLNamespaces_add),
+            Cint,
+            (VPtr, Cstring, Cstring),
+            fbc_ns,
+            fbc_uri,
+            "groups",
+        )
+        ccall(
+            sbml(:SBMLNamespaces_addPackageNamespaces),
+            Cint,
+            (VPtr, VPtr),
+            sbmlns,
+            fbc_ns,
+        )
+    end
+
+    # Now, create document with the required SBML namespaces
+    doc = ccall(sbml(:SBMLDocument_createWithSBMLNamespaces), VPtr, (VPtr,), sbmlns)
+
+    # Add notes about required packages
+    fbc_required && ccall(
+        sbml(:SBMLDocument_setPackageRequired),
+        Cint,
+        (VPtr, Cstring, Cint),
+        doc,
+        "fbc",
+        false,
+    )
+    groups_required && ccall(
+        sbml(:SBMLDocument_setPackageRequired),
+        Cint,
+        (VPtr, Cstring, Cint),
+        doc,
+        "groups",
+        false,
+    )
     return doc
 end
 
