@@ -781,6 +781,7 @@ function get_model(mdl::VPtr)::SBML.Model
         gene_products,
         function_definitions,
         events,
+        groups,
         name = get_optional_string(mdl, :Model_getName),
         id = get_optional_string(mdl, :Model_getId),
         metaid = get_metaid(mdl),
