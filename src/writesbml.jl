@@ -505,13 +505,10 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     end
 
     # Add groups
-    groups_plugin == C_NULL ||
-        isempty(mdl.groups) ||
-        set_bool!(groups_plugin, :GroupsModelPlugin_setStrict, true)
     for (id, group) in mdl.groups
         group_ptr =
             ccall(sbml(:GroupsModelPlugin_createGroup), VPtr, (VPtr,), groups_plugin)
-        set_string!(group_ptr, :Group_setId, group.id)
+        set_string!(group_ptr, :Group_setId, id)
         set_metaid!(group_ptr, group.metaid)
         set_string!(group_ptr, :Group_setKindAsString, group.kind)
         set_string!(group_ptr, :Group_setName, group.name)
@@ -525,12 +522,12 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             set_notes_string!(mem_ptr, mem.notes)
             set_annotation_string!(mem_ptr, mem.annotation)
             set_sbo_term!(mem_ptr, mem.sbo)
-            set_cv_terms!(mem_ptr, mem.cv_terms)
+            add_cvterms!(mem_ptr, mem.cv_terms)
         end
         set_notes_string!(group_ptr, group.notes)
         set_annotation_string!(group_ptr, group.annotation)
         set_sbo_term!(group_ptr, group.sbo)
-        set_cv_terms!(group_ptr, group.cv_terms)
+        add_cvterms!(group_ptr, group.cv_terms)
     end
 
     # Add conversion factor
