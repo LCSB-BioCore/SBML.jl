@@ -513,7 +513,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             ccall(sbml(:GroupsModelPlugin_createGroup), VPtr, (VPtr,), groups_plugin)
         set_string!(group_ptr, :Group_setId, group.id)
         set_metaid!(group_ptr, group.metaid)
-        set_string!(group_ptr, :Group_setKind, group.kind)
+        set_string!(group_ptr, :Group_setKindAsString, group.kind)
         set_string!(group_ptr, :Group_setName, group.name)
         for mem in group.members
             mem_ptr = ccall(sbml(:Group_createMember), VPtr, (VPtr,), group_ptr)

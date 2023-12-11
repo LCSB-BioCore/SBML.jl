@@ -756,7 +756,7 @@ function get_model(mdl::VPtr)::SBML.Model
 
             groups[get_string(grp, :Group_getId)] = Group(;
                 metaid = get_metaid(grp),
-                kind = get_optional_string(grp, :Group_getKind),
+                kind = get_optional_string(grp, :Group_getKindAsString),
                 name = get_optional_string(grp, :Group_getName),
                 members,
                 notes = get_notes(grp),
