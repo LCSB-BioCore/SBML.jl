@@ -485,11 +485,11 @@ end
 """
 $(TYPEDEF)
 
-Structure that collects the model-related data. Contains `parameters`, `units`,
-`compartments`, `species` and `reactions` and `gene_products`, and additional
-`notes` and `annotation` (also present internally in some of the data fields).
-The contained dictionaries are indexed by identifiers of the corresponding
-objects.
+Julia representation of SBML Model structure, with the reactions, species,
+units, compartments, and many other things.
+
+Where available, all objects are contained in dictionaries indexed by SBML
+identifiers.
 
 # Fields
 $(TYPEDFIELDS)
