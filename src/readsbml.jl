@@ -252,6 +252,7 @@ readSBMLFromString(
 
 get_notes(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getNotesString)
 get_annotation(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getAnnotationString)
+get_metaid(x::VPtr)::Maybe{String} = get_optional_string(x, :SBase_getMetaId)
 
 """
 $(TYPEDSIGNATURES)
@@ -293,7 +294,7 @@ get_parameter(p::VPtr)::Pair{String,Parameter} =
         value = get_optional_double(p, :Parameter_isSetValue, :Parameter_getValue),
         units = get_optional_string(p, :Parameter_getUnits),
         constant = get_optional_bool(p, :Parameter_isSetConstant, :Parameter_getConstant),
-        metaid = get_optional_string(p, :SBase_getMetaId),
+        metaid = get_metaid(p),
         notes = get_notes(p),
         annotation = get_annotation(p),
         sbo = get_sbo_term(p),
@@ -364,7 +365,7 @@ function get_model(mdl::VPtr)::SBML.Model
             ),
             size = get_optional_double(co, :Compartment_isSetSize, :Compartment_getSize),
             units = get_optional_string(co, :Compartment_getUnits),
-            metaid = get_optional_string(co, :SBase_getMetaId),
+            metaid = get_metaid(co),
             notes = get_notes(co),
             annotation = get_annotation(co),
             sbo = get_sbo_term(co),
@@ -423,7 +424,7 @@ function get_model(mdl::VPtr)::SBML.Model
                 :Species_getHasOnlySubstanceUnits,
             ),
             constant = get_optional_bool(sp, :Species_isSetConstant, :Species_getConstant),
-            metaid = get_optional_string(sp, :SBase_getMetaId),
+            metaid = get_metaid(sp),
             notes = get_notes(sp),
             annotation = get_annotation(sp),
             sbo = get_sbo_term(sp),
@@ -567,7 +568,7 @@ function get_model(mdl::VPtr)::SBML.Model
             gene_product_association = association,
             kinetic_math = math,
             reversible,
-            metaid = get_optional_string(re, :SBase_getMetaId),
+            metaid = get_metaid(re),
             notes = get_notes(re),
             annotation = get_annotation(re),
             sbo = get_sbo_term(re),
@@ -593,7 +594,7 @@ function get_model(mdl::VPtr)::SBML.Model
                 gene_products[id] = GeneProduct(
                     label = get_string(gp, :GeneProduct_getLabel),
                     name = get_optional_string(gp, :GeneProduct_getName),
-                    metaid = get_optional_string(gp, :SBase_getMetaId),
+                    metaid = get_metaid(gp),
                     notes = get_notes(gp),
                     annotation = get_annotation(gp),
                     sbo = get_sbo_term(gp),
@@ -614,7 +615,7 @@ function get_model(mdl::VPtr)::SBML.Model
         function_definitions[get_string(fd, :FunctionDefinition_getId)] =
             FunctionDefinition(
                 name = get_optional_string(fd, :FunctionDefinition_getName),
-                metaid = get_optional_string(fd, :SBase_getMetaId),
+                metaid = get_metaid(fd),
                 body = def,
                 notes = get_notes(fd),
                 annotation = get_annotation(fd),
@@ -625,8 +626,8 @@ function get_model(mdl::VPtr)::SBML.Model
 
     initial_assignments = Dict{String,Math}()
     num_ias = ccall(sbml(:Model_getNumInitialAssignments), Cuint, (VPtr,), mdl)
-    for n = 0:(num_ias-1)
-        ia = ccall(sbml(:Model_getInitialAssignment), VPtr, (VPtr, Cuint), mdl, n)
+    for i = 0:(num_ias-1)
+        ia = ccall(sbml(:Model_getInitialAssignment), VPtr, (VPtr, Cuint), mdl, i)
         sym = ccall(sbml(:InitialAssignment_getSymbol), Cstring, (VPtr,), ia)
         math_ptr = ccall(sbml(:InitialAssignment_getMath), VPtr, (VPtr,), ia)
         if math_ptr != C_NULL
@@ -637,8 +638,8 @@ function get_model(mdl::VPtr)::SBML.Model
     # events
     events = Pair{Maybe{String},Event}[]
     num_events = ccall(sbml(:Model_getNumEvents), Cuint, (VPtr,), mdl)
-    for n = 0:(num_events-1)
-        ev = ccall(sbml(:Model_getEvent), VPtr, (VPtr, Cuint), mdl, n)
+    for i = 0:(num_events-1)
+        ev = ccall(sbml(:Model_getEvent), VPtr, (VPtr, Cuint), mdl, i)
 
         event_assignments = EventAssignment[]
         for j = 0:(ccall(sbml(:Event_getNumEventAssignments), Cuint, (VPtr,), ev)-1)
@@ -684,11 +685,11 @@ function get_model(mdl::VPtr)::SBML.Model
         )
     end
 
-    # Rules
+    # rules
     rules = Rule[]
     num_rules = ccall(sbml(:Model_getNumRules), Cuint, (VPtr,), mdl)
-    for n = 0:(num_rules-1)
-        rule_ptr = ccall(sbml(:Model_getRule), VPtr, (VPtr, Cuint), mdl, n)
+    for i = 0:(num_rules-1)
+        rule_ptr = ccall(sbml(:Model_getRule), VPtr, (VPtr, Cuint), mdl, i)
         type = if ccall(sbml(:Rule_isAlgebraic), Bool, (VPtr,), rule_ptr)
             AlgebraicRule
         elseif ccall(sbml(:Rule_isAssignment), Bool, (VPtr,), rule_ptr)
@@ -711,11 +712,11 @@ function get_model(mdl::VPtr)::SBML.Model
         end
     end
 
-    # Constraints
+    # constraints
     constraints = Constraint[]
     num_constraints = ccall(sbml(:Model_getNumConstraints), Cuint, (VPtr,), mdl)
-    for n = 0:(num_constraints-1)
-        constraint_ptr = ccall(sbml(:Model_getConstraint), VPtr, (VPtr, Cuint), mdl, n)
+    for i = 0:(num_constraints-1)
+        constraint_ptr = ccall(sbml(:Model_getConstraint), VPtr, (VPtr, Cuint), mdl, i)
         xml_ptr = ccall(sbml(:Constraint_getMessage), VPtr, (VPtr,), constraint_ptr)
         message = get_string_from_xmlnode(xml_ptr)
         math_ptr = ccall(sbml(:Constraint_getMath), VPtr, (VPtr,), constraint_ptr)
@@ -742,7 +743,7 @@ function get_model(mdl::VPtr)::SBML.Model
         events,
         name = get_optional_string(mdl, :Model_getName),
         id = get_optional_string(mdl, :Model_getId),
-        metaid = get_optional_string(mdl, :SBase_getMetaId),
+        metaid = get_metaid(mdl),
         conversion_factor = get_optional_string(mdl, :Model_getConversionFactor),
         area_units = get_optional_string(mdl, :Model_getAreaUnits),
         extent_units = get_optional_string(mdl, :Model_getExtentUnits),

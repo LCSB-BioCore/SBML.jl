@@ -97,13 +97,13 @@ end
 function set_parameter_ptr!(parameter_ptr::VPtr, id::String, parameter::Parameter)::VPtr
     set_string!(parameter_ptr, :Parameter_setId, id)
     set_string!(parameter_ptr, :Parameter_setName, parameter.name)
-    set_string!(parameter_ptr, :SBase_setMetaId, parameter.metaid)
+    set_metaid!(parameter_ptr, parameter.metaid)
     set_double!(parameter_ptr, :Parameter_setValue, parameter.value)
     set_string!(parameter_ptr, :Parameter_setUnits, parameter.units)
     add_cvterms!(parameter_ptr, parameter.cv_terms)
     set_bool!(parameter_ptr, :Parameter_setConstant, parameter.constant)
-    set_string!(parameter_ptr, :SBase_setAnnotationString, parameter.annotation)
-    set_string!(parameter_ptr, :SBase_setNotesString, parameter.notes)
+    set_annotation_string!(parameter_ptr, parameter.annotation)
+    set_notes_string!(parameter_ptr, parameter.notes)
     set_sbo_term!(parameter_ptr, parameter.sbo)
     return parameter_ptr
 end
@@ -138,6 +138,9 @@ function set_double!(ptr::VPtr, fn_sym::Symbol, x::Maybe{Float64})
         error("$fn_sym failed for value $x !")
 end
 
+set_annotation_string!(ptr, x) = set_string!(ptr, :SBase_setAnnotationString, x)
+set_notes_string!(ptr, x) = set_string!(ptr, :SBase_setNotesString, x)
+set_metaid!(ptr, x) = set_string!(ptr, :SBase_setMetaId, x)
 set_sbo_term!(ptr, x) = set_string!(ptr, :SBase_setSBOTermID, x)
 
 add_cvterms!(ptr, x) = add_cvterm!.(Ref(ptr), x)
@@ -202,7 +205,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Set ids and name
     set_string!(model, :Model_setId, mdl.id)
-    set_string!(model, :SBase_setMetaId, mdl.metaid)
+    set_metaid!(model, mdl.metaid)
     set_string!(model, :Model_setName, mdl.name)
 
     # Add parameters
@@ -221,7 +224,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         compartment_ptr = ccall(sbml(:Model_createCompartment), VPtr, (VPtr,), model)
         set_string!(compartment_ptr, :Compartment_setId, id)
         set_string!(compartment_ptr, :Compartment_setName, compartment.name)
-        set_string!(compartment_ptr, :SBase_setMetaId, compartment.metaid)
+        set_metaid!(compartment_ptr, compartment.metaid)
         set_bool!(compartment_ptr, :Compartment_setConstant, compartment.constant)
         set_uint!(
             compartment_ptr,
@@ -231,8 +234,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         set_double!(compartment_ptr, :Compartment_setSize, compartment.size)
         set_string!(compartment_ptr, :Compartment_setUnits, compartment.units)
         add_cvterms!(compartment_ptr, compartment.cv_terms)
-        set_string!(compartment_ptr, :SBase_setNotesString, compartment.notes)
-        set_string!(compartment_ptr, :SBase_setAnnotationString, compartment.annotation)
+        set_notes_string!(compartment_ptr, compartment.notes)
+        set_annotation_string!(compartment_ptr, compartment.annotation)
         set_sbo_term!(compartment_ptr, compartment.sbo)
     end
 
@@ -246,10 +249,10 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         set_string!(geneproduct_ptr, :GeneProduct_setId, id)
         set_string!(geneproduct_ptr, :GeneProduct_setLabel, gene_product.label)
         set_string!(geneproduct_ptr, :GeneProduct_setName, gene_product.name)
-        set_string!(geneproduct_ptr, :SBase_setMetaId, gene_product.metaid)
+        set_metaid!(geneproduct_ptr, gene_product.metaid)
         add_cvterms!(geneproduct_ptr, gene_product.cv_terms)
-        set_string!(geneproduct_ptr, :SBase_setNotesString, gene_product.notes)
-        set_string!(geneproduct_ptr, :SBase_setAnnotationString, gene_product.annotation)
+        set_notes_string!(geneproduct_ptr, gene_product.notes)
+        set_annotation_string!(geneproduct_ptr, gene_product.annotation)
         set_sbo_term!(geneproduct_ptr, gene_product.sbo)
     end
 
@@ -359,10 +362,10 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 :GeneProductAssociation_createGeneProductRef,
             )
         end
-        set_string!(reaction_ptr, :SBase_setMetaId, reaction.metaid)
+        set_metaid!(reaction_ptr, reaction.metaid)
         add_cvterms!(reaction_ptr, reaction.cv_terms)
-        set_string!(reaction_ptr, :SBase_setNotesString, reaction.notes)
-        set_string!(reaction_ptr, :SBase_setAnnotationString, reaction.annotation)
+        set_notes_string!(reaction_ptr, reaction.notes)
+        set_annotation_string!(reaction_ptr, reaction.annotation)
         set_sbo_term!(reaction_ptr, reaction.sbo)
     end
 
@@ -393,7 +396,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     for (id, species) in mdl.species
         species_ptr = ccall(sbml(:Model_createSpecies), VPtr, (VPtr,), model)
         set_string!(species_ptr, :Species_setId, id)
-        set_string!(species_ptr, :SBase_setMetaId, species.metaid)
+        set_metaid!(species_ptr, species.metaid)
         add_cvterms!(species_ptr, species.cv_terms)
         set_string!(species_ptr, :Species_setName, species.name)
         set_string!(species_ptr, :Species_setCompartment, species.compartment)
@@ -422,8 +425,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             species.only_substance_units,
         )
         set_bool!(species_ptr, :Species_setConstant, species.constant)
-        set_string!(species_ptr, :SBase_setNotesString, species.notes)
-        set_string!(species_ptr, :SBase_setAnnotationString, species.annotation)
+        set_notes_string!(species_ptr, species.notes)
+        set_annotation_string!(species_ptr, species.annotation)
         set_sbo_term!(species_ptr, species.sbo)
     end
 
@@ -432,7 +435,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         functiondefinition_ptr =
             ccall(sbml(:Model_createFunctionDefinition), VPtr, (VPtr,), model)
         set_string!(functiondefinition_ptr, :FunctionDefinition_setId, id)
-        set_string!(functiondefinition_ptr, :SBase_setMetaId, func_def.metaid)
+        set_metaid!(functiondefinition_ptr, func_def.metaid)
         add_cvterms!(functiondefinition_ptr, func_def.cv_terms)
         set_string!(functiondefinition_ptr, :FunctionDefinition_setName, func_def.name)
         isnothing(func_def.body) ||
@@ -444,8 +447,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 get_astnode_ptr(func_def.body),
             ) == 0 ||
             error("setting function definition math failed!")
-        set_string!(functiondefinition_ptr, :SBase_setNotesString, func_def.notes)
-        set_string!(functiondefinition_ptr, :SBase_setAnnotationString, func_def.annotation)
+        set_notes_string!(functiondefinition_ptr, func_def.notes)
+        set_annotation_string!(functiondefinition_ptr, func_def.annotation)
         set_sbo_term!(functiondefinition_ptr, func_def.sbo)
     end
 
@@ -513,8 +516,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Notes and annotations
     add_cvterms!(model, mdl.cv_terms)
-    set_string!(model, :SBase_setNotesString, mdl.notes)
-    set_string!(model, :SBase_setAnnotationString, mdl.annotation)
+    set_notes_string!(model, mdl.notes)
+    set_annotation_string!(model, mdl.annotation)
     set_sbo_term!(model, mdl.sbo)
 
     # We can finally return the model
