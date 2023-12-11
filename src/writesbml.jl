@@ -507,7 +507,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Add groups
     groups_plugin == C_NULL ||
         isempty(mdl.groups) ||
-        set_bool!(groups_plugin, :FbcModelPlugin_setStrict, true)
+        set_bool!(groups_plugin, :GroupsModelPlugin_setStrict, true)
     for (id, group) in mdl.groups
         group_ptr =
             ccall(sbml(:GroupsModelPlugin_createGroup), VPtr, (VPtr,), groups_plugin)
@@ -582,7 +582,7 @@ function _create_doc(mdl::Model)::VPtr
             sbml(:SBMLExtension_getURI),
             Cstring,
             (VPtr, Cuint, Cuint, Cuint),
-            sbmlext,
+            fbc_ext,
             WRITESBML_FBC_DEFAULT_LEVEL,
             WRITESBML_FBC_DEFAULT_VERSION,
             WRITESBML_FBC_DEFAULT_PKGVERSION,
@@ -606,15 +606,15 @@ function _create_doc(mdl::Model)::VPtr
 
     # Again, test if we have groups and add it (this might deserve its own function now)
     if groups_required
-        fbc_ext =
+        groups_ext =
             ccall(sbml(:SBMLExtensionRegistry_getExtension), VPtr, (Cstring,), "groups")
-        fbc_ns = ccall(sbml(:XMLNamespaces_create), VPtr, ())
-        # create the sbml namespaces object with fbc
-        fbc_uri = ccall(
+        groups_ns = ccall(sbml(:XMLNamespaces_create), VPtr, ())
+        # create the sbml namespaces object with groups
+        groups_uri = ccall(
             sbml(:SBMLExtension_getURI),
             Cstring,
             (VPtr, Cuint, Cuint, Cuint),
-            sbmlext,
+            groups_ext,
             WRITESBML_GROUPS_DEFAULT_LEVEL,
             WRITESBML_GROUPS_DEFAULT_VERSION,
             WRITESBML_GROUPS_DEFAULT_PKGVERSION,
@@ -623,8 +623,8 @@ function _create_doc(mdl::Model)::VPtr
             sbml(:XMLNamespaces_add),
             Cint,
             (VPtr, Cstring, Cstring),
-            fbc_ns,
-            fbc_uri,
+            groups_ns,
+            groups_uri,
             "groups",
         )
         ccall(
@@ -632,7 +632,7 @@ function _create_doc(mdl::Model)::VPtr
             Cint,
             (VPtr, VPtr),
             sbmlns,
-            fbc_ns,
+            groups_ns,
         )
     end
 
