@@ -37,20 +37,22 @@ function remove_some_annotation_strings!(model::SBML.Model)
 end
 
 @testset "writeSBML" begin
-    model = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
-    fix_constant!(model)
-    # uncomment the following line to re-create reference XML
-    # writeSBML(model,joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"))
-    expected = read(joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"), String)
-    # Remove carriage returns, if any
-    expected = replace(expected, '\r' => "")
-    @test @test_logs(writeSBML(model)) == expected
-    mktemp() do filename, _
-        @test_logs(writeSBML(model, filename))
-        content = read(filename, String)
+    @testset "Model Dasgupta2020.xml writes out as expected" begin
+        model = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
+        fix_constant!(model)
+        # uncomment the following line to re-create reference XML
+        #writeSBML(model, joinpath(@__DIR__, "data", "Dasgupta2020-debug.xml"))
+        expected = read(joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"), String)
         # Remove carriage returns, if any
-        content = replace(content, '\r' => "")
-        @test content == expected
+        expected = replace(expected, '\r' => "")
+        @test @test_logs(writeSBML(model)) == expected
+        mktemp() do filename, _
+            @test_logs(writeSBML(model, filename))
+            content = read(filename, String)
+            # Remove carriage returns, if any
+            content = replace(content, '\r' => "")
+            @test content == expected
+        end
     end
 
     # Make sure that the model we read from the written out file is consistent
