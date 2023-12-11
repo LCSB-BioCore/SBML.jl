@@ -1,10 +1,13 @@
 # Level/Version for the document
 const WRITESBML_DEFAULT_LEVEL = 3
 const WRITESBML_DEFAULT_VERSION = 2
-# Level/Version/Package version for the package
-const WRITESBML_PKG_DEFAULT_LEVEL = 3
-const WRITESBML_PKG_DEFAULT_VERSION = 1
-const WRITESBML_PKG_DEFAULT_PKGVERSION = 2
+# Level/Version/Package version for the packages
+const WRITESBML_FBC_DEFAULT_LEVEL = 3
+const WRITESBML_FBC_DEFAULT_VERSION = 1
+const WRITESBML_FBC_DEFAULT_PKGVERSION = 2
+const WRITESBML_GROUPS_DEFAULT_LEVEL = 3
+const WRITESBML_GROUPS_DEFAULT_VERSION = 1
+const WRITESBML_GROUPS_DEFAULT_PKGVERSION = 1
 
 
 function create_gene_product_association(
@@ -97,13 +100,13 @@ end
 function set_parameter_ptr!(parameter_ptr::VPtr, id::String, parameter::Parameter)::VPtr
     set_string!(parameter_ptr, :Parameter_setId, id)
     set_string!(parameter_ptr, :Parameter_setName, parameter.name)
-    set_string!(parameter_ptr, :SBase_setMetaId, parameter.metaid)
+    set_metaid!(parameter_ptr, parameter.metaid)
     set_double!(parameter_ptr, :Parameter_setValue, parameter.value)
     set_string!(parameter_ptr, :Parameter_setUnits, parameter.units)
     add_cvterms!(parameter_ptr, parameter.cv_terms)
     set_bool!(parameter_ptr, :Parameter_setConstant, parameter.constant)
-    set_string!(parameter_ptr, :SBase_setAnnotationString, parameter.annotation)
-    set_string!(parameter_ptr, :SBase_setNotesString, parameter.notes)
+    set_annotation_string!(parameter_ptr, parameter.annotation)
+    set_notes_string!(parameter_ptr, parameter.notes)
     set_sbo_term!(parameter_ptr, parameter.sbo)
     return parameter_ptr
 end
@@ -138,6 +141,9 @@ function set_double!(ptr::VPtr, fn_sym::Symbol, x::Maybe{Float64})
         error("$fn_sym failed for value $x !")
 end
 
+set_annotation_string!(ptr, x) = set_string!(ptr, :SBase_setAnnotationString, x)
+set_notes_string!(ptr, x) = set_string!(ptr, :SBase_setNotesString, x)
+set_metaid!(ptr, x) = set_string!(ptr, :SBase_setMetaId, x)
 set_sbo_term!(ptr, x) = set_string!(ptr, :SBase_setSBOTermID, x)
 
 add_cvterms!(ptr, x) = add_cvterm!.(Ref(ptr), x)
@@ -193,16 +199,14 @@ end
 function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Create the model pointer
     model = ccall(sbml(:SBMLDocument_createModel), VPtr, (VPtr,), doc)
+
+    # Init the pluings
     fbc_plugin = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), model, "fbc")
-    fbc_plugin == C_NULL ||
-        isempty(mdl.gene_products) ||
-        isempty(mdl.objectives) ||
-        isempty(mdl.species) ||
-        set_bool!(fbc_plugin, :FbcModelPlugin_setStrict, true)
+    groups_plugin = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), model, "groups")
 
     # Set ids and name
     set_string!(model, :Model_setId, mdl.id)
-    set_string!(model, :SBase_setMetaId, mdl.metaid)
+    set_metaid!(model, mdl.metaid)
     set_string!(model, :Model_setName, mdl.name)
 
     # Add parameters
@@ -221,7 +225,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         compartment_ptr = ccall(sbml(:Model_createCompartment), VPtr, (VPtr,), model)
         set_string!(compartment_ptr, :Compartment_setId, id)
         set_string!(compartment_ptr, :Compartment_setName, compartment.name)
-        set_string!(compartment_ptr, :SBase_setMetaId, compartment.metaid)
+        set_metaid!(compartment_ptr, compartment.metaid)
         set_bool!(compartment_ptr, :Compartment_setConstant, compartment.constant)
         set_uint!(
             compartment_ptr,
@@ -231,8 +235,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         set_double!(compartment_ptr, :Compartment_setSize, compartment.size)
         set_string!(compartment_ptr, :Compartment_setUnits, compartment.units)
         add_cvterms!(compartment_ptr, compartment.cv_terms)
-        set_string!(compartment_ptr, :SBase_setNotesString, compartment.notes)
-        set_string!(compartment_ptr, :SBase_setAnnotationString, compartment.annotation)
+        set_notes_string!(compartment_ptr, compartment.notes)
+        set_annotation_string!(compartment_ptr, compartment.annotation)
         set_sbo_term!(compartment_ptr, compartment.sbo)
     end
 
@@ -246,10 +250,10 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         set_string!(geneproduct_ptr, :GeneProduct_setId, id)
         set_string!(geneproduct_ptr, :GeneProduct_setLabel, gene_product.label)
         set_string!(geneproduct_ptr, :GeneProduct_setName, gene_product.name)
-        set_string!(geneproduct_ptr, :SBase_setMetaId, gene_product.metaid)
+        set_metaid!(geneproduct_ptr, gene_product.metaid)
         add_cvterms!(geneproduct_ptr, gene_product.cv_terms)
-        set_string!(geneproduct_ptr, :SBase_setNotesString, gene_product.notes)
-        set_string!(geneproduct_ptr, :SBase_setAnnotationString, gene_product.annotation)
+        set_notes_string!(geneproduct_ptr, gene_product.notes)
+        set_annotation_string!(geneproduct_ptr, gene_product.annotation)
         set_sbo_term!(geneproduct_ptr, gene_product.sbo)
     end
 
@@ -359,10 +363,10 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 :GeneProductAssociation_createGeneProductRef,
             )
         end
-        set_string!(reaction_ptr, :SBase_setMetaId, reaction.metaid)
+        set_metaid!(reaction_ptr, reaction.metaid)
         add_cvterms!(reaction_ptr, reaction.cv_terms)
-        set_string!(reaction_ptr, :SBase_setNotesString, reaction.notes)
-        set_string!(reaction_ptr, :SBase_setAnnotationString, reaction.annotation)
+        set_notes_string!(reaction_ptr, reaction.notes)
+        set_annotation_string!(reaction_ptr, reaction.annotation)
         set_sbo_term!(reaction_ptr, reaction.sbo)
     end
 
@@ -393,7 +397,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     for (id, species) in mdl.species
         species_ptr = ccall(sbml(:Model_createSpecies), VPtr, (VPtr,), model)
         set_string!(species_ptr, :Species_setId, id)
-        set_string!(species_ptr, :SBase_setMetaId, species.metaid)
+        set_metaid!(species_ptr, species.metaid)
         add_cvterms!(species_ptr, species.cv_terms)
         set_string!(species_ptr, :Species_setName, species.name)
         set_string!(species_ptr, :Species_setCompartment, species.compartment)
@@ -422,8 +426,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
             species.only_substance_units,
         )
         set_bool!(species_ptr, :Species_setConstant, species.constant)
-        set_string!(species_ptr, :SBase_setNotesString, species.notes)
-        set_string!(species_ptr, :SBase_setAnnotationString, species.annotation)
+        set_notes_string!(species_ptr, species.notes)
+        set_annotation_string!(species_ptr, species.annotation)
         set_sbo_term!(species_ptr, species.sbo)
     end
 
@@ -432,7 +436,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         functiondefinition_ptr =
             ccall(sbml(:Model_createFunctionDefinition), VPtr, (VPtr,), model)
         set_string!(functiondefinition_ptr, :FunctionDefinition_setId, id)
-        set_string!(functiondefinition_ptr, :SBase_setMetaId, func_def.metaid)
+        set_metaid!(functiondefinition_ptr, func_def.metaid)
         add_cvterms!(functiondefinition_ptr, func_def.cv_terms)
         set_string!(functiondefinition_ptr, :FunctionDefinition_setName, func_def.name)
         isnothing(func_def.body) ||
@@ -444,8 +448,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
                 get_astnode_ptr(func_def.body),
             ) == 0 ||
             error("setting function definition math failed!")
-        set_string!(functiondefinition_ptr, :SBase_setNotesString, func_def.notes)
-        set_string!(functiondefinition_ptr, :SBase_setAnnotationString, func_def.annotation)
+        set_notes_string!(functiondefinition_ptr, func_def.notes)
+        set_annotation_string!(functiondefinition_ptr, func_def.annotation)
         set_sbo_term!(functiondefinition_ptr, func_def.sbo)
     end
 
@@ -500,6 +504,32 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         end
     end
 
+    # Add groups
+    for (id, group) in mdl.groups
+        group_ptr =
+            ccall(sbml(:GroupsModelPlugin_createGroup), VPtr, (VPtr,), groups_plugin)
+        set_string!(group_ptr, :Group_setId, id)
+        set_metaid!(group_ptr, group.metaid)
+        set_string!(group_ptr, :Group_setKindAsString, group.kind)
+        set_string!(group_ptr, :Group_setName, group.name)
+        for mem in group.members
+            mem_ptr = ccall(sbml(:Group_createMember), VPtr, (VPtr,), group_ptr)
+            set_string!(mem_ptr, :Member_setId, mem.id)
+            set_metaid!(mem_ptr, mem.metaid)
+            set_string!(mem_ptr, :Member_setName, mem.name)
+            set_string!(mem_ptr, :Member_setIdRef, mem.id_ref)
+            set_string!(mem_ptr, :Member_setMetaIdRef, mem.metaid_ref)
+            set_notes_string!(mem_ptr, mem.notes)
+            set_annotation_string!(mem_ptr, mem.annotation)
+            set_sbo_term!(mem_ptr, mem.sbo)
+            add_cvterms!(mem_ptr, mem.cv_terms)
+        end
+        set_notes_string!(group_ptr, group.notes)
+        set_annotation_string!(group_ptr, group.annotation)
+        set_sbo_term!(group_ptr, group.sbo)
+        add_cvterms!(group_ptr, group.cv_terms)
+    end
+
     # Add conversion factor
     set_string!(model, :Model_setConversionFactor, mdl.conversion_factor)
 
@@ -513,8 +543,8 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 
     # Notes and annotations
     add_cvterms!(model, mdl.cv_terms)
-    set_string!(model, :SBase_setNotesString, mdl.notes)
-    set_string!(model, :SBase_setAnnotationString, mdl.annotation)
+    set_notes_string!(model, mdl.notes)
+    set_annotation_string!(model, mdl.annotation)
     set_sbo_term!(model, mdl.sbo)
 
     # We can finally return the model
@@ -522,52 +552,107 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 end
 
 function _create_doc(mdl::Model)::VPtr
-    doc = if isempty(mdl.gene_products) && isempty(mdl.objectives) && isempty(mdl.species)
-        ccall(
-            sbml(:SBMLDocument_createWithLevelAndVersion),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
-    else
-        # Get fbc registry entry
-        sbmlext = ccall(sbml(:SBMLExtensionRegistry_getExtension), VPtr, (Cstring,), "fbc")
+    # Create a namespaces object
+    sbmlns = ccall(
+        sbml(:SBMLNamespaces_create),
+        VPtr,
+        (Cuint, Cuint),
+        WRITESBML_DEFAULT_LEVEL,
+        WRITESBML_DEFAULT_VERSION,
+    )
+
+    fbc_required =
+        !isempty(mdl.objectives) ||
+        !isempty(mdl.gene_products) ||
+        any(!isnothing(sp.formula) for (_, sp) in mdl.species) ||
+        any(!isnothing(sp.charge) for (_, sp) in mdl.species)
+
+    groups_required = !isempty(mdl.groups)
+
+    # Test if we have FBC and add it if required
+    if fbc_required
+        # we have FBC features, let's add FBC.
+        fbc_ext = ccall(sbml(:SBMLExtensionRegistry_getExtension), VPtr, (Cstring,), "fbc")
+        fbc_ns = ccall(sbml(:XMLNamespaces_create), VPtr, ())
         # create the sbml namespaces object with fbc
-        fbc = ccall(sbml(:XMLNamespaces_create), VPtr, ())
-        # create the sbml namespaces object with fbc
-        uri = ccall(
+        fbc_uri = ccall(
             sbml(:SBMLExtension_getURI),
             Cstring,
             (VPtr, Cuint, Cuint, Cuint),
-            sbmlext,
-            WRITESBML_PKG_DEFAULT_LEVEL,
-            WRITESBML_PKG_DEFAULT_VERSION,
-            WRITESBML_PKG_DEFAULT_PKGVERSION,
+            fbc_ext,
+            WRITESBML_FBC_DEFAULT_LEVEL,
+            WRITESBML_FBC_DEFAULT_VERSION,
+            WRITESBML_FBC_DEFAULT_PKGVERSION,
         )
-        ccall(sbml(:XMLNamespaces_add), Cint, (VPtr, Cstring, Cstring), fbc, uri, "fbc")
-        # Create SBML namespace with fbc package
-        sbmlns = ccall(
-            sbml(:SBMLNamespaces_create),
-            VPtr,
-            (Cuint, Cuint),
-            WRITESBML_DEFAULT_LEVEL,
-            WRITESBML_DEFAULT_VERSION,
-        )
-        ccall(sbml(:SBMLNamespaces_addPackageNamespaces), Cint, (VPtr, VPtr), sbmlns, fbc)
-        # Create document from SBML namespace
-        d = ccall(sbml(:SBMLDocument_createWithSBMLNamespaces), VPtr, (VPtr,), sbmlns)
-        # Do not require fbc package
         ccall(
-            sbml(:SBMLDocument_setPackageRequired),
+            sbml(:XMLNamespaces_add),
             Cint,
-            (VPtr, Cstring, Cint),
-            d,
+            (VPtr, Cstring, Cstring),
+            fbc_ns,
+            fbc_uri,
             "fbc",
-            false,
         )
-        d
+        ccall(
+            sbml(:SBMLNamespaces_addPackageNamespaces),
+            Cint,
+            (VPtr, VPtr),
+            sbmlns,
+            fbc_ns,
+        )
     end
+
+    # Again, test if we have groups and add it (this might deserve its own function now)
+    if groups_required
+        groups_ext =
+            ccall(sbml(:SBMLExtensionRegistry_getExtension), VPtr, (Cstring,), "groups")
+        groups_ns = ccall(sbml(:XMLNamespaces_create), VPtr, ())
+        # create the sbml namespaces object with groups
+        groups_uri = ccall(
+            sbml(:SBMLExtension_getURI),
+            Cstring,
+            (VPtr, Cuint, Cuint, Cuint),
+            groups_ext,
+            WRITESBML_GROUPS_DEFAULT_LEVEL,
+            WRITESBML_GROUPS_DEFAULT_VERSION,
+            WRITESBML_GROUPS_DEFAULT_PKGVERSION,
+        )
+        ccall(
+            sbml(:XMLNamespaces_add),
+            Cint,
+            (VPtr, Cstring, Cstring),
+            groups_ns,
+            groups_uri,
+            "groups",
+        )
+        ccall(
+            sbml(:SBMLNamespaces_addPackageNamespaces),
+            Cint,
+            (VPtr, VPtr),
+            sbmlns,
+            groups_ns,
+        )
+    end
+
+    # Now, create document with the required SBML namespaces
+    doc = ccall(sbml(:SBMLDocument_createWithSBMLNamespaces), VPtr, (VPtr,), sbmlns)
+
+    # Add notes about required packages
+    fbc_required && ccall(
+        sbml(:SBMLDocument_setPackageRequired),
+        Cint,
+        (VPtr, Cstring, Cint),
+        doc,
+        "fbc",
+        false,
+    )
+    groups_required && ccall(
+        sbml(:SBMLDocument_setPackageRequired),
+        Cint,
+        (VPtr, Cstring, Cint),
+        doc,
+        "groups",
+        false,
+    )
     return doc
 end
 

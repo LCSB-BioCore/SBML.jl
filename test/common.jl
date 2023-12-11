@@ -25,6 +25,8 @@ const ANNOTATED_TYPES = Union{
     SBML.Compartment,
     SBML.FunctionDefinition,
     SBML.GeneProduct,
+    SBML.Group,
+    SBML.Member,
     SBML.Model,
     SBML.Parameter,
     SBML.Reaction,
