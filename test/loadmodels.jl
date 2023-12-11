@@ -27,6 +27,15 @@ sbmlfiles = [
         6,
         fill(Inf, 3),
     ),
+    # a highly curated model full of features
+    (
+        joinpath(@__DIR__, "data", "yeast-GEM.xml"),
+        "https://raw.githubusercontent.com/SysBioChalmers/yeast-GEM/v9.0.0/model/yeast-GEM.xml",
+        "0e120b0d4015048ef2edaf86ea039c533a72827ff00a34ca35d9fbe87a2781e5",
+        2805,
+        4130,
+        fill(1000.0, 3),
+    ),
     # a cool model with `time` from SBML testsuite
     (
         joinpath(@__DIR__, "data", "00852-sbml-l3v2.xml"),
