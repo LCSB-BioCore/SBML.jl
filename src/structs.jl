@@ -450,6 +450,41 @@ end
 """
 $(TYPEDEF)
 
+# Fields
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct Member
+    id::Maybe{String} = nothing
+    metaid::Maybe{String} = nothing
+    name::Maybe{String} = nothing
+    id_ref::Maybe{String} = nothing
+    metaid_ref::Maybe{String} = nothing
+    notes::Maybe{String} = nothing
+    annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
+    cv_terms::Vector{CVTerm} = []
+end
+
+"""
+$(TYPEDEF)
+
+# Fields
+$(TYPEDFIELDS)
+"""
+Base.@kwdef struct Group
+    metaid::Maybe{String} = nothing
+    kind::Maybe{String} = nothing
+    name::Maybe{String} = nothing
+    members::Vector{Member} = []
+    notes::Maybe{String} = nothing
+    annotation::Maybe{String} = nothing
+    sbo::Maybe{String} = nothing
+    cv_terms::Vector{CVTerm} = []
+end
+
+"""
+$(TYPEDEF)
+
 Structure that collects the model-related data. Contains `parameters`, `units`,
 `compartments`, `species` and `reactions` and `gene_products`, and additional
 `notes` and `annotation` (also present internally in some of the data fields).
@@ -473,6 +508,7 @@ Base.@kwdef struct Model
     gene_products::Dict{String,GeneProduct} = Dict()
     function_definitions::Dict{String,FunctionDefinition} = Dict()
     events::Vector{Pair{Maybe{String},Event}} = Pair{Maybe{String},Event}[]
+    groups::Dict{String,Group} = Dict()
     name::Maybe{String} = nothing
     id::Maybe{String} = nothing
     metaid::Maybe{String} = nothing

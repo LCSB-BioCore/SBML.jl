@@ -310,6 +310,8 @@ valid [`SBML.Model`](@ref) structure.
 function get_model(mdl::VPtr)::SBML.Model
     # get the FBC plugin pointer (FbcModelPlugin_t)
     mdl_fbc = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "fbc")
+    # and the Groups plugin pointer (GroupModelPlugin_t)
+    mdl_groups = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), mdl, "groups")
 
     # get the parameters
     parameters = Dict{String,Parameter}()
@@ -724,6 +726,44 @@ function get_model(mdl::VPtr)::SBML.Model
             math = parse_math(math_ptr)
             constraint = Constraint(math, message)
             push!(constraints, constraint)
+        end
+    end
+
+    # groups (these require the groups extension)
+    groups = Dict{String,Group}()
+    if mdl_groups != C_NULL
+        num_groups =
+            ccall(sbml(:GroupsModelPlugin_getNumGroups), Cuint, (VPtr,), mdl_groups)
+        for i = 0:(num_groups-1)
+            grp =
+                ccall(sbml(:GroupsModelPlugin_getGroup), VPtr, (VPtr, Cuint), mdl_groups, i)
+            members = Member[
+                let mem = ccall(sbml(:Group_getMember), VPtr, (VPtr, Cuint), grp, mi)
+                    Member(;
+                        id = get_optional_string(mem, :Member_getId),
+                        metaid = get_metaid(mem),
+                        name = get_optional_string(mem, :Member_getName),
+                        id_ref = get_optional_string(mem, :Member_getIdRef),
+                        metaid_ref = get_optional_string(mem, :Member_getMetaIdRef),
+                        notes = get_notes(mem),
+                        annotation = get_annotation(mem),
+                        sbo = get_sbo_term(mem),
+                        cv_terms = get_cv_terms(mem),
+                    )
+                end for
+                mi = 0:(ccall(sbml(:Group_getNumMembers), Cuint, (VPtr,), grp)-1)
+            ]
+
+            groups[get_string(grp, :Group_getId)] = Group(;
+                metaid = get_metaid(grp),
+                kind = get_optional_string(grp, :Group_getKind),
+                name = get_optional_string(grp, :Group_getName),
+                members,
+                notes = get_notes(grp),
+                annotation = get_annotation(grp),
+                sbo = get_sbo_term(grp),
+                cv_terms = get_cv_terms(grp),
+            )
         end
     end
 

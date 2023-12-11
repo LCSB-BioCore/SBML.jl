@@ -196,12 +196,10 @@ end
 function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     # Create the model pointer
     model = ccall(sbml(:SBMLDocument_createModel), VPtr, (VPtr,), doc)
+
+    # Init the pluings
     fbc_plugin = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), model, "fbc")
-    fbc_plugin == C_NULL ||
-        isempty(mdl.gene_products) ||
-        isempty(mdl.objectives) ||
-        isempty(mdl.species) ||
-        set_bool!(fbc_plugin, :FbcModelPlugin_setStrict, true)
+    groups_plugin = ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), model, "groups")
 
     # Set ids and name
     set_string!(model, :Model_setId, mdl.id)
@@ -503,6 +501,35 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         end
     end
 
+    # Add groups
+    groups_plugin == C_NULL ||
+        isempty(mdl.groups) ||
+        set_bool!(groups_plugin, :FbcModelPlugin_setStrict, true)
+    for (id, group) in mdl.groups
+        group_ptr =
+            ccall(sbml(:GroupsModelPlugin_createGroup), VPtr, (VPtr,), groups_plugin)
+        set_string!(group_ptr, :Group_setId, group.id)
+        set_metaid!(group_ptr, group.metaid)
+        set_string!(group_ptr, :Group_setKind, group.kind)
+        set_string!(group_ptr, :Group_setName, group.name)
+        for mem in group.members
+            mem_ptr = ccall(sbml(:Group_createMember), VPtr, (VPtr,), group_ptr)
+            set_string!(mem_ptr, :Member_setId, mem.id)
+            set_metaid!(mem_ptr, mem.metaid)
+            set_string!(mem_ptr, :Member_setName, mem.name)
+            set_string!(mem_ptr, :Member_setIdRef, mem.id_ref)
+            set_string!(mem_ptr, :Member_setMetaIdRef, mem.metaid_ref)
+            set_notes_string!(mem_ptr, mem.notes)
+            set_annotation_string!(mem_ptr, mem.annotation)
+            set_sbo_term!(mem_ptr, mem.sbo)
+            set_cv_terms!(mem_ptr, mem.cv_terms)
+        end
+        set_notes_string!(group_ptr, group.notes)
+        set_annotation_string!(group_ptr, group.annotation)
+        set_sbo_term!(group_ptr, group.sbo)
+        set_cv_terms!(group_ptr, group.cv_terms)
+    end
+
     # Add conversion factor
     set_string!(model, :Model_setConversionFactor, mdl.conversion_factor)
 
@@ -525,6 +552,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
 end
 
 function _create_doc(mdl::Model)::VPtr
+    # TODO groups extension namespaces here
     doc = if isempty(mdl.gene_products) && isempty(mdl.objectives) && isempty(mdl.species)
         ccall(
             sbml(:SBMLDocument_createWithLevelAndVersion),
