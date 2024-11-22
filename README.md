@@ -27,7 +27,7 @@ Other functionality will be added as needed. Feel free to submit a PR that incre
 #### Acknowledgements
 
 `SBML.jl` was developed at the Luxembourg Centre for Systems Biomedicine of the
-University of Luxembourg ([uni.lu/lcsb](https://www.uni.lu/lcsb)), and the UCL
+University of Luxembourg ([lcsb.uni.lu](https://lcsb.uni.lu/)), and the UCL
 Research Software Development Group
 ([ucl.ac.uk/arc](https://www.ucl.ac.uk/arc)). The development was supported by
 European Union's Horizon 2020 Programme under PerMedCoE project
