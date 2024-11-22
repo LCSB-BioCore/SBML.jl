@@ -12,15 +12,15 @@ You might like to try the packages that use SBML.jl; these now include:
 - [COBREXA.jl](https://github.com/LCSB-BioCore/COBREXA.jl), the exascale-ready
   constraint-based analysis and reconstruction toolkit for finding and modeling
   steady metabolic fluxes with the models
-- [SBMLToolkit.jl](https://github.com/SciML/SBMLToolkit.jl), for working with
-  the reaction dynamics of the models as ODE systems, well-connected to the
-  [SciML](https://github.com/SciML)
-  [ModelingToolkit](https://github.com/SciML/ModelingToolkit.jl) ecosystem.
-- [SBMLImporter.jl](https://github.com/sebapersson/SBMLImporter.jl) for working
-  with dynamic models, similar to SBMLToolkit. It supports importing models as
-  Jump problems, SDE systems, and ODE systems. Well-connected to the
-  [SciML](https://github.com/SciML)
-  [ModelingToolkit](https://github.com/SciML/ModelingToolkit.jl) ecosystem.
+- Connections to the [SciML](https://github.com/SciML)
+  [ModelingToolkit](https://github.com/SciML/ModelingToolkit.jl) ecosystem:
+  - [SBMLToolkit.jl](https://github.com/SciML/SBMLToolkit.jl), for working with
+    the models' reaction dynamics as ODE systems.
+  - [SBMLImporter.jl](https://github.com/sebapersson/SBMLImporter.jl) for
+    importing the SBML models into
+    [Catalyst.jl](https://github.com/SciML/Catalyst.jl), allowing simulations
+    via Catalyst's `JumpProblem`, `SDEProblem`, or `ODEProblem` and fitting
+    models to data via [PEtab.jl](https://github.com/sebapersson/PEtab.jl).
 
 Other functionality will be added as needed. Feel free to submit a PR that increases the loading "coverage".
 
