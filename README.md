@@ -1,8 +1,8 @@
 # SBML.jl
 
-| Build status | Documentation | Stats |
-|:---:|:---:|:---:|
-| ![CI status](https://github.com/LCSB-BioCore/SBML.jl/workflows/CI/badge.svg?branch=master) [![codecov](https://codecov.io/gh/LCSB-BioCore/SBML.jl/branch/master/graph/badge.svg?token=eJehiv1yWs)](https://codecov.io/gh/LCSB-BioCore/SBML.jl) | [![stable documentation](https://img.shields.io/badge/docs-stable-blue)](https://lcsb-biocore.github.io/SBML.jl/stable) [![dev documentation](https://img.shields.io/badge/docs-dev-cyan)](https://lcsb-biocore.github.io/SBML.jl/dev) | [![SBML Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/SBML)](https://pkgs.genieframework.com?packages=SBML) |
+| Build status | Documentation |
+|:---:|:---:|
+| ![CI status](https://github.com/LCSB-BioCore/SBML.jl/workflows/CI/badge.svg?branch=master) [![codecov](https://codecov.io/gh/LCSB-BioCore/SBML.jl/branch/master/graph/badge.svg?token=eJehiv1yWs)](https://codecov.io/gh/LCSB-BioCore/SBML.jl) | [![stable documentation](https://img.shields.io/badge/docs-stable-blue)](https://lcsb-biocore.github.io/SBML.jl/stable) [![dev documentation](https://img.shields.io/badge/docs-dev-cyan)](https://lcsb-biocore.github.io/SBML.jl/dev) |
 
 
 This is a simple wrap of some of the libSBML functionality, mainly the model loading for purposes of COBRA analysis methods and exploration of ODE system and reaction dynamics.
@@ -12,17 +12,22 @@ You might like to try the packages that use SBML.jl; these now include:
 - [COBREXA.jl](https://github.com/LCSB-BioCore/COBREXA.jl), the exascale-ready
   constraint-based analysis and reconstruction toolkit for finding and modeling
   steady metabolic fluxes with the models
-- [SBMLToolkit.jl](https://github.com/SciML/SBMLToolkit.jl), for working with
-  the reaction dynamics of the models as ODE systems, well connected to the
-  [SciML](https://github.com/SciML)
-  [ModelingToolkit](https://github.com/SciML/ModelingToolkit.jl) ecosystem.
+- Connections to the [SciML](https://github.com/SciML)
+  [ModelingToolkit](https://github.com/SciML/ModelingToolkit.jl) ecosystem:
+  - [SBMLToolkit.jl](https://github.com/SciML/SBMLToolkit.jl), for working with
+    the models' reaction dynamics as ODE systems.
+  - [SBMLImporter.jl](https://github.com/sebapersson/SBMLImporter.jl) for
+    importing the SBML models into
+    [Catalyst.jl](https://github.com/SciML/Catalyst.jl), allowing simulations
+    via Catalyst's `JumpProblem`, `SDEProblem`, or `ODEProblem` and fitting
+    models to data via [PEtab.jl](https://github.com/sebapersson/PEtab.jl).
 
 Other functionality will be added as needed. Feel free to submit a PR that increases the loading "coverage".
 
 #### Acknowledgements
 
 `SBML.jl` was developed at the Luxembourg Centre for Systems Biomedicine of the
-University of Luxembourg ([uni.lu/lcsb](https://www.uni.lu/lcsb)), and the UCL
+University of Luxembourg ([lcsb.uni.lu](https://lcsb.uni.lu/)), and the UCL
 Research Software Development Group
 ([ucl.ac.uk/arc](https://www.ucl.ac.uk/arc)). The development was supported by
 European Union's Horizon 2020 Programme under PerMedCoE project
