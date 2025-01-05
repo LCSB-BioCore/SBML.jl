@@ -524,3 +524,47 @@ Base.@kwdef struct Model
     sbo::Maybe{String} = nothing
     cv_terms::Vector{CVTerm} = []
 end
+
+# Explicitly make all SBML structs "broadcastable" as scalars.
+# (This must be updated if any of the structs are added or removed.)
+#
+# Use this to regenerate the Union contents moreless automatically:
+#
+#   sed -ne 's/.*\<struct \([A-Z][A-Za-z0-9]*\)\>.*/\1,/p' src/structs.jl
+Base.Broadcast.broadcastable(
+    x::T,
+) where {
+    T<:Union{
+        UnitPart,
+        UnitDefinition,
+        GPARef,
+        GPAAnd,
+        GPAOr,
+        MathVal,
+        MathIdent,
+        MathConst,
+        MathTime,
+        MathAvogadro,
+        MathApply,
+        MathLambda,
+        CVTerm,
+        Parameter,
+        Compartment,
+        SpeciesReference,
+        Reaction,
+        AlgebraicRule,
+        AssignmentRule,
+        RateRule,
+        Constraint,
+        Species,
+        GeneProduct,
+        FunctionDefinition,
+        EventAssignment,
+        Trigger,
+        Objective,
+        Event,
+        Member,
+        Group,
+        Model,
+    },
+} = Ref(x)
