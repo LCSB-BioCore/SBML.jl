@@ -232,6 +232,21 @@ end
 """
 $(TYPEDSIGNATURES)
 
+Shortcut for running a function `f` on the contents of the SBML file, suitable
+for the `do` block syntax. Returns whatever `f` returns.
+
+# Example
+```
+readSBML("my_model.xml") do m
+    @info "model stats" length(m.species) length(m.reactions)
+end
+```
+"""
+readSBML(f::Function, args...; kwargs...) = return f(readSBML(args...; kwargs...))
+
+"""
+$(TYPEDSIGNATURES)
+
 Read the SBML from the string `str` and return the contained `SBML.Model`.
 
 For the other arguments see the docstring of [`readSBML`](@ref), which can be

@@ -692,3 +692,20 @@ function writeSBML(mdl::Model)::String
     end
     return str
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Shortcut for writing a SBML [`Model`](@ref) created by function `f`, suitable
+for the `do` block syntax.
+
+# Example
+```
+writeSBML("my_model.xml") do
+   compartments = ...
+   species = ...
+   Model(; name = "my model", compartments, species)
+end
+```
+"""
+writeSBML(f::Function, args...; kwargs...) = writeSBML(f(), args...; kwargs...)
