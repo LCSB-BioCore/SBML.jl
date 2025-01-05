@@ -58,16 +58,20 @@ end
     # Make sure that the model we read from the written out file is consistent
     # with the original model.
     @testset "Round-trip: $(basename(file))" for file in first.(sbmlfiles)
-        model = readSBML(file)
-        fix_constant!(model)
-        remove_some_annotation_strings!(model)
-        # This is useful for debugging:
-        # writeSBML(model, file*"-debug.xml")
-        round_trip_model = readSBMLFromString(@test_logs(writeSBML(model)))
+        round_trip_model_str = @test_logs writeSBML() do
+            readSBML(file) do m
+                fix_constant!(m)
+                remove_some_annotation_strings!(m)
+                # This is useful for debugging:
+                # writeSBML(model, file*"-debug.xml")
+                return m
+            end
+        end
 
         # re-read the unmodified model, fix constantness and compare again
-        model = readSBML(file)
-        fix_constant!(model)
-        @test model == round_trip_model
+        readSBML(file) do m
+            fix_constant!(m)
+            @test m == readSBMLFromString(round_trip_model_str)
+        end
     end
 end
