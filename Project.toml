@@ -1,6 +1,6 @@
 name = "SBML"
 uuid = "e5567a89-2604-4b09-9718-f5f78e97c3bb"
-authors = ["Mirek Kratochvil <miroslav.kratochvil@uni.lu>", "LCSB R3 team <lcsb-r3@uni.lu>"]
+authors = ["The developers of SBML.jl"]
 version = "1.7"
 
 [deps]
