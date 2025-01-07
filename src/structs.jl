@@ -2,6 +2,13 @@
 """
 $(TYPEDEF)
 
+Common supertype for all SBML.jl objects.
+"""
+abstract type SBMLObject end
+
+"""
+$(TYPEDEF)
+
 Part of a measurement unit definition that corresponds to the SBML definition
 of `Unit`. For example, the unit "per square megahour", Mh^(-2), is written as:
 
@@ -16,7 +23,7 @@ built from multiple `UnitPart`s.  See also [`SBML.UnitDefinition`](@ref).
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct UnitPart
+Base.@kwdef struct UnitPart <: SBMLObject
     kind::String
     exponent::Int
     scale::Int
@@ -33,7 +40,7 @@ vector of [`SBML.UnitPart`](@ref)s.  See the definition of field `units` in
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct UnitDefinition
+Base.@kwdef struct UnitDefinition <: SBMLObject
     name::Maybe{String} = nothing
     unit_parts::Vector{UnitPart}
 end
@@ -43,7 +50,7 @@ $(TYPEDEF)
 
 Abstract type for all kinds of gene product associations
 """
-abstract type GeneProductAssociation end
+abstract type GeneProductAssociation <: SBMLObject end
 
 """
 $(TYPEDEF)
@@ -82,9 +89,11 @@ struct GPAOr <: GeneProductAssociation
 end
 
 """
+$(TYPEDEF)
+
 A simplified representation of MathML-specified math AST
 """
-abstract type Math end
+abstract type Math <: SBMLObject end
 
 """
 $(TYPEDEF)
@@ -186,7 +195,7 @@ qualifier, a list of resources, and possibly nested CV terms.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct CVTerm
+Base.@kwdef struct CVTerm <: SBMLObject
     biological_qualifier::Maybe{Symbol} = nothing
     model_qualifier::Maybe{Symbol} = nothing
     resource_uris::Vector{String} = []
@@ -202,7 +211,7 @@ units and constantness information.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Parameter
+Base.@kwdef struct Parameter <: SBMLObject
     name::Maybe{String} = nothing
     value::Maybe{Float64} = nothing
     units::Maybe{String} = nothing
@@ -222,7 +231,7 @@ SBML Compartment with sizing information.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Compartment
+Base.@kwdef struct Compartment <: SBMLObject
     name::Maybe{String} = nothing
     constant::Maybe{Bool} = nothing
     spatial_dimensions::Maybe{Int} = nothing
@@ -243,7 +252,7 @@ SBML SpeciesReference.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct SpeciesReference
+Base.@kwdef struct SpeciesReference <: SBMLObject
     id::Maybe{String} = nothing
     species::String
     stoichiometry::Maybe{Float64} = nothing
@@ -261,7 +270,7 @@ unit names), and objective coefficient (`oc`). Also may contains `notes` and
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Reaction
+Base.@kwdef struct Reaction <: SBMLObject
     name::Maybe{String} = nothing
     reactants::Vector{SpeciesReference} = []
     products::Vector{SpeciesReference} = []
@@ -283,7 +292,7 @@ $(TYPEDEF)
 
 Abstract type representing SBML rules.
 """
-abstract type Rule end
+abstract type Rule <: SBMLObject end
 
 """
 $(TYPEDEF)
@@ -331,7 +340,7 @@ SBML constraint.
 # Fields
 $(TYPEDFIELDS)
 """
-struct Constraint
+struct Constraint <: SBMLObject
     math::Math
     message::String
 end
@@ -345,7 +354,7 @@ identifier, `formula`, `charge`, and additional `notes` and `annotation`.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Species
+Base.@kwdef struct Species <: SBMLObject
     name::Maybe{String} = nothing
     compartment::String
     boundary_condition::Maybe{Bool} = nothing
@@ -372,7 +381,7 @@ Gene product metadata.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct GeneProduct
+Base.@kwdef struct GeneProduct <: SBMLObject
     label::String
     name::Maybe{String} = nothing
     metaid::Maybe{String} = nothing
@@ -390,7 +399,7 @@ Custom function definition.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct FunctionDefinition
+Base.@kwdef struct FunctionDefinition <: SBMLObject
     name::Maybe{String} = nothing
     metaid::Maybe{String} = nothing
     body::Maybe{Math} = nothing
@@ -406,7 +415,7 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct EventAssignment
+Base.@kwdef struct EventAssignment <: SBMLObject
     variable::String
     math::Maybe{Math} = nothing
 end
@@ -417,7 +426,7 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Trigger
+Base.@kwdef struct Trigger <: SBMLObject
     persistent::Bool
     initial_value::Bool
     math::Maybe{Math} = nothing
@@ -429,7 +438,7 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Objective
+Base.@kwdef struct Objective <: SBMLObject
     type::String
     flux_objectives::Dict{String,Float64} = Dict()
 end
@@ -440,7 +449,7 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Event
+Base.@kwdef struct Event <: SBMLObject
     use_values_from_trigger_time::Bool
     name::Maybe{String} = nothing
     trigger::Maybe{Trigger} = nothing
@@ -453,7 +462,7 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Member
+Base.@kwdef struct Member <: SBMLObject
     id::Maybe{String} = nothing
     metaid::Maybe{String} = nothing
     name::Maybe{String} = nothing
@@ -471,7 +480,7 @@ $(TYPEDEF)
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Group
+Base.@kwdef struct Group <: SBMLObject
     metaid::Maybe{String} = nothing
     kind::Maybe{String} = nothing
     name::Maybe{String} = nothing
@@ -494,7 +503,7 @@ identifiers.
 # Fields
 $(TYPEDFIELDS)
 """
-Base.@kwdef struct Model
+Base.@kwdef struct Model <: SBMLObject
     parameters::Dict{String,Parameter} = Dict()
     units::Dict{String,UnitDefinition} = Dict()
     compartments::Dict{String,Compartment} = Dict()
@@ -531,40 +540,4 @@ end
 # Use this to regenerate the Union contents moreless automatically:
 #
 #   sed -ne 's/.*\<struct \([A-Z][A-Za-z0-9]*\)\>.*/\1,/p' src/structs.jl
-Base.Broadcast.broadcastable(
-    x::T,
-) where {
-    T<:Union{
-        UnitPart,
-        UnitDefinition,
-        GPARef,
-        GPAAnd,
-        GPAOr,
-        MathVal,
-        MathIdent,
-        MathConst,
-        MathTime,
-        MathAvogadro,
-        MathApply,
-        MathLambda,
-        CVTerm,
-        Parameter,
-        Compartment,
-        SpeciesReference,
-        Reaction,
-        AlgebraicRule,
-        AssignmentRule,
-        RateRule,
-        Constraint,
-        Species,
-        GeneProduct,
-        FunctionDefinition,
-        EventAssignment,
-        Trigger,
-        Objective,
-        Event,
-        Member,
-        Group,
-        Model,
-    },
-} = Ref(x)
+Base.Broadcast.broadcastable(x::SBMLObject) = Ref(x)
