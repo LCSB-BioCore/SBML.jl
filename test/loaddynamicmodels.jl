@@ -85,6 +85,7 @@ sbmlfiles = [
 @testset "Loading of models from sbml_test_suite" begin
     for (sbmlfile, url, hash, converter, expected_par, expected_rxn, expected_u0) in
         sbmlfiles
+
         if !isfile(sbmlfile)
             Downloads.download(url, sbmlfile)
         end

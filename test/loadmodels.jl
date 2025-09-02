@@ -380,11 +380,10 @@ end
     @test test_math.args[1].args[2].id == "S1"
     @test test_math.args[2].id == "time"
 
-    test_math =
-        readSBML(
-            joinpath(@__DIR__, "data", "01565-sbml-l3v1.xml"),
-            libsbml_convert("expandInitialAssignments"),
-        ).reactions["J31"].kinetic_math
+    test_math = readSBML(
+        joinpath(@__DIR__, "data", "01565-sbml-l3v1.xml"),
+        libsbml_convert("expandInitialAssignments"),
+    ).reactions["J31"].kinetic_math
 
     @test test_math.args[2].fn == "sin"
     @test test_math.args[2].args[1].val == 2.1
