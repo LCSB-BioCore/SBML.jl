@@ -345,7 +345,11 @@ end
     m = readSBML(joinpath(@__DIR__, "data", "01565-sbml-l3v1.xml"))
 
     if TEST_SYMBOLICS
-        @test interpret_as_num(m.reactions["J23"].kinetic_math) == 0.0
+        @variables S23 S23b
+        @test isequal(
+            interpret_as_num(m.reactions["J23"].kinetic_math),
+            (S23*S23b*log(1)) / log(10),
+        )
 
         @variables S29 S29b
         @test isequal(interpret_as_num(m.reactions["J29"].kinetic_math), 2.0 * S29 * S29b)
