@@ -20,6 +20,7 @@ include("common.jl")
 
 @testset "SBML test suite" begin
     include("version.jl")
+    include("public.jl")
 
     if TEST_SYMBOLICS
         # this defines a few functions used also in loadmodels.jl

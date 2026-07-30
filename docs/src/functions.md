@@ -1,4 +1,20 @@
 
+## What counts as public API
+
+A name is public if it is exported, or if it is declared `public`. On Julia
+1.11 and newer both cases answer `true` to `Base.ispublic(SBML, name)`, which
+is the authoritative check. Anything else — including some parser and math
+helpers that this reference still renders, such as the
+[internal math helpers](#Internal-math-helpers) — may change in any release.
+
+Much of the public API is deliberately *not* exported, so that `using SBML`
+does not bring generic names such as `Model`, `Species` or `Version` into your
+namespace. Reach those through the module instead: `SBML.Model`,
+`SBML.MathApply`, `SBML.extensive_kinetic_math`, and so on.
+
+Julia has no field-level visibility, so a public struct type also makes its
+documented fields (listed under each type below) part of the public API.
+
 # Data types
 
 ## Helper types
