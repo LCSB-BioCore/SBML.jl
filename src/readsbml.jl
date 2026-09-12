@@ -143,7 +143,7 @@ $(TYPEDSIGNATURES)
 Helper for converting XML that is not represented by SBML structures to String.
 """
 function get_string_from_xmlnode(xmlnode::VPtr)::String
-    if ccall(sbml(:XMLNode_isText), Bool, (VPtr,), xmlnode)
+    if ccall(sbml(:XMLNode_isText), Cint, (VPtr,), xmlnode) != 0
         str_ptr = ccall(sbml(:XMLNode_getCharacters), Cstring, (VPtr,), xmlnode)
         str_ptr == C_NULL ? "" : unsafe_string(str_ptr)
     else
@@ -645,9 +645,10 @@ function get_model(mdl::VPtr)::SBML.Model
     num_ias = ccall(sbml(:Model_getNumInitialAssignments), Cuint, (VPtr,), mdl)
     for i = 0:(num_ias-1)
         ia = ccall(sbml(:Model_getInitialAssignment), VPtr, (VPtr, Cuint), mdl, i)
+        ia == C_NULL && continue
         sym = ccall(sbml(:InitialAssignment_getSymbol), Cstring, (VPtr,), ia)
         math_ptr = ccall(sbml(:InitialAssignment_getMath), VPtr, (VPtr,), ia)
-        if math_ptr != C_NULL
+        if math_ptr != C_NULL && sym != C_NULL
             initial_assignments[unsafe_string(sym)] = parse_math(math_ptr)
         end
     end
@@ -657,32 +658,35 @@ function get_model(mdl::VPtr)::SBML.Model
     num_events = ccall(sbml(:Model_getNumEvents), Cuint, (VPtr,), mdl)
     for i = 0:(num_events-1)
         ev = ccall(sbml(:Model_getEvent), VPtr, (VPtr, Cuint), mdl, i)
+        ev == C_NULL && continue
 
         event_assignments = EventAssignment[]
         for j = 0:(ccall(sbml(:Event_getNumEventAssignments), Cuint, (VPtr,), ev)-1)
             eva = ccall(sbml(:Event_getEventAssignment), VPtr, (VPtr, Cuint), ev, j)
+            eva == C_NULL && continue
             eva_math_ptr = ccall(sbml(:EventAssignment_getMath), VPtr, (VPtr,), eva)
+            var = ccall(sbml(:EventAssignment_getVariable), Cstring, (VPtr,), eva)
+            var == C_NULL && continue
             push!(
                 event_assignments,
                 EventAssignment(
-                    variable = unsafe_string(
-                        ccall(sbml(:EventAssignment_getVariable), Cstring, (VPtr,), eva),
-                    ),
+                    variable = unsafe_string(var),
                     math = eva_math_ptr == C_NULL ? nothing : parse_math(eva_math_ptr),
                 ),
             )
         end
 
         trigger_ptr = ccall(sbml(:Event_getTrigger), VPtr, (VPtr,), ev)
+        trigger_ptr == C_NULL && continue
         trig_math_ptr = ccall(sbml(:Trigger_getMath), VPtr, (VPtr,), trigger_ptr)
         trigger = Trigger(;
-            persistent = ccall(sbml(:Trigger_getPersistent), Bool, (VPtr,), trigger_ptr),
+            persistent = ccall(sbml(:Trigger_getPersistent), Cint, (VPtr,), trigger_ptr) != 0,
             initial_value = ccall(
                 sbml(:Trigger_getInitialValue),
-                Bool,
+                Cint,
                 (VPtr,),
                 trigger_ptr,
-            ),
+            ) != 0,
             math = trig_math_ptr == C_NULL ? nothing : parse_math(trig_math_ptr),
         )
 
@@ -707,13 +711,14 @@ function get_model(mdl::VPtr)::SBML.Model
     num_rules = ccall(sbml(:Model_getNumRules), Cuint, (VPtr,), mdl)
     for i = 0:(num_rules-1)
         rule_ptr = ccall(sbml(:Model_getRule), VPtr, (VPtr, Cuint), mdl, i)
-        type = if ccall(sbml(:Rule_isAlgebraic), Bool, (VPtr,), rule_ptr)
+        type = if ccall(sbml(:Rule_isAlgebraic), Cint, (VPtr,), rule_ptr) != 0
             AlgebraicRule
-        elseif ccall(sbml(:Rule_isAssignment), Bool, (VPtr,), rule_ptr)
+        elseif ccall(sbml(:Rule_isAssignment), Cint, (VPtr,), rule_ptr) != 0
             AssignmentRule
-        elseif ccall(sbml(:Rule_isRate), Bool, (VPtr,), rule_ptr)
+        elseif ccall(sbml(:Rule_isRate), Cint, (VPtr,), rule_ptr) != 0
             RateRule
         end
+        var = C_NULL
         if type in (AssignmentRule, RateRule)
             var = ccall(sbml(:Rule_getVariable), Cstring, (VPtr,), rule_ptr)
         end
@@ -721,6 +726,7 @@ function get_model(mdl::VPtr)::SBML.Model
         if math_ptr != C_NULL
             math = parse_math(math_ptr)
             rule = if type in (AssignmentRule, RateRule)
+                var == C_NULL && continue
                 type(unsafe_string(var), math)
             else
                 type(math)
