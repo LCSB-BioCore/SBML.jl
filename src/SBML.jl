@@ -35,6 +35,10 @@ export set_level_and_version,
     libsbml_convert, convert_simplify_math, convert_promotelocals_expandfuns
 
 # Read a file at precompile time, to improve time-to-first `readSBML`.
-writeSBML(readSBML(joinpath(@__DIR__, "..", "test", "data", "Dasgupta2020-written.xml")))
+# Skip on 32-bit: SBML_jll/libsbml has returned NULL C strings during model
+# walks on i686 (ArgumentError: cannot convert NULL to string).
+if Sys.WORD_SIZE == 64
+    writeSBML(readSBML(joinpath(@__DIR__, "..", "test", "data", "Dasgupta2020-written.xml")))
+end
 
 end # module
