@@ -102,7 +102,7 @@ sbmlfiles = [
     (
         joinpath(@__DIR__, "data", "00489-sbml-l3v2.xml"),
         SBML.test_suite_url(489, level = 3, version = 2),
-        "dab2bce4e5036fa47ad8137055ca5f6dec6dfcb183542ce38573ca2e5a615813",
+        "2613c8e3fe67dc9226c6ed38acf5cc6dd3480d80ed9351c7c78ac97e981c860f",
         3,
         2,
         fill(Inf, 2),
