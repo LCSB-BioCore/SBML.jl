@@ -3,7 +3,7 @@ sbmlfile = joinpath(@__DIR__, "data", "Ec_core_flux1.xml")
 
 if !isfile(sbmlfile)
     Downloads.download(
-        "http://systemsbiology.ucsd.edu/sites/systemsbiology.ucsd.edu/files/Attachments/Images/InSilicoOrganisms/Ecoli/Ecoli_SBML/Ec_core_flux1.xml",
+        "https://github.com/COBREXA/models-mirror/raw/refs/heads/main/ucsd/Ec_core_flux1.xml",
         sbmlfile,
     )
 end
