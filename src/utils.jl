@@ -468,3 +468,16 @@ test_suite_url(case::Int; ref = "release", level = 3, version = 2) =
         case_str = lpad(string(case), 5, '0')
         "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/$ref/cases/semantic/$case_str/$case_str-sbml-l$(level)v$(version).xml"
     end
+
+"""
+$(TYPEDSIGNATURES)
+
+Helper for iterating through dictionaries in hash-independent order.
+"""
+function dict_foreach(f, x::Dict)
+    ks = collect(keys(x))
+    sort!(ks)
+    for k in ks
+        f((k, x[k]))
+    end
+end
