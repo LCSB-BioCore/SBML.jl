@@ -3,7 +3,7 @@ sbmlfiles = [
     # a test model from BIGG
     (
         joinpath(@__DIR__, "data", "e_coli_core.xml"),
-        "http://bigg.ucsd.edu/static/models/e_coli_core.xml",
+        "https://github.com/COBREXA/models-mirror/raw/refs/heads/main/bigg/e_coli_core.xml",
         "b4db506aeed0e434c1f5f1fdd35feda0dfe5d82badcfda0e9d1342335ab31116",
         72,
         95,
@@ -12,7 +12,7 @@ sbmlfiles = [
     # a relatively new non-curated model from biomodels
     (
         joinpath(@__DIR__, "data", "T1M1133.xml"),
-        "https://www.ebi.ac.uk/biomodels/model/download/MODEL1909260004.4?filename=T1M1133.xml",
+        "https://github.com/COBREXA/models-mirror/raw/refs/heads/main/biomodels/T1M1133.xml",
         "2b1e615558b6190c649d71052ac9e0dc1635e3ad281e541bc7d4fdf2892a5967",
         2517,
         3956,
@@ -21,7 +21,7 @@ sbmlfiles = [
     # a curated model from biomodels
     (
         joinpath(@__DIR__, "data", "Dasgupta2020.xml"),
-        "https://www.ebi.ac.uk/biomodels/model/download/BIOMD0000000973.3?filename=Dasgupta2020.xml",
+        "https://github.com/COBREXA/models-mirror/raw/refs/heads/main/biomodels/Dasgupta2020.xml",
         "958b131d4df2f215dae68255433542f228601db0326d26a54efd08ddcf823489",
         2,
         6,
