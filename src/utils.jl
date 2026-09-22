@@ -38,6 +38,13 @@ Extract the vector of species (aka metabolite) identifiers, vector of reaction
 identifiers, and a sparse stoichiometry matrix (of type `SparseMatrixCSC` from
 `SparseArrays` package) from an existing `SBML.Model`. Returns a 3-tuple with
 these values.
+
+The order of metabolites and reactions (and thus the rows and columns in the
+matrix) is _not_ stable and depends on hash function used internally in
+`Dict`s).
+
+**Note**: This function is provided for compatibility with older versions of
+SBML and will become deprecated.
 """
 function stoichiometry_matrix(m::SBML.Model)
     rows = collect(keys(m.species))
@@ -82,10 +89,13 @@ end
 $(TYPEDSIGNATURES)
 
 Extract the vectors of lower and upper bounds of reaction rates from the model,
-in the same order as `keys(m.reactions)`.  All bounds are accompanied with the
+in the same order as `keys(m.reactions)`. All bounds are accompanied with the
 unit of the corresponding value (the behavior is based on SBML specification).
 Missing bounds are represented by negative/positive infinite values with
 empty-string unit.
+
+**Note**: This function is provided for compatibility with older versions of
+SBML and will become deprecated.
 """
 function flux_bounds(m::SBML.Model)::NTuple{2,Vector{Tuple{Float64,String}}}
     # Now this is tricky. There are multiple ways in SBML to specify a
@@ -124,6 +134,9 @@ $(TYPEDSIGNATURES)
 
 Get the specified FBC maximization objective from a model, as a vector in the
 same order as `keys(m.reactions)`.
+
+**Note**: This function is provided for compatibility with older versions of
+SBML and will become deprecated.
 """
 function fbc_flux_objective(m::Model, oid::String)
 
@@ -141,6 +154,9 @@ $(TYPEDSIGNATURES)
 
 Get a kinetic-parameter-specified flux objective from the model, as a vector in
 the same order as `keys(m.reactions)`.
+
+**Note**: This function is provided for compatibility with older versions of
+SBML and will become deprecated.
 """
 function kinetic_flux_objective(m::Model)
     mayfirst.(
@@ -157,10 +173,12 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Collect a single maximization objective from FBC, and from kinetic parameters
-if FBC is not available. Fails if there is more than 1 FBC objective.
+Collect a single optimization objective from FBC, and from kinetic parameters
+if FBC is not available. Fails if there is more than 1 FBC objective.  The
+objective vector is in the same order as in `keys(m.reactions)`.
 
-Provided for simplicity and compatibility with earlier versions of SBML.jl.
+**Note**: This function is provided for compatibility with older versions of
+SBML and will become deprecated.
 """
 function flux_objective(m::Model)::Vector{Float64}
     oids = keys(m.objectives)
@@ -450,3 +468,16 @@ test_suite_url(case::Int; ref = "release", level = 3, version = 2) =
         case_str = lpad(string(case), 5, '0')
         "https://raw.githubusercontent.com/sbmlteam/sbml-test-suite/$ref/cases/semantic/$case_str/$case_str-sbml-l$(level)v$(version).xml"
     end
+
+"""
+$(TYPEDSIGNATURES)
+
+Helper for iterating through dictionaries in hash-independent order.
+"""
+function dict_foreach(f, x::Dict)
+    ks = collect(keys(x))
+    sort!(ks)
+    for k in ks
+        f((k, x[k]))
+    end
+end

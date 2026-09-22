@@ -1,6 +1,6 @@
 name = "SBML"
 uuid = "e5567a89-2604-4b09-9718-f5f78e97c3bb"
-version = "1.6"
+version = "1.6.1"
 authors = ["The developers of SBML.jl"]
 
 [deps]

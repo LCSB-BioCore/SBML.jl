@@ -3,7 +3,7 @@ sbmlfile = joinpath(@__DIR__, "data", "Ec_core_flux1.xml")
 
 if !isfile(sbmlfile)
     Downloads.download(
-        "http://systemsbiology.ucsd.edu/sites/systemsbiology.ucsd.edu/files/Attachments/Images/InSilicoOrganisms/Ecoli/Ecoli_SBML/Ec_core_flux1.xml",
+        "https://github.com/COBREXA/models-mirror/raw/refs/heads/main/ucsd/Ec_core_flux1.xml",
         sbmlfile,
     )
 end
@@ -43,15 +43,16 @@ end
 
     # totally arbitrary value tests
     @test isapprox(sum(S), 42.1479)
-    @test mets[10:12] == ["M_akg_e", "M_fum_c", "M_pyr_c"]
-    @test rxns[10:12] == ["R_H2Ot", "R_PGL", "R_EX_glc_e_"]
+    @test sort(mets)[10:12] == ["M_actp_c", "M_adp_c", "M_akg_b"]
+    @test sort(rxns)[10:12] == ["R_Biomass_Ecoli_core_N__w_GAM_", "R_CO2t", "R_CS"]
 
     lbs, ubs = flux_bounds(mdl)
     ocs = flux_objective(mdl)
 
     @test length(ocs) == length(mets)
-    @test ocs[40] == 1.0
-    deleteat!(ocs, 40)
+    idx = indexin(Ref("R_Biomass_Ecoli_core_N__w_GAM_"), rxns)[1]
+    @test ocs[idx] == 1.0
+    deleteat!(ocs, idx)
     @test all(ocs .== 0.0)
 
     @test length(flux_bounds(mdl)[1]) == length(rxns)
@@ -63,9 +64,11 @@ end
     getval((val, unit)) = val
     lvals = broadcast(getval, lbs)
     uvals = broadcast(getval, ubs)
-    @test isapprox(lvals[27], uvals[27])
-    @test isapprox(lvals[27], 7.6)
-    @test isapprox(lvals[12], -10)
+    idx = indexin(Ref("R_ATPM"), rxns)[1]
+    @test isapprox(lvals[idx], uvals[idx])
+    @test isapprox(lvals[idx], 7.6)
+    idx = indexin(Ref("R_EX_glc_e_"), rxns)[1]
+    @test isapprox(lvals[idx], -10)
 
     @test count(isapprox.(lvals, -999999)) == 40
     @test count(isapprox.(lvals, 0)) == 35

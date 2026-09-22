@@ -41,7 +41,7 @@ end
         model = readSBML(joinpath(@__DIR__, "data", "Dasgupta2020.xml"))
         fix_constant!(model)
         # uncomment the following line to re-create reference XML
-        #writeSBML(model, joinpath(@__DIR__, "data", "Dasgupta2020-debug.xml"))
+        writeSBML(model, joinpath(@__DIR__, "data", "Dasgupta2020-debug.xml"))
         expected = read(joinpath(@__DIR__, "data", "Dasgupta2020-written.xml"), String)
         # Remove carriage returns, if any
         expected = replace(expected, '\r' => "")

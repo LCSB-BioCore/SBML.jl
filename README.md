@@ -28,12 +28,13 @@ Other functionality will be added as needed. Feel free to submit a PR that incre
 
 `SBML.jl` was developed at the Luxembourg Centre for Systems Biomedicine of the
 University of Luxembourg ([lcsb.uni.lu](https://lcsb.uni.lu/)), and the UCL
-Research Software Development Group
-([ucl.ac.uk/arc](https://www.ucl.ac.uk/arc)). The development was supported by
-European Union's Horizon 2020 Programme under PerMedCoE project
-([permedcoe.eu](https://www.permedcoe.eu/)) agreement no.  951773, and Chan
-Zuckerberg Initiative ([chanzuckerberg.com](https://chanzuckerberg.com/)) under
-grant 2020-218578 (5022).
+Research Software Development Group (at
+[ucl.ac.uk](https://www.ucl.ac.uk/research-innovation/advanced-research-computing)).
+The development was supported by European Union's Horizon 2020 Programme under
+PerMedCoE project ([permedcoe.eu](https://www.permedcoe.eu/)) agreement no.
+951773, and Chan Zuckerberg Initiative
+([chanzuckerberg.com](https://chanzuckerberg.com/)) under grant 2020-218578
+(5022).
 
 <img src="docs/src/assets/unilu.svg" alt="Uni.lu logo" height="64px">   <img src="docs/src/assets/lcsb.svg" alt="LCSB logo" height="64px">   <img src="docs/src/assets/permedcoe.svg" alt="PerMedCoE logo" height="64px">   <img src="docs/src/assets/ucl.svg" alt="UCL logo" height="64px">
 

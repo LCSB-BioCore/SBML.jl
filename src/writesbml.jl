@@ -210,18 +210,18 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     set_string!(model, :Model_setName, mdl.name)
 
     # Add parameters
-    for (id, parameter) in mdl.parameters
+    dict_foreach(mdl.parameters) do (id, parameter)
         parameter_ptr = ccall(sbml(:Model_createParameter), VPtr, (VPtr,), model)
         set_parameter_ptr!(parameter_ptr, id, parameter)
     end
 
     # Add units
-    for (name, units) in mdl.units
+    dict_foreach(mdl.units) do (name, units)
         add_unit_definition(model, name, units)
     end
 
     # Add compartments
-    for (id, compartment) in mdl.compartments
+    dict_foreach(mdl.compartments) do (id, compartment)
         compartment_ptr = ccall(sbml(:Model_createCompartment), VPtr, (VPtr,), model)
         set_string!(compartment_ptr, :Compartment_setId, id)
         set_string!(compartment_ptr, :Compartment_setName, compartment.name)
@@ -244,7 +244,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     fbc_plugin == C_NULL ||
         isempty(mdl.gene_products) ||
         set_bool!(fbc_plugin, :FbcModelPlugin_setStrict, true)
-    for (id, gene_product) in mdl.gene_products
+    dict_foreach(mdl.gene_products) do (id, gene_product)
         geneproduct_ptr =
             ccall(sbml(:FbcModelPlugin_createGeneProduct), VPtr, (VPtr,), fbc_plugin)
         set_string!(geneproduct_ptr, :GeneProduct_setId, id)
@@ -258,7 +258,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     end
 
     # Add initial assignments
-    for (symbol, math) in mdl.initial_assignments
+    dict_foreach(mdl.initial_assignments) do (symbol, math)
         initialassignment_ptr =
             ccall(sbml(:Model_createInitialAssignment), VPtr, (VPtr,), model)
         set_string!(initialassignment_ptr, :InitialAssignment_setSymbol, symbol)
@@ -288,7 +288,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     end
 
     # Add reactions
-    for (id, reaction) in mdl.reactions
+    dict_foreach(mdl.reactions) do (id, reaction)
         reaction_ptr = ccall(sbml(:Model_createReaction), VPtr, (VPtr,), model)
         reaction_fbc_ptr =
             ccall(sbml(:SBase_getPlugin), VPtr, (VPtr, Cstring), reaction_ptr, "fbc")
@@ -314,7 +314,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
         if !isempty(reaction.kinetic_parameters) || !isnothing(reaction.kinetic_math)
             kinetic_law_ptr =
                 ccall(sbml(:Reaction_createKineticLaw), VPtr, (VPtr,), reaction_ptr)
-            for (id, parameter) in reaction.kinetic_parameters
+            dict_foreach(reaction.kinetic_parameters) do (id, parameter)
                 parameter_ptr =
                     ccall(sbml(:KineticLaw_createParameter), VPtr, (VPtr,), kinetic_law_ptr)
                 set_parameter_ptr!(parameter_ptr, id, parameter)
@@ -374,12 +374,12 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     fbc_plugin == C_NULL ||
         isempty(mdl.objectives) ||
         set_bool!(fbc_plugin, :FbcModelPlugin_setStrict, true)
-    for (id, objective) in mdl.objectives
+    dict_foreach(mdl.objectives) do (id, objective)
         objective_ptr =
             ccall(sbml(:FbcModelPlugin_createObjective), VPtr, (VPtr,), fbc_plugin)
         set_string!(objective_ptr, :Objective_setId, id)
         set_string!(objective_ptr, :Objective_setType, objective.type)
-        for (reaction, coefficient) in objective.flux_objectives
+        dict_foreach(objective.flux_objectives) do (reaction, coefficient)
             fluxobjective_ptr =
                 ccall(sbml(:Objective_createFluxObjective), VPtr, (VPtr,), objective_ptr)
             set_string!(fluxobjective_ptr, :FluxObjective_setReaction, reaction)
@@ -394,7 +394,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     fbc_plugin == C_NULL ||
         isempty(mdl.species) ||
         set_bool!(fbc_plugin, :FbcModelPlugin_setStrict, true)
-    for (id, species) in mdl.species
+    dict_foreach(mdl.species) do (id, species)
         species_ptr = ccall(sbml(:Model_createSpecies), VPtr, (VPtr,), model)
         set_string!(species_ptr, :Species_setId, id)
         set_metaid!(species_ptr, species.metaid)
@@ -432,7 +432,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     end
 
     # Add function definitions
-    for (id, func_def) in mdl.function_definitions
+    dict_foreach(mdl.function_definitions) do (id, func_def)
         functiondefinition_ptr =
             ccall(sbml(:Model_createFunctionDefinition), VPtr, (VPtr,), model)
         set_string!(functiondefinition_ptr, :FunctionDefinition_setId, id)
@@ -505,7 +505,7 @@ function model_to_sbml!(doc::VPtr, mdl::Model)::VPtr
     end
 
     # Add groups
-    for (id, group) in mdl.groups
+    dict_foreach(mdl.groups) do (id, group)
         group_ptr =
             ccall(sbml(:GroupsModelPlugin_createGroup), VPtr, (VPtr,), groups_plugin)
         set_string!(group_ptr, :Group_setId, id)
