@@ -143,7 +143,7 @@ $(TYPEDSIGNATURES)
 Helper for converting XML that is not represented by SBML structures to String.
 """
 function get_string_from_xmlnode(xmlnode::VPtr)::String
-    if ccall(sbml(:XMLNode_isText), Bool, (VPtr,), xmlnode)
+    if ccall(sbml(:XMLNode_isText), Cint, (VPtr,), xmlnode) != 0
         str_ptr = ccall(sbml(:XMLNode_getCharacters), Cstring, (VPtr,), xmlnode)
         str_ptr == C_NULL ? "" : unsafe_string(str_ptr)
     else
@@ -572,7 +572,7 @@ function get_model(mdl::VPtr)::SBML.Model
         end
 
         # explicit reversible flag (defaults to true in SBML)
-        reversible = Bool(ccall(sbml(:Reaction_getReversible), Cint, (VPtr,), re))
+        reversible = ccall(sbml(:Reaction_getReversible), Cint, (VPtr,), re) != 0
 
         reid = get_string(re, :Reaction_getId)
         reactions[reid] = Reaction(;
@@ -676,13 +676,13 @@ function get_model(mdl::VPtr)::SBML.Model
         trigger_ptr = ccall(sbml(:Event_getTrigger), VPtr, (VPtr,), ev)
         trig_math_ptr = ccall(sbml(:Trigger_getMath), VPtr, (VPtr,), trigger_ptr)
         trigger = Trigger(;
-            persistent = ccall(sbml(:Trigger_getPersistent), Bool, (VPtr,), trigger_ptr),
+            persistent = ccall(sbml(:Trigger_getPersistent), Cint, (VPtr,), trigger_ptr) != 0,
             initial_value = ccall(
                 sbml(:Trigger_getInitialValue),
-                Bool,
+                Cint,
                 (VPtr,),
                 trigger_ptr,
-            ),
+            ) != 0,
             math = trig_math_ptr == C_NULL ? nothing : parse_math(trig_math_ptr),
         )
 
@@ -707,11 +707,11 @@ function get_model(mdl::VPtr)::SBML.Model
     num_rules = ccall(sbml(:Model_getNumRules), Cuint, (VPtr,), mdl)
     for i = 0:(num_rules-1)
         rule_ptr = ccall(sbml(:Model_getRule), VPtr, (VPtr, Cuint), mdl, i)
-        type = if ccall(sbml(:Rule_isAlgebraic), Bool, (VPtr,), rule_ptr)
+        type = if ccall(sbml(:Rule_isAlgebraic), Cint, (VPtr,), rule_ptr) != 0
             AlgebraicRule
-        elseif ccall(sbml(:Rule_isAssignment), Bool, (VPtr,), rule_ptr)
+        elseif ccall(sbml(:Rule_isAssignment), Cint, (VPtr,), rule_ptr) != 0
             AssignmentRule
-        elseif ccall(sbml(:Rule_isRate), Bool, (VPtr,), rule_ptr)
+        elseif ccall(sbml(:Rule_isRate), Cint, (VPtr,), rule_ptr) != 0
             RateRule
         end
         if type in (AssignmentRule, RateRule)
