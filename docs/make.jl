@@ -10,6 +10,9 @@ makedocs(
     sitename = "SBML.jl",
     authors = "The developers of SBML.jl",
     linkcheck = !("skiplinks" in ARGS),
+    linkcheck_ignore = [
+        "https://www.ucl.ac.uk/research-innovation/advanced-research-computing",
+    ],
     pages = ["Home" => "index.md", "Reference" => "functions.md"],
 )
 
