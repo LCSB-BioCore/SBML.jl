@@ -714,19 +714,19 @@ function get_model(mdl::VPtr)::SBML.Model
         elseif ccall(sbml(:Rule_isRate), Cint, (VPtr,), rule_ptr) != 0
             RateRule
         end
-        if type in (AssignmentRule, RateRule)
-            var = ccall(sbml(:Rule_getVariable), Cstring, (VPtr,), rule_ptr)
-        end
+
         math_ptr = ccall(sbml(:Rule_getMath), VPtr, (VPtr,), rule_ptr)
-        if math_ptr != C_NULL
-            math = parse_math(math_ptr)
-            rule = if type in (AssignmentRule, RateRule)
-                type(unsafe_string(var), math)
-            else
-                type(math)
-            end
-            push!(rules, rule)
+        math_ptr != C_NULL || continue
+        math = parse_math(math_ptr)
+        rule = if type in (AssignmentRule, RateRule)
+            type(
+                unsafe_string(ccall(sbml(:Rule_getVariable), Cstring, (VPtr,), rule_ptr)),
+                math,
+            )
+        else
+            type(math)
         end
+        push!(rules, rule)
     end
 
     # constraints
