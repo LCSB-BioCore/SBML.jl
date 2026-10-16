@@ -341,24 +341,6 @@ end
     @test subterm.args[2] == SBML.MathIdent("compartment")
 end
 
-@testset "logBase and root math functions" begin
-    m = readSBML(joinpath(@__DIR__, "data", "01565-sbml-l3v1.xml"))
-
-    if TEST_SYMBOLICS
-        # Older versions of symbolics somehow auto-simplify this, newer ones do not.
-        @variables S23 S23b
-        @test (
-            isequal(interpret_as_num(m.reactions["J23"].kinetic_math), 0.0) || isequal(
-                interpret_as_num(m.reactions["J23"].kinetic_math),
-                S23 * S23b * log(Num(1)) / log(Num(10)),
-            )
-        )
-
-        @variables S29 S29b
-        @test isequal(interpret_as_num(m.reactions["J29"].kinetic_math), 2.0 * S29 * S29b)
-    end
-end
-
 @testset "rationals in math" begin
     m = readSBML(joinpath(@__DIR__, "data", "custom.xml"))
     @test m.reactions["rationalTest"].kinetic_math.val == 1 // 5000

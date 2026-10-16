@@ -114,8 +114,9 @@ $(TYPEDSIGNATURES)
 
 Recursively interpret SBML.[`Math`](@ref) type. This can be used to relatively
 easily traverse and evaluate the SBML math, or translate it into any custom
-representation, such as `Expr` or the `Num` of Symbolics.jl (see the SBML test
-suite for examples).
+representation, such as various AST-like symbolic expression types (e.g. `Num`
+of [Symbolics.jl](https://github.com/JuliaSymbolics/Symbolics.jl) package, if
+one chooses to).
 
 By default, the function can convert SBML constants, values and function
 applications, but identifiers, time values and lambdas are not mapped and throw
